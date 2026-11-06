@@ -127,14 +127,18 @@ body.touch .app{grid-template-rows:56px 1fr auto}
 @media (max-width:900px){body.touch .app{grid-template-rows:auto 1fr auto}body.touch .top{min-height:56px}}
 .dtitle{font-weight:600;font-size:15px;margin:2px 2px 8px}
 body.touch .dtitle{font-size:17px}
+.hist{position:absolute;left:12px;top:10px;display:flex;gap:8px;z-index:4}
+.hb{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 16px 8px 12px;font-size:14px;color:#3d3b36;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:background .12s,box-shadow .12s}
+.hb:hover:not(:disabled){background:#f4f3ef;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.hb:active:not(:disabled){transform:translateY(1px)}
+.hb:disabled{opacity:.4;cursor:default;box-shadow:none}
+body.touch .hb{padding:10px 18px 10px 14px;font-size:15px}
 </style></head><body>
 <div class="app">
  <div class="top">
   <span class="title">The Cave</span>
     <button class="tool" id="t-room" title="Drag on the lot to draw a room. Click again or Esc to stop. Hold Shift to keep drawing."><span class="L">Draw room</span><span class="S">Room</span> <kbd>B</kbd></button>
     <span class="sep"></span>
-  <button class="tool" id="undo" title="Undo (Ctrl+Z)">Undo</button><button class="tool" id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
-  <span class="sep"></span>
   <button class="tool" id="t-clr" title="Show working clearance around equipment"><span class="L">Clearances</span><span class="S">Clear</span></button>
   <span class="grow"></span>
   <span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on"><span class="L">Drawings</span><span class="S">Art</span></button><button data-a="off"><span class="L">Boxes</span><span class="S">Box</span></button></span>
@@ -148,7 +152,7 @@ body.touch .dtitle{font-size:17px}
  <div class="mid">
   <div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle">Add Objects</div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
   <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
-   <div class="insp" id="insp"></div><div class="det" id="det"></div></div>
+   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
  </div>
  <div class="status" id="status"></div>
 </div>
@@ -445,7 +449,8 @@ function render(){
  renderInsp();renderStatus();$('#lw').value=S.lot.w;$('#ld').value=S.lot.d;
 }
 function handles(it){var x=it.x,y=it.y,w=it.w,d=it.d;return [{h:'nw',x:x,y:y,c:'nwse-resize'},{h:'n',x:x+w/2,y:y,c:'ns-resize'},{h:'ne',x:x+w,y:y,c:'nesw-resize'},{h:'e',x:x+w,y:y+d/2,c:'ew-resize'},{h:'se',x:x+w,y:y+d,c:'nwse-resize'},{h:'s',x:x+w/2,y:y+d,c:'ns-resize'},{h:'sw',x:x,y:y+d,c:'nesw-resize'},{h:'w',x:x,y:y+d/2,c:'ew-resize'}]}
-function renderStatus(){var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
+function histUI(){var u=$('#undo'),r=$('#redo');if(u)u.disabled=!undoS.length;if(r)r.disabled=!redoS.length}
+function renderStatus(){histUI();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
 function renderInsp(){var it=sel&&find(sel),el=$('#insp');if(!it){el.className='insp';return}
@@ -520,9 +525,10 @@ function mid(){var a=Array.from(touches.values());return {x:(a[0].x+a[1].x)/2,y:
 var cam={cx:50,cy:50},raf=0;
 /* keep the lot on screen: margin around the lot (room for the rulers), no zooming out past the whole lot */
 var CAM_M=3;
-function minScale(){var W=stage.clientWidth||1,H=stage.clientHeight||1;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
+var CAM_TOP=56;
+function minScale(){var W=stage.clientWidth||1,H=(stage.clientHeight||1)-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 function clampCam(){var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
- cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);cam.cy=vh>=L.d+2*M?-M+vh/2:cl(cam.cy,-M+vh/2,L.d+M-vh/2)}
+ cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);var tp=CAM_TOP/scale;cam.cy=vh-tp>=L.d+2*M?-M-tp+vh/2:cl(cam.cy,-M-tp+vh/2,L.d+M-vh/2)}
 function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
