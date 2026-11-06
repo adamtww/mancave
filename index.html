@@ -125,11 +125,12 @@ body.touch .status{padding-bottom:max(14px,env(safe-area-inset-bottom));height:a
 body.touch .app{grid-template-rows:56px 1fr auto}
 @media (max-width:900px){body.touch .seg button{padding:9px 9px}body.touch .lot{gap:2px}body.touch .lot input{width:52px;padding:7px 2px;-moz-appearance:textfield;appearance:textfield}body.touch .lot input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}body.touch .lot .L,body.touch .lot{font-size:12px}body.touch .top{gap:2px}}
 @media (max-width:900px){body.touch .app{grid-template-rows:auto 1fr auto}body.touch .top{min-height:56px}}
+.dtitle{font-weight:600;font-size:15px;margin:2px 2px 8px}
+body.touch .dtitle{font-size:17px}
 </style></head><body>
 <div class="app">
  <div class="top">
   <span class="title">The Cave</span>
-    <button class="tool tonly" id="t-obj" title="Show or hide the object list"><span class="L">Objects</span><span class="S">List</span></button>
     <button class="tool" id="t-room" title="Drag on the lot to draw a room. Click again or Esc to stop. Hold Shift to keep drawing."><span class="L">Draw room</span><span class="S">Room</span> <kbd>B</kbd></button>
     <span class="sep"></span>
   <button class="tool tonly" id="t-multi" title="Keep Draw room on after each room"><span class="L">Keep drawing</span><span class="S">Multi</span></button>
@@ -147,7 +148,7 @@ body.touch .app{grid-template-rows:56px 1fr auto}
   <button class="tool" id="zo">−</button><button class="tool" id="zf">Fit</button><button class="tool" id="zi">+</button>
  </div>
  <div class="mid">
-  <div class="drawer open" id="drawer"><div class="in"><div class="s"><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
+  <div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle">Add Objects</div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
   <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
    <div class="insp" id="insp"></div><div class="det" id="det"></div></div>
  </div>
@@ -351,7 +352,7 @@ if(PLAN&&PLAN.stamp>baseStamp&&PLAN.state){S=PLAN.state;try{localStorage.setItem
 var AUTO_TOUCH=(navigator.maxTouchPoints||0)>1&&window.matchMedia&&matchMedia('(pointer: coarse)').matches;
 var TOUCH=true,multiDraw=false;
 function applyMode(){document.body.classList.toggle('touch',TOUCH);
-if(!TOUCH)document.body.classList.remove('nodrawer');$('#t-obj').classList.toggle('on',!document.body.classList.contains('nodrawer'))}
+document.body.classList.remove('nodrawer')}
 function uid(){uc++;return 'u'+Date.now().toString(36)+uc}
 function snap(v){return Math.round(v*2)/2}
 function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]})}
@@ -558,7 +559,6 @@ function setTool(t){tool=t;$('#t-room').classList.toggle('on',t==='room');stage.
 $('#t-room').onclick=function(){setTool(tool==='room'?'sel':'room')};
 $('#t-clr').onclick=function(){showClr=!showClr;this.classList.toggle('on',showClr);render()};
 
-$('#t-obj').onclick=function(){document.body.classList.toggle('nodrawer');this.classList.toggle('on',!document.body.classList.contains('nodrawer'));setTimeout(fit,220)};
 $('#t-multi').onclick=function(){multiDraw=!multiDraw;this.classList.toggle('on',multiDraw);if(multiDraw)setTool('room')};
 function artUI(){Array.prototype.forEach.call(document.querySelectorAll('#t-art button'),function(b){b.classList.toggle('on',(b.dataset.a==='on')===showArt)})}
 $('#t-art').onclick=function(e){var b=e.target.closest('button');if(!b)return;showArt=b.dataset.a==='on';try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
