@@ -522,7 +522,7 @@ var cam={cx:50,cy:50},raf=0;
 var CAM_M=3;
 function minScale(){var W=stage.clientWidth||1,H=stage.clientHeight||1;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 function clampCam(){var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
- cam.cx=vw>=L.w+2*M?L.w/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);cam.cy=vh>=L.d+2*M?L.d/2:cl(cam.cy,-M+vh/2,L.d+M-vh/2)}
+ cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);cam.cy=vh>=L.d+2*M?-M+vh/2:cl(cam.cy,-M+vh/2,L.d+M-vh/2)}
 function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
