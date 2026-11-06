@@ -133,8 +133,6 @@ body.touch .dtitle{font-size:17px}
   <span class="title">The Cave</span>
     <button class="tool" id="t-room" title="Drag on the lot to draw a room. Click again or Esc to stop. Hold Shift to keep drawing."><span class="L">Draw room</span><span class="S">Room</span> <kbd>B</kbd></button>
     <span class="sep"></span>
-  <button class="tool tonly" id="t-multi" title="Keep Draw room on after each room"><span class="L">Keep drawing</span><span class="S">Multi</span></button>
-  <span class="sep tonly"></span>
   <button class="tool" id="undo" title="Undo (Ctrl+Z)">Undo</button><button class="tool" id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
   <span class="sep"></span>
   <button class="tool" id="t-clr" title="Show working clearance around equipment"><span class="L">Clearances</span><span class="S">Clear</span></button>
@@ -559,7 +557,6 @@ function setTool(t){tool=t;$('#t-room').classList.toggle('on',t==='room');stage.
 $('#t-room').onclick=function(){setTool(tool==='room'?'sel':'room')};
 $('#t-clr').onclick=function(){showClr=!showClr;this.classList.toggle('on',showClr);render()};
 
-$('#t-multi').onclick=function(){multiDraw=!multiDraw;this.classList.toggle('on',multiDraw);if(multiDraw)setTool('room')};
 function artUI(){Array.prototype.forEach.call(document.querySelectorAll('#t-art button'),function(b){b.classList.toggle('on',(b.dataset.a==='on')===showArt)})}
 $('#t-art').onclick=function(e){var b=e.target.closest('button');if(!b)return;showArt=b.dataset.a==='on';try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
