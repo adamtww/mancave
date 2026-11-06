@@ -318,7 +318,7 @@ function undo(){if(!undoS.length)return;redoS.push(JSON.stringify(S));S=JSON.par
 function redo(){if(!redoS.length)return;undoS.push(JSON.stringify(S));S=JSON.parse(redoS.pop());commit()}
 /* catalog drawer */
 function renderCats(){var q=($('#q').value||'').toLowerCase(),h='';
- CATS.forEach(function(c){var list=CATALOG.filter(function(i){return i.c===c[0]&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
+ CATS.forEach(function(c){if(c[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===c[0]&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
   h+='<details class="cat"'+(q?' open':'')+'><summary><span class="dot" style="background:'+c[1]+'"></span>'+esc(c[0])+'<span class="n">'+list.length+'</span></summary>';
   list.forEach(function(i){h+='<button class="pi" data-r="'+i.r+'"><span>'+esc(i.n)+'</span><span>'+i.w+'×'+i.d+'</span></button>'});h+='</details>'});
  $('#cats').innerHTML=h}
