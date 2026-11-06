@@ -95,7 +95,7 @@ body.touch .det .tile{touch-action:none;-webkit-user-select:none;user-select:non
 body.touch .status{font-size:13px}
 body{touch-action:manipulation}
 .tool{white-space:nowrap}.S{display:none}
-@media (max-width:900px){body.touch .L{display:none}body.touch .S{display:inline}body.touch #zo,body.touch #zi{display:none}body.touch .tool{padding:10px 9px}body.touch .sep{margin:0 2px}body.touch .lot input{width:56px;padding:7px 4px;text-align:center}}
+@media (max-width:900px){body.touch .top{flex-wrap:wrap;height:auto;padding:4px 8px;row-gap:2px;overflow:visible}body.touch .app{grid-template-rows:auto 1fr auto}body.touch .grow{display:none}body.touch .tool{padding:10px 9px}body.touch .sep{margin:0 2px}body.touch .lot input{width:56px;padding:7px 4px;text-align:center}}
 .insp .btns button.lkon{background:#fff4e0;border-color:#e8c98a;color:#7a5410}
 .insp .btns button:disabled{opacity:.4;cursor:default}
 .insp input:disabled{background:#f4f3ef;color:#9a968c}
@@ -124,6 +124,7 @@ body.touch .pwr{font-size:14px;padding:4px 0}
 body.touch .status{padding-bottom:max(14px,env(safe-area-inset-bottom));height:auto;min-height:34px}
 body.touch .app{grid-template-rows:56px 1fr auto}
 @media (max-width:900px){body.touch .seg button{padding:9px 9px}body.touch .lot{gap:2px}body.touch .lot input{width:52px;padding:7px 2px;-moz-appearance:textfield;appearance:textfield}body.touch .lot input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}body.touch .lot .L,body.touch .lot{font-size:12px}body.touch .top{gap:2px}}
+@media (max-width:900px){body.touch .app{grid-template-rows:auto 1fr auto}body.touch .top{min-height:56px}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -350,7 +351,7 @@ if(PLAN&&PLAN.stamp>baseStamp&&PLAN.state){S=PLAN.state;try{localStorage.setItem
 var AUTO_TOUCH=(navigator.maxTouchPoints||0)>1&&window.matchMedia&&matchMedia('(pointer: coarse)').matches;
 var TOUCH=AUTO_TOUCH,multiDraw=false;try{var mm=localStorage.getItem('cave-mode');if(mm)TOUCH=mm==='touch'}catch(e){}
 function applyMode(){document.body.classList.toggle('touch',TOUCH);Array.prototype.forEach.call(document.querySelectorAll('#mode button'),function(b){b.classList.toggle('on',(b.dataset.m==='touch')===TOUCH)});
- if(TOUCH&&innerWidth<900)document.body.classList.add('nodrawer');if(!TOUCH)document.body.classList.remove('nodrawer');$('#t-obj').classList.toggle('on',!document.body.classList.contains('nodrawer'))}
+if(!TOUCH)document.body.classList.remove('nodrawer');$('#t-obj').classList.toggle('on',!document.body.classList.contains('nodrawer'))}
 function uid(){uc++;return 'u'+Date.now().toString(36)+uc}
 function snap(v){return Math.round(v*2)/2}
 function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]})}
