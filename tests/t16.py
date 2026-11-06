@@ -17,7 +17,7 @@ async def main():
         await pg.click("details.cat >> nth=7")  # Creator
         row=pg.locator(".pi",has_text="MetalFab 1200W");bb=await row.bounding_box();await dragTo(15,10)
         await pg.evaluate("cave.select(cave.find('Shop')[0].u)")
-        print("Shop power:",(await pg.inner_text("#insp .pw")).replace('\n',' | '))
+        print('Shop power:',await pg.evaluate("document.querySelector('#insp .pw').textContent"))
         # drag saw toward Arcade, then to empty floor
         s=await pg.evaluate("(i=>[i.x+i.w/2,i.y+i.d/2])(cave.find('saw')[0])");a=await P(*s);z=await P(55,15)
         await pg.mouse.move(*a);await pg.mouse.down();await pg.mouse.move(*z,steps=8);await pg.mouse.up()
@@ -30,7 +30,7 @@ async def main():
         h=await pg.evaluate("(()=>{var r=document.querySelector('.hd[data-h=\"s\"]').getBoundingClientRect();return [r.x+r.width/2,r.y+r.height/2]})()")
         z=await P(55,6);await pg.mouse.move(*h);await pg.mouse.down();await pg.mouse.move(*z,steps=6);await pg.mouse.up()
         print("Arcade after shrink:",await pg.evaluate("(r=>[r.y,r.d])(cave.find('Arcade')[0])"))
-        await pg.evaluate("cave.select(cave.find('Arcade')[0].u)");await pg.click("#i-x")
+        await pg.evaluate("cave.remove(cave.find('Arcade')[0].u)")
         print("after deleting Arcade objects:",await n(),errs)
         await b.close()
 asyncio.run(main())
