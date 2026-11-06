@@ -322,7 +322,7 @@ function render(){
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'"><rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#faf9f6" stroke="'+(b?'var(--bad)':'#3a3935')+'" stroke-width="0.45"/>';
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
-  h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#55524b',op:0.35,weight:600});
+  h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#55524b',op:0.3,weight:600});
   h+='</g>'});
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
