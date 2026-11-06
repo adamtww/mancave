@@ -565,8 +565,18 @@ function fit(){scale=clampScale(Math.min((stage.clientWidth-30)/(S.lot.w+2*PAD),
 /* catalog: click = details, press-and-drag = place */
 var ghost=null,cdrag=null,detR=null;
 function mkGhost(r,rot){var c=BY[r];rot=(rot||0)%4;var sw=rot%2;return {r:r,name:c.n.replace(/ \(\$[^)]*\)/,''),x:0,y:0,w:sw?c.d:c.w,d:sw?c.w:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',rot:rot,z:!!c.z}}
-function fitGhost(){if(!ghost||!cdrag)return;var px=cdrag.wx,py=cdrag.wy;ghost.x=cl(snap(px-ghost.w/2),0,Math.max(0,S.lot.w-ghost.w));ghost.y=cl(snap(py-ghost.d/2),0,Math.max(0,S.lot.d-ghost.d));
- if(!ghost.z){var r=roomAtPoint(px,py);ghost.noRoom=!(r&&fitInto(ghost,r))}}
+function ghostHits(g){var cg=BY[g.r];if(cg&&cg.ov)return false;return S.items.some(function(o){if(isRoom(o))return false;var co=cat(o);if(co&&co.ov)return false;return hit(g,o)})}
+/* best spot for an object in room r near (px,py) at a given rotation: clamp first, then nearest free spot */
+function spotIn(r,rot,px,py){var g=mkGhost(cdrag.r,rot);if(g.w>r.w+1e-6||g.d>r.d+1e-6)return null;
+ g.x=cl(snap(px-g.w/2),r.x,r.x+r.w-g.w);g.y=cl(snap(py-g.d/2),r.y,r.y+r.d-g.d);if(!ghostHits(g)){g.dist=Math.hypot(g.x+g.w/2-px,g.y+g.d/2-py);return g}
+ var best=null;for(var x=r.x;x<=r.x+r.w-g.w+1e-6;x+=0.5)for(var y=r.y;y<=r.y+r.d-g.d+1e-6;y+=0.5){if(ghostHits({r:g.r,x:x,y:y,w:g.w,d:g.d}))continue;var dd=Math.hypot(x+g.w/2-px,y+g.d/2-py);if(!best||dd<best.dd)best={x:x,y:y,dd:dd}}
+ if(!best)return null;g.x=best.x;g.y=best.y;g.dist=best.dd;return g}
+function fitGhost(){if(!ghost||!cdrag)return;var px=cdrag.wx,py=cdrag.wy;
+ if(ghost.z){ghost.x=cl(snap(px-ghost.w/2),0,Math.max(0,S.lot.w-ghost.w));ghost.y=cl(snap(py-ghost.d/2),0,Math.max(0,S.lot.d-ghost.d));return}
+ var r=roomAtPoint(px,py);if(!r){ghost.x=snap(px-ghost.w/2);ghost.y=snap(py-ghost.d/2);ghost.noRoom=true;ghost.tooBig=false;return}
+ var a=spotIn(r,cdrag.rot,px,py),b=spotIn(r,(cdrag.rot+1)%4,px,py),pick=a&&(!b||a.dist<=b.dist+3)?a:b;
+ if(!pick){ghost=mkGhost(cdrag.r,cdrag.rot);ghost.x=snap(px-ghost.w/2);ghost.y=snap(py-ghost.d/2);ghost.noRoom=true;ghost.tooBig=true;return}
+ ghost=pick;ghost.noRoom=false;ghost.tooBig=false}
 function ghostBad(){if(!ghost)return false;if(ghost.z)return S.items.some(function(r){return isRoom(r)&&hit(ghost,r)});if(ghost.noRoom)return true;var g=ghost;if(g.x<0||g.y<0||g.x+g.w>S.lot.w||g.y+g.d>S.lot.d)return true;
  return S.items.some(function(o){if(isRoom(o))return false;var co=cat(o),cg=BY[g.r];if((co&&co.ov)||(cg&&cg.ov))return false;return hit(g,o)||(showClr&&((o.cl>0&&hit(g,cr(o)))||(g.cl>0&&hit(o,cr(g)))))})}
 function overStage(e){var r=stage.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
@@ -595,7 +605,7 @@ function moveGhost(e){var over=overStage(e);
  render()}
 function endCDrag(e,cancel){if(!cdrag)return;if(e&&e.pointerId!==undefined&&e.pointerId!==cdrag.pid)return;var d=cdrag;cdrag=null;clearTimeout(d.timer);document.removeEventListener('touchmove',blockScroll);document.body.classList.remove('dragging');if(d.chip)d.chip.remove();if(d.src)d.src.classList.remove('lift');
  if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);return}
- var g=ghost,okDrop=false;if(g){ghost=g;okDrop=!ghostBad()}ghost=null;if(!cancel&&g&&e&&overStage(e)&&okDrop){place(g.r,g.x,g.y,g.rot)}else{if(!cancel&&g&&g.noRoom)flash('Objects have to go inside a room');render()}}
+ var g=ghost,okDrop=false;if(g){ghost=g;okDrop=!ghostBad()}ghost=null;if(!cancel&&g&&e&&overStage(e)&&okDrop){place(g.r,g.x,g.y,g.rot)}else{if(!cancel&&g&&g.noRoom)flash(g.tooBig?'Too big for this room, even turned sideways':'Objects have to go inside a room');render()}}
 function flash(t){var f=document.createElement('div');f.className='flash';f.textContent=t;document.body.appendChild(f);setTimeout(function(){f.remove()},1800)}
 window.addEventListener('pointerup',function(e){endCDrag(e,false)});
 window.addEventListener('pointercancel',function(e){endCDrag(e,true)});
