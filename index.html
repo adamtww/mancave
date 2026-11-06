@@ -120,6 +120,10 @@ body.touch .pwr{font-size:14px;padding:4px 0}
 .top{position:relative}
 .artseg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 @media (max-width:1100px){.artseg{position:static;transform:none}}
+.seg,.lot,.tool{flex:none}
+body.touch .status{padding-bottom:max(14px,env(safe-area-inset-bottom));height:auto;min-height:34px}
+body.touch .app{grid-template-rows:56px 1fr auto}
+@media (max-width:900px){body.touch .seg button{padding:9px 9px}body.touch .lot{gap:2px}body.touch .lot input{width:52px;padding:7px 2px;-moz-appearance:textfield;appearance:textfield}body.touch .lot input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}body.touch .lot .L,body.touch .lot{font-size:12px}body.touch .top{gap:2px}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -133,9 +137,9 @@ body.touch .pwr{font-size:14px;padding:4px 0}
   <span class="sep"></span>
   <button class="tool" id="t-clr" title="Show working clearance around equipment"><span class="L">Clearances</span><span class="S">Clear</span></button>
   <span class="grow"></span>
-  <span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on">Drawings</button><button data-a="off">Boxes</button></span>
+  <span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on"><span class="L">Drawings</span><span class="S">Art</span></button><button data-a="off"><span class="L">Boxes</span><span class="S">Box</span></button></span>
 
-  <span class="seg" id="mode"><button data-m="desktop">Desktop</button><button data-m="touch">Touch</button></span>
+  <span class="seg" id="mode"><button data-m="desktop"><span class="L">Desktop</span><span class="S">PC</span></button><button data-m="touch">Touch</button></span>
   <span class="sep"></span>
   <span class="lot"><span class="L">Lot</span> <input id="lw" type="number" min="10"> × <input id="ld" type="number" min="10"> ft</span>
   <span class="sep"></span>
