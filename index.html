@@ -540,7 +540,9 @@ function endPtr(e){if(e.pointerType==='touch'){touches.delete(e.pointerId);
 svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
 document.addEventListener('gesturestart',function(e){e.preventDefault()});
 /* trackpad pinch / ctrl+wheel zoom on desktop */
-stage.addEventListener('wheel',function(e){e.preventDefault();if(e.ctrlKey)zoomAt(scale*Math.exp(-e.deltaY*0.01),e.clientX,e.clientY);else{panBy(-e.deltaX,-e.deltaY);settle()}},{passive:false});
+stage.addEventListener('wheel',function(e){e.preventDefault();var dy=e.deltaMode===1?e.deltaY*33:e.deltaY;
+ if(e.shiftKey||e.altKey){panBy(-(e.deltaX||dy),e.deltaX?-dy:0);settle();return}
+ zoomAt(scale*Math.exp(-dy*(e.ctrlKey?0.01:0.0015)),e.clientX,e.clientY)},{passive:false});
 window.addEventListener('resize',function(){applyView()});
 /* tools & keys */
 function setTool(t){tool=t;$('#t-room').classList.toggle('on',t==='room');stage.classList.toggle('build',t==='room')}
