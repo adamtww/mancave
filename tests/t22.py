@@ -1,0 +1,25 @@
+import asyncio
+from playwright.async_api import async_playwright
+async def main():
+    async with async_playwright() as p:
+        b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox"])
+        pg=await b.new_page(viewport={"width":1500,"height":900},device_scale_factor=2);errs=[];pg.on("pageerror",lambda e:errs.append(str(e)))
+        await pg.goto("file:///home/claude/mancave/index.html");await pg.wait_for_timeout(400)
+        P=lambda x,y: pg.evaluate(f"(()=>{{var s=document.querySelector('#svg'),p=s.createSVGPoint();p.x={x};p.y={y};var q=p.matrixTransform(s.getScreenCTM());return [q.x,q.y]}})()")
+        st=lambda: pg.evaluate("[document.querySelector('#cmenu').className, cave.get().items.map(i=>i.name+(i.sz?'*':'')).join(',')]")
+        await pg.evaluate("cave.room('Kitchen',60,5,20,15)");await pg.evaluate("cave.select(null)")
+        await pg.mouse.click(*(await P(20,30)));await pg.click("#em-room");await pg.wait_for_timeout(250)
+        print("sizing:",await st())
+        await pg.mouse.click(*(await P(50,12)));await pg.wait_for_timeout(100);print("tap empty:",await st())
+        await pg.mouse.click(*(await P(70,12)));await pg.wait_for_timeout(100);print("tap other room:",await st())
+        await pg.click("#t-room");print("toolbar Draw room:",await st(),"tool on:",await pg.evaluate("document.querySelector('#t-room').classList.contains('on')"))
+        await pg.keyboard.press("Escape");print("Esc:",await st())
+        vb=await pg.evaluate("document.querySelector('#svg').getAttribute('viewBox')")
+        await pg.mouse.move(800,700);await pg.mouse.wheel(0,-300);await pg.wait_for_timeout(200)
+        print("zoom still works:",vb!=await pg.evaluate("document.querySelector('#svg').getAttribute('viewBox')"),await st())
+        await pg.evaluate("cave.fit()");await pg.wait_for_timeout(100)
+        await pg.screenshot(path="/home/claude/build/warn.png",clip={"x":300,"y":50,"width":900,"height":600})
+        await pg.click("#cm-rm");await pg.wait_for_timeout(100);print("after Remove:",await st())
+        await pg.mouse.click(*(await P(20,30)));await pg.click("#em-room");await pg.wait_for_timeout(200);await pg.click("#cm-ok");print("after Confirm:",await st(),errs)
+        await b.close()
+asyncio.run(main())

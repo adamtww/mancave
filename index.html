@@ -156,6 +156,12 @@ body.nodrawer .hist{left:54px}
 .rmb.cfm{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 .rmb.cfm svg{color:#fff}
 .rmb.cfm:hover{background:#2560d6}
+.rmb.rmv{display:none;color:#b3412f;border-color:#efcfc8}
+.rmb.rmv svg{color:#b3412f}
+.rmb.rmv:hover{background:#fbefec}
+.rmenu.warn .rmb.rmv{display:flex}
+.rmenu.shake{animation:shake .38s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -175,7 +181,7 @@ body.nodrawer .hist{left:54px}
  <div class="mid">
   <button class="chev chevopen" id="dexp" title="Show the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle"><span>Add Objects</span><button class="chev" id="dcol" title="Hide the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
   <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
-   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button></div><div class="rmenu emenu" id="emenu"><button class="rmb" id="em-room"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M12 8v8M8 12h8"/></svg><span>Add Room</span></button></div><div class="rmenu" id="cmenu"><button class="rmb cfm" id="cm-ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Confirm</span></button></div><div class="rmenu" id="rmenu"><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg><span>Resize</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>Rotate</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
+   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button></div><div class="rmenu emenu" id="emenu"><button class="rmb" id="em-room"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M12 8v8M8 12h8"/></svg><span>Add Room</span></button></div><div class="rmenu" id="cmenu"><button class="rmb cfm" id="cm-ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Confirm</span></button><button class="rmb rmv" id="cm-rm"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="rmenu" id="rmenu"><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg><span>Resize</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>Rotate</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
  </div>
  <div class="status" id="status"></div>
 </div>
@@ -565,7 +571,17 @@ function addRoomAt(px,py){var W=15,D=15,L=S.lot;W=Math.min(W,L.w);D=Math.min(D,L
   if(!best){W=Math.max(4,Math.floor(W*0.6));D=Math.max(4,Math.floor(D*0.6))}}
  if(!best){flash('No open space left for a new room');return}
  snapshot();var n=S.items.filter(isRoom).length+1,it={u:uid(),r:null,kind:'room',name:'Room '+n,x:best.x,y:best.y,w:W,d:D,cl:0,lk:false,sz:true};S.items.push(it);sel=it.u;commit()}
-$('#cm-ok').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(!it)return;snapshot();it.sz=false;it.lk=true;commit()};
+/* while a new room is being sized, block anything that would leave sizing: shake + offer Remove */
+var warnU=null;
+function sizingRoom(){var it=sel&&find(sel);return it&&isRoom(it)&&it.sz?it:null}
+function nudgeConfirm(){var r=sizingRoom();if(!r)return;warnU=r.u;var m=$('#cmenu');m.classList.add('warn');m.classList.remove('shake');void m.offsetWidth;m.classList.add('shake')}
+document.addEventListener('pointerdown',function(e){var r=sizingRoom();if(!r)return;var t=e.target;
+ if(t.closest('#cmenu,#insp,.chev'))return;
+ if(t.closest('#svg')){var g=t.closest('.o');if(t.closest('.hd')||!g||g.dataset.u===r.u)return}
+ e.stopPropagation();e.preventDefault();blockClick=true;setTimeout(function(){blockClick=false},600);nudgeConfirm()},true);
+var blockClick=false;document.addEventListener('click',function(e){if(blockClick){blockClick=false;e.stopPropagation();e.preventDefault()}},true);
+$('#cm-rm').onclick=function(e){e.stopPropagation();var r=sizingRoom();if(!r)return;warnU=null;remove(r.u)};
+$('#cm-ok').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(!it)return;warnU=null;snapshot();it.sz=false;it.lk=true;commit()};
 $('#em-room').onclick=function(e){e.stopPropagation();var a=emAt;hideEmenu();if(a)addRoomAt(a.x,a.y)};
 document.addEventListener('pointerdown',function(e){if(emAt&&!e.target.closest('#emenu'))hideEmenu()},true);
 stage.addEventListener('wheel',function(){if(emAt)hideEmenu()},{passive:true});
@@ -573,7 +589,7 @@ function placeRMenu(){var it0=sel&&find(sel),sizing=!!(it0&&isRoom(it0)&&it0.sz)
  var m=$(sizing?'#cmenu':'#rmenu');if(!m)return;var it=it0;if(!it||!isRoom(it)||drag||draft){m.className='rmenu';m.dataset.u='';return}
  var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
  if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}var mw=m.offsetWidth||150,left=tr.x-sr.left+12,flip=left+mw>sr.width-8;if(flip)left=tl.x-sr.left-12-mw;
- m.className='rmenu show'+(flip?' left':'');m.style.left=Math.max(8,left)+'px';m.style.top=Math.max(8,Math.min(sr.height-140,tr.y-sr.top))+'px'}
+ m.className='rmenu show'+(flip?' left':'')+(sizing&&warnU===it.u?' warn':'');m.style.left=Math.max(8,left)+'px';m.style.top=Math.max(8,Math.min(sr.height-140,tr.y-sr.top))+'px'}
 function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
@@ -599,6 +615,7 @@ svg.addEventListener('pointermove',function(e){
 function endPtr(e){if(e.pointerType==='touch'){touches.delete(e.pointerId);
   if(gesture){if(touches.size<2){gesture=null;suppress=touches.size>0;render()}return}
   if(suppress){if(!touches.size)suppress=false;return}}
+ if(pan&&e.pointerId===pan.pid&&!pan.moved&&sizingRoom()){pan=null;nudgeConfirm();return}
  if(pan&&e.pointerId===pan.pid){var wasTap=!pan.moved,su=pan.selU,had=sel,cx=pan.sx,cy=pan.sy;pan=null;if(wasTap){sel=su||null;if(!su&&!had)showEmenu(cx,cy)}render();return}
  up(e)}
 svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
@@ -695,6 +712,7 @@ document.addEventListener('pointerup',function(e){if(!dpend||e.pointerId!==dpend
 document.addEventListener('pointercancel',function(e){if(dpend&&e.pointerId===dpend.id)dpend=null},true);
 function hideDetails(){detR=null;$('#det').className='det';Array.prototype.forEach.call(document.querySelectorAll('.pi.on'),function(b){b.classList.remove('on')})}
 document.addEventListener('keydown',function(e){
+ if(sizingRoom()&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){var k0=e.key.toLowerCase();if(k0==='escape'||k0==='delete'||k0==='backspace'||k0==='b'||((e.ctrlKey||e.metaKey)&&k0==='z')){e.preventDefault();nudgeConfirm();return}}
  if(cdrag&&cdrag.on){var kk=e.key.toLowerCase();if(kk==='r'){rotateGhost();e.preventDefault();return}
   if(kk==='escape'){endCDrag(null,true);e.preventDefault();return}}
  if(e.key==='Escape'&&detR&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName))hideDetails();
