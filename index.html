@@ -322,8 +322,8 @@ function render(){
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'"><rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#faf9f6" stroke="'+(b?'var(--bad)':'#3a3935')+'" stroke-width="0.45"/>';
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
-  h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#55524b',op:0.5,weight:600});
-  h+='<text x="'+(it.x+0.8)+'" y="'+(it.y+0.6+fs*0.72)+'" font-size="'+fs*0.72+'" fill="#a8a397" pointer-events="none">'+it.w+' × '+it.d+' · '+fmt(it.w*it.d)+' sf</text></g>'});
+  h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#55524b',op:0.35,weight:600});
+  h+='</g>'});
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
   if((showClr||s)&&it.cl>0){var q=cr(it);h+='<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="'+(it.cm==='front'?'rgba(150,140,120,.06)':'none')+'" stroke="#b9b4a8" stroke-width="0.1" stroke-dasharray="0.5 0.4" pointer-events="none"/>'}
@@ -350,7 +350,7 @@ function renderStatus(){var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.for
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
 function renderInsp(){var it=sel&&find(sel),el=$('#insp');if(!it){el.className='insp';return}
- var c=cat(it),h='<div class="h">'+(isRoom(it)?'Room':esc(c?c.c:'Item'))+'</div><input id="i-n" value="'+esc(it.name)+'">';
+ var c=cat(it),h='<div class="h">'+(isRoom(it)?'Room · '+fmt(it.w*it.d)+' sq ft':esc(c?c.c:'Item'))+'</div><input id="i-n" value="'+esc(it.name)+'">';
  h+='<div class="row"><label>Width<input id="i-w" type="number" step="0.5" value="'+it.w+'"></label><label>Depth<input id="i-d" type="number" step="0.5" value="'+it.d+'"></label>'+(isRoom(it)?'':'<label>Clearance<input id="i-c" type="number" step="0.5" value="'+it.cl+'"></label>')+'</div>'+
  (isRoom(it)?'':'<div class="row"><label style="flex-direction:row;align-items:center;gap:6px;color:#55524b;font-size:12px"><input id="i-cm" type="checkbox" style="width:auto"'+(it.cm==='front'?' checked':'')+'> Front only (dark edge = front)</label></div>');
  if(c&&c.p)h+='<div class="note">'+c.p[0]+'V · '+(c.est?'≈':'')+fmt(c.p[1])+'W · '+(c.p[3]?'dedicated '+c.p[2]+'A circuit':'shared circuit')+'</div>';
