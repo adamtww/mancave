@@ -114,6 +114,9 @@ body.touch .swc{width:34px;height:34px}
 .pwr b{font-weight:600}
 body.touch .pwr{font-size:14px;padding:4px 0}
 .flash{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#2b2a27;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;z-index:60;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.det .tile.art{background:#fbfaf7;border:1px solid #9d988c;padding:0;margin-bottom:4px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.det .tile.art:hover{box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.det .tcap{text-align:center;font-size:10.5px;color:var(--muted);margin-bottom:10px}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -586,7 +589,9 @@ function showDetails(r){detR=r;var c=BY[r],el=$('#det');
  Array.prototype.forEach.call(document.querySelectorAll('.pi'),function(b){b.classList.toggle('on',b.dataset.r===r)});
  var tw=Math.min(200,Math.max(40,c.w*14)),th=Math.min(110,Math.max(28,c.d*14));if(c.w>c.d&&tw===200)th=Math.max(28,200*c.d/c.w);if(c.d>=c.w&&th===110)tw=Math.max(40,110*c.w/c.d);
  var h='<button class="x" id="det-x" title="Close">×</button><div class="h">'+esc(c.c)+'</div><div class="nm">'+esc(c.n)+'</div>';
- h+='<div class="tile" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px">drag me</div>';
+ if(ICONS[r]){var sc=Math.min(170/c.w,110/c.d,26);tw=Math.max(24,c.w*sc);th=Math.max(24,c.d*sc);
+  h+='<div class="tile art" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px"><svg viewBox="'+(-c.w/2)+' '+(-c.d/2)+' '+c.w+' '+c.d+'" width="100%" height="100%" pointer-events="none" style="display:block;overflow:visible">'+ICONS[r](c.w,c.d)+'</svg></div><div class="tcap">drag onto the floor</div>'}
+ else h+='<div class="tile" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px">drag me</div>';
  h+='<div class="kv"><span>Size</span><span>'+(c.est?'≈ ':'')+c.w+' × '+c.d+' ft</span></div>';
  if(!c.z)h+='<div class="kv"><span>Clearance</span><span>'+(c.cl||0)+' ft '+(c.cf?'in front':'all around')+'</span></div>';
  if(c.p)h+='<div class="kv"><span>Power</span><span>'+c.p[0]+'V · '+(c.est?'≈':'')+fmt(c.p[1])+'W</span></div><div class="kv"><span>Circuit</span><span>'+(c.p[3]?'dedicated '+c.p[2]+'A':'shared')+'</span></div>';
