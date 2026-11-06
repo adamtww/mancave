@@ -534,7 +534,7 @@ function moveCore(e){var p=pt(e);
  else{var o=drag.o,it=drag.it,h=drag.h,x2=cl(snap(p.x),0,S.lot.w),y2=cl(snap(p.y),0,S.lot.d);
   var nr=limitToKids(resizeRect(o,h,x2,y2,drag.obs,1),h,drag.kb,o);it.x=nr.x;it.y=nr.y;it.w=nr.w;it.d=nr.d;
   render()}}
-function up(e){if(draft){var d=draft;draft=null;if(d.w>=2&&d.d>=2){snapshot();var n=S.items.filter(isRoom).length+1;var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:d.x,y:d.y,w:d.w,d:d.d,cl:0};S.items.push(it);sel=it.u;if(!(e&&e.shiftKey)&&!multiDraw)setTool('sel')}commit();return}
+function up(e){if(draft){var d=draft;draft=null;if(d.w>=2&&d.d>=2){snapshot();var n=S.items.filter(isRoom).length+1;var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:d.x,y:d.y,w:d.w,d:d.d,cl:0,lk:true};S.items.push(it);sel=it.u;if(!(e&&e.shiftKey)&&!multiDraw)setTool('sel')}commit();return}
  if(drag){var m=drag.mode==='resize'||drag.moved;if(!m)undoS.pop();drag=null;commit()}}
 /* gesture layer: two fingers = pan + pinch zoom; one finger on empty floor = pan */
 var touches=new Map(),gesture=null,pan=null,suppress=false;
