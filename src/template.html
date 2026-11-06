@@ -302,8 +302,9 @@ function render(){
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">'+(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="0.225"/>';
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
-  h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#000',op:0.3,weight:600});
-  if(it.ed&&it.sz&&!it.ph){var hs=Math.min(0.9,it.d*0.08,it.w/13);if(hs>=0.3)h+='<text x="'+(it.x+it.w/2)+'" y="'+(it.y+it.d-20/scale-hs*0.2).toFixed(2)+'" font-size="'+hs.toFixed(2)+'" fill="#000" fill-opacity="0.5" text-anchor="middle" pointer-events="none">(Click Here to Rename)</text>'}
+  var hint=it.ed&&it.sz&&!it.ph,hs=11/scale,band=24/scale+hs,hin=hint&&it.d-band>=it.d*0.5&&it.w>=hs*12,lr=hin?{name:it.name,x:it.x,y:it.y,w:it.w,d:it.d-band+6/scale}:it;
+  h+=label(lr,{cap:Math.min(lr.w,lr.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#000',op:0.3,weight:600});
+  if(hint){var hy=hin?it.y+it.d-20/scale-hs*0.2:it.y+it.d+22/scale+hs*0.8;var nar=!hin&&it.w<hs*11.5;h+='<text x="'+(nar?it.x+it.w:it.x+it.w/2)+'" y="'+hy.toFixed(3)+'" font-size="'+hs.toFixed(3)+'" fill="#000" fill-opacity="0.55" text-anchor="'+(nar?'end':'middle')+'" pointer-events="none"'+(hin?'':' stroke="#fbfaf7" stroke-width="'+(hs*0.3).toFixed(3)+'" paint-order="stroke"')+'>(Click Here to Rename)</text>'}
   h+='</g>'});
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
