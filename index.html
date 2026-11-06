@@ -117,6 +117,9 @@ body.touch .pwr{font-size:14px;padding:4px 0}
 .det .tile.art{background:#fbfaf7;border:1px solid #9d988c;padding:0;margin-bottom:4px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
 .det .tile.art:hover{box-shadow:0 4px 12px rgba(0,0,0,.12)}
 .det .tcap{text-align:center;font-size:10.5px;color:var(--muted);margin-bottom:10px}
+.top{position:relative}
+.artseg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+@media (max-width:1100px){.artseg{position:static;transform:none}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -130,6 +133,7 @@ body.touch .pwr{font-size:14px;padding:4px 0}
   <span class="sep"></span>
   <button class="tool" id="t-clr" title="Show working clearance around equipment"><span class="L">Clearances</span><span class="S">Clear</span></button>
   <span class="grow"></span>
+  <span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on">Drawings</button><button data-a="off">Boxes</button></span>
 
   <span class="seg" id="mode"><button data-m="desktop">Desktop</button><button data-m="touch">Touch</button></span>
   <span class="sep"></span>
@@ -413,10 +417,10 @@ function render(){
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
   if((showClr||s)&&it.cl>0){var q=cr(it);h+='<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="'+(it.cm==='front'?'rgba(150,140,120,.06)':'none')+'" stroke="#b9b4a8" stroke-width="0.1" stroke-dasharray="0.5 0.4" pointer-events="none"/>'}
-  var hasI=!!ICONS[it.r];h+='<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" rx="0.25" fill="'+(hasI?'#fbfaf7':'#e8e5de')+'" stroke="'+(b?'var(--bad)':'#9d988c')+'" stroke-width="'+(b?0.3:0.15)+'"/>';
+  var hasI=!!ART(it.r);h+='<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" rx="0.25" fill="'+(hasI?'#fbfaf7':'#e8e5de')+'" stroke="'+(b?'var(--bad)':'#9d988c')+'" stroke-width="'+(b?0.3:0.15)+'"/>';
   if(hasI)h+=iconFor(it);
   if(it.cm==='front'){var fe=frontEdge(it);h+='<line x1="'+fe[0]+'" y1="'+fe[1]+'" x2="'+fe[2]+'" y2="'+fe[3]+'" stroke="#5f5b52" stroke-width="0.3" pointer-events="none"/>'}
-  h+=(ICONS[it.r]?(it.u===sel?label(it,{halo:1,cap:0.9}):'<title>'+esc(it.name)+'</title>'):label(it))+'</g>'});
+  h+=(ART(it.r)?(it.u===sel?label(it,{halo:1,cap:0.9}):'<title>'+esc(it.name)+'</title>'):label(it))+'</g>'});
  var si=sel&&find(sel);
  if(si&&isRoom(si)&&!si.lk){h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2/scale)+'" pointer-events="none"/>';
   var hpx=TOUCH?14:8,hs=hpx/scale,hit=(TOUCH?34:12)/scale,small=Math.min(si.w,si.d)*scale<(TOUCH?90:48);
@@ -427,7 +431,7 @@ function render(){
   if(ghost.cl>0){var gq=cr(ghost);h+='<rect x="'+gq.x+'" y="'+gq.y+'" width="'+gq.w+'" height="'+gq.d+'" fill="'+(gb?'rgba(214,69,69,.06)':'rgba(47,111,237,.05)')+'" stroke="'+(gb?'var(--bad)':'var(--accent)')+'" stroke-width="'+(1/scale)+'" stroke-dasharray="'+(4/scale)+' '+(3/scale)+'" pointer-events="none"/>'}
   h+='<rect x="'+ghost.x+'" y="'+ghost.y+'" width="'+ghost.w+'" height="'+ghost.d+'" rx="0.25" fill="'+(gb?'rgba(214,69,69,.18)':'rgba(47,111,237,.16)')+'" stroke="'+(gb?'var(--bad)':'var(--accent)')+'" stroke-width="'+(2/scale)+'" pointer-events="none" style="filter:drop-shadow(0 '+(3/scale)+'px '+(6/scale)+'px rgba(0,0,0,.18))"/>';
   if(ghost.cm==='front'){var gf=frontEdge(ghost);h+='<line x1="'+gf[0]+'" y1="'+gf[1]+'" x2="'+gf[2]+'" y2="'+gf[3]+'" stroke="'+(gb?'var(--bad)':'var(--accent)')+'" stroke-width="0.3" pointer-events="none"/>'}
-  if(ICONS[ghost.r])h+='<g opacity=".7">'+iconFor(ghost)+'</g>';h+=label({x:ghost.x,y:ghost.y,w:ghost.w,d:ghost.d,name:ghost.name},ICONS[ghost.r]?{halo:1,cap:0.9}:null)}
+  if(ART(ghost.r))h+='<g opacity=".7">'+iconFor(ghost)+'</g>';h+=label({x:ghost.x,y:ghost.y,w:ghost.w,d:ghost.d,name:ghost.name},ART(ghost.r)?{halo:1,cap:0.9}:null)}
  if(draft)h+='<rect x="'+draft.x+'" y="'+draft.y+'" width="'+draft.w+'" height="'+draft.d+'" fill="rgba(47,111,237,.06)" stroke="var(--accent)" stroke-width="0.35" stroke-dasharray="0.8 0.5"/><text x="'+(draft.x+draft.w/2)+'" y="'+(draft.y+draft.d/2)+'" font-size="1.3" fill="var(--accent)" text-anchor="middle">'+draft.w+' × '+draft.d+'</text>';
  svg.innerHTML=h;
  renderInsp();renderStatus();$('#lw').value=S.lot.w;$('#ld').value=S.lot.d;
@@ -466,6 +470,8 @@ var drag=null,draft=null;
 function inside(i,r){var cx=i.x+i.w/2,cy=i.y+i.d/2;return cx>=r.x&&cx<=r.x+r.w&&cy>=r.y&&cy<=r.y+r.d}
 /* room collision: rooms can touch but not overlap */
 var EPS=1e-6;
+var showArt=true;try{showArt=localStorage.getItem('cave-art')!=='off'}catch(e){}
+function ART(r){return showArt&&ICONS[r]}
 var ROOMCOLS=['','#e07a5f','#f2a65a','#e9c46a','#8ab17d','#2a9d8f','#5b8bd9','#8e7cc3','#d47fa6','#8d8a83'];
 function ovR(a0,al,b0,bl){return a0<b0+bl-EPS&&b0<a0+al-EPS}
 function roomObs(it){return S.items.filter(function(r){return isRoom(r)&&r!==it&&!(it&&ovR(it.x,it.w,r.x,r.w)&&ovR(it.y,it.d,r.y,r.d))})}
@@ -543,6 +549,8 @@ $('#t-clr').onclick=function(){showClr=!showClr;this.classList.toggle('on',showC
 $('#mode').onclick=function(e){var b=e.target.closest('button');if(!b)return;TOUCH=b.dataset.m==='touch';try{localStorage.setItem('cave-mode',b.dataset.m)}catch(x){}applyMode();render();setTimeout(fit,220)};
 $('#t-obj').onclick=function(){document.body.classList.toggle('nodrawer');this.classList.toggle('on',!document.body.classList.contains('nodrawer'));setTimeout(fit,220)};
 $('#t-multi').onclick=function(){multiDraw=!multiDraw;this.classList.toggle('on',multiDraw);if(multiDraw)setTool('room')};
+function artUI(){Array.prototype.forEach.call(document.querySelectorAll('#t-art button'),function(b){b.classList.toggle('on',(b.dataset.a==='on')===showArt)})}
+$('#t-art').onclick=function(e){var b=e.target.closest('button');if(!b)return;showArt=b.dataset.a==='on';try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
 $('#zi').onclick=function(){zoomCenter(1.25)};$('#zo').onclick=function(){zoomCenter(0.8)};$('#zf').onclick=fit;
@@ -589,8 +597,8 @@ function showDetails(r){detR=r;var c=BY[r],el=$('#det');
  Array.prototype.forEach.call(document.querySelectorAll('.pi'),function(b){b.classList.toggle('on',b.dataset.r===r)});
  var tw=Math.min(200,Math.max(40,c.w*14)),th=Math.min(110,Math.max(28,c.d*14));if(c.w>c.d&&tw===200)th=Math.max(28,200*c.d/c.w);if(c.d>=c.w&&th===110)tw=Math.max(40,110*c.w/c.d);
  var h='<button class="x" id="det-x" title="Close">×</button><div class="h">'+esc(c.c)+'</div><div class="nm">'+esc(c.n)+'</div>';
- if(ICONS[r]){var sc=Math.min(170/c.w,110/c.d,26);tw=Math.max(24,c.w*sc);th=Math.max(24,c.d*sc);
-  h+='<div class="tile art" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px"><svg viewBox="'+(-c.w/2)+' '+(-c.d/2)+' '+c.w+' '+c.d+'" width="100%" height="100%" pointer-events="none" style="display:block;overflow:visible">'+ICONS[r](c.w,c.d)+'</svg></div><div class="tcap">drag onto the floor</div>'}
+ if(ART(r)){var sc=Math.min(170/c.w,110/c.d,26);tw=Math.max(24,c.w*sc);th=Math.max(24,c.d*sc);
+  h+='<div class="tile art" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px"><svg viewBox="'+(-c.w/2)+' '+(-c.d/2)+' '+c.w+' '+c.d+'" width="100%" height="100%" pointer-events="none" style="display:block;overflow:visible">'+ART(r)(c.w,c.d)+'</svg></div><div class="tcap">drag onto the floor</div>'}
  else h+='<div class="tile" data-r="'+r+'" style="width:'+tw+'px;height:'+th+'px">drag me</div>';
  h+='<div class="kv"><span>Size</span><span>'+(c.est?'≈ ':'')+c.w+' × '+c.d+' ft</span></div>';
  if(!c.z)h+='<div class="kv"><span>Clearance</span><span>'+(c.cl||0)+' ft '+(c.cf?'in front':'all around')+'</span></div>';
@@ -645,6 +653,6 @@ window.addEventListener('message',function(e){var m=e.data&&e.data.caveCmd;if(!m
   if(calls.length>1)window.cave.batch(run);else run();
   out={id:m.id,ok:true,result:res.length===1?res[0]:res}}catch(err){out={id:m.id,ok:false,error:String(err&&err.message||err)}}
  try{e.source.postMessage({caveReply:JSON.parse(JSON.stringify(out===undefined?null:out))},e.origin)}catch(err){}});
-applyMode();renderCats();render();setTimeout(fit,30);window.addEventListener('resize',function(){});
+artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventListener('resize',function(){});
 })();
 </script></body></html>
