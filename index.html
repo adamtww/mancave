@@ -337,7 +337,6 @@ function render(){
   h+='<g class="o" data-u="'+it.u+'"><rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="0.45"/>';
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
   h+=label(it,{cap:Math.min(it.w,it.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#000',op:0.3,weight:600});
-  if(it.lk){var ls=Math.min(2.2,Math.min(it.w,it.d)*0.18);h+='<g transform="translate('+(it.x+it.w-ls*1.3)+','+(it.y+ls*0.35)+') scale('+(ls/24)+')" pointer-events="none" opacity="0.55"><rect x="5" y="11" width="14" height="10" rx="2" fill="#55524b"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="#55524b" stroke-width="2.2"/></g>'}
   h+='</g>'});
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
