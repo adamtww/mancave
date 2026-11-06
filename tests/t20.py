@@ -15,6 +15,6 @@ async def main():
         await pg.evaluate("cave.select(null)");await pg.mouse.click(*(await P(10,10)));print("click on room:",await M())
         await pg.evaluate("cave.select(null)");await pg.mouse.click(*(await P(-2,30)));print("click outside lot:",await M())
         await pg.evaluate("cave.select(null)");await pg.mouse.click(*(await P(26,10)));print("click beside kitchen:",await M());await pg.click("#em-room")
-        print("placed beside:",await pg.evaluate("(r=>[r.x,r.y,r.w,r.d])(cave.find('Room 3')[0])"),errs)
+        print("placed beside:",await pg.evaluate("(r=>[r.x,r.y,r.w,r.d])(cave.get().items.slice(-1)[0])"),errs)
         await b.close()
 asyncio.run(main())

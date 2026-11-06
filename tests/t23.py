@@ -9,7 +9,7 @@ async def main():
         await pg.mouse.click(*(await P(30,20)));await pg.click("#em-room");await pg.wait_for_timeout(250)
         r=await pg.evaluate("(r=>[r.x+r.w/2,r.y+r.d/2])(cave.get().items[0])")
         await pg.mouse.click(*(await P(*r)));await pg.wait_for_timeout(150)
-        print("prompt shown:",await pg.evaluate("document.querySelector('#rename').classList.contains('show')"),"value:",await pg.input_value("#rn-in"),"shake:",await pg.evaluate("document.querySelector('#cmenu').classList.contains('warn')"))
+        print("prompt shown:",await pg.evaluate("document.querySelector('#rename').classList.contains('show')"),"value:",repr(await pg.input_value("#rn-in")),"shake:",await pg.evaluate("document.querySelector('#cmenu').classList.contains('warn')"))
         await pg.screenshot(path="/home/claude/build/rename.png",clip={"x":300,"y":50,"width":900,"height":600})
         await pg.keyboard.type("Woodshop");await pg.keyboard.press("Enter");await pg.wait_for_timeout(100)
         print("renamed:",await pg.evaluate("cave.get().items[0].name"),"still sizing:",await pg.evaluate("!!cave.get().items[0].sz"))
