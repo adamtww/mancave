@@ -142,6 +142,16 @@ body.touch .hb{padding:10px 18px 10px 14px;font-size:15px}
 body.nodrawer .chevopen{display:flex}
 body.nodrawer .hist{left:54px}
 .drawer{transition:width .18s}
+.rmenu{position:absolute;display:none;flex-direction:column;gap:8px;z-index:5;pointer-events:auto}
+.rmenu.show{display:flex}
+.rmenu.left{align-items:flex-end}
+.rmb{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 16px 9px 12px;font-size:14px;color:#3d3b36;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.1);white-space:nowrap;animation:rmIn .16s ease-out both}
+.rmb:nth-child(2){animation-delay:.03s}.rmb:nth-child(3){animation-delay:.06s}
+.rmb:hover{background:#f4f3ef}
+.rmb svg{color:var(--accent)}
+.rmenu.left .rmb{animation-name:rmInL}
+@keyframes rmIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+@keyframes rmInL{from{opacity:0;transform:translateX(8px)}to{opacity:1;transform:none}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -161,7 +171,7 @@ body.nodrawer .hist{left:54px}
  <div class="mid">
   <button class="chev chevopen" id="dexp" title="Show the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle"><span>Add Objects</span><button class="chev" id="dcol" title="Hide the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
   <div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
-   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
+   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button></div><div class="rmenu" id="rmenu"><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg><span>Resize</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg><span>Rotate</span></button><button class="rmb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
  </div>
  <div class="status" id="status"></div>
 </div>
@@ -538,7 +548,11 @@ var CAM_TOP=56;
 function minScale(){var W=stage.clientWidth||1,H=(stage.clientHeight||1)-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 function clampCam(){var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
  cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);var tp=CAM_TOP/scale;cam.cy=vh-tp>=L.d+2*M?-M-tp+vh/2:cl(cam.cy,-M-tp+vh/2,L.d+M-vh/2)}
-function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+function placeRMenu(){var m=$('#rmenu');if(!m)return;var it=sel&&find(sel);if(!it||!isRoom(it)||drag||draft){m.className='rmenu';m.dataset.u='';return}
+ var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
+ if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}var mw=m.offsetWidth||150,left=tr.x-sr.left+12,flip=left+mw>sr.width-8;if(flip)left=tl.x-sr.left-12-mw;
+ m.className='rmenu show'+(flip?' left':'');m.style.left=Math.max(8,left)+'px';m.style.top=Math.max(8,Math.min(sr.height-140,tr.y-sr.top))+'px'}
+function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
 function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
