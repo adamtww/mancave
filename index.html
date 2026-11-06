@@ -518,10 +518,15 @@ function revertDrag(){if(drag){if(drag.mode==='move'){drag.it.x=drag.ox;drag.it.
 function mid(){var a=Array.from(touches.values());return {x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}}
 /* camera: world center (cx,cy) in ft + scale px/ft; only the viewBox changes while panning/zooming */
 var cam={cx:50,cy:50},raf=0;
-function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+/* keep the lot on screen: margin around the lot (room for the rulers), no zooming out past the whole lot */
+var CAM_M=3;
+function minScale(){var W=stage.clientWidth||1,H=stage.clientHeight||1;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
+function clampCam(){var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
+ cam.cx=vw>=L.w+2*M?L.w/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);cam.cy=vh>=L.d+2*M?L.d/2:cl(cam.cy,-M+vh/2,L.d+M-vh/2)}
+function applyView(){var W=stage.clientWidth||1,H=stage.clientHeight||1;clampCam();svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
-function clampScale(v){return Math.max(1.5,Math.min(40,v))}
+function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
 function worldAt(clientX,clientY){var r=stage.getBoundingClientRect();return {x:cam.cx+(clientX-r.left-r.width/2)/scale,y:cam.cy+(clientY-r.top-r.height/2)/scale}}
 function placeWorld(f,clientX,clientY){var r=stage.getBoundingClientRect();cam.cx=f.x-(clientX-r.left-r.width/2)/scale;cam.cy=f.y-(clientY-r.top-r.height/2)/scale}
 function zoomAt(ns,clientX,clientY){var f=worldAt(clientX,clientY);scale=clampScale(ns);placeWorld(f,clientX,clientY);queueView();settle()}
@@ -562,7 +567,7 @@ $('#t-art').onclick=function(e){var b=e.target.closest('button');if(!b)return;sh
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
 $('#zi').onclick=function(){zoomCenter(1.25)};$('#zo').onclick=function(){zoomCenter(0.8)};$('#zf').onclick=fit;
-function fit(){scale=clampScale(Math.min((stage.clientWidth-30)/(S.lot.w+2*PAD),(stage.clientHeight-30)/(S.lot.d+2*PAD)));cam.cx=S.lot.w/2;cam.cy=S.lot.d/2;render()}
+function fit(){scale=minScale();cam.cx=S.lot.w/2;cam.cy=S.lot.d/2;render()}
 ['#lw','#ld'].forEach(function(id,i){$(id).onchange=function(){var v=+this.value;if(v>=10){snapshot();S.lot[i?'d':'w']=v;commit()}}});
 /* catalog: click = details, press-and-drag = place */
 var ghost=null,cdrag=null,detR=null;
