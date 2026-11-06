@@ -381,7 +381,8 @@ var cam={cx:50,cy:50},raf=0;
 var CAM_M=3;
 var CAM_TOP=56;
 function minScale(){var W=stage.clientWidth||1,H=(stage.clientHeight||1)-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
-function clampCam(){var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
+var camFree=false;
+function clampCam(){if(camFree)return;var W=stage.clientWidth||1,H=stage.clientHeight||1;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
  cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);var tp=CAM_TOP/scale;cam.cy=vh-tp>=L.d+2*M?-M-tp+vh/2:cl(cam.cy,-M-tp+vh/2,L.d+M-vh/2)}
 /* empty-floor menu */
 var emAt=null;
@@ -408,10 +409,15 @@ var blockClick=false;document.addEventListener('click',function(e){if(blockClick
 $('#cm-rm').onclick=function(e){e.stopPropagation();var r=sizingRoom();if(!r)return;warnU=null;remove(r.u)};
 /* rename prompt for a room being sized */
 var rnU=null;
-function showRename(it){rnU=it.u;var el=$('#rename'),inp=$('#rn-in'),sr=stage.getBoundingClientRect(),M=svg.getScreenCTM(),p=svg.createSVGPoint();p.x=it.x+it.w/2;p.y=it.y+it.d/2;var c=p.matrixTransform(M);
- inp.value=it.name;el.classList.add('show');var w=el.offsetWidth,h=el.offsetHeight;el.style.left=Math.max(8,Math.min(sr.width-w-8,c.x-sr.left-w/2))+'px';el.style.top=Math.max(8,Math.min(sr.height-h-8,c.y-sr.top-h/2))+'px';
- inp.focus();inp.select()}
-function closeRename(save){if(!rnU)return;var it=find(rnU),v=$('#rn-in').value.trim();rnU=null;$('#rename').classList.remove('show');$('#rn-in').blur();if(save&&it&&v&&v!==it.name){snapshot();it.name=v;commit()}}
+function placeRename(){if(!rnU)return;var it=find(rnU);if(!it)return;var el=$('#rename'),sr=stage.getBoundingClientRect(),p=svg.createSVGPoint();p.x=it.x+it.w/2;p.y=it.y+it.d/2;var c=p.matrixTransform(svg.getScreenCTM()),w=el.offsetWidth,h=el.offsetHeight;
+ var vv=window.visualViewport,visBottom=vv?vv.offsetTop+vv.height:innerHeight,maxTop=Math.min(sr.height,visBottom-sr.top)-h-8;
+ el.style.left=Math.max(8,Math.min(sr.width-w-8,c.x-sr.left-w/2))+'px';el.style.top=Math.max(8,Math.min(maxTop,c.y-sr.top-h/2))+'px'}
+function showRename(it){rnU=it.u;var el=$('#rename'),inp=$('#rn-in'),sr=stage.getBoundingClientRect();inp.value=it.name;el.classList.add('show');
+ camFree=true;var tx=it.x+it.w/2,ty=it.y+it.d/2,fx=cam.cx,fy=cam.cy,gx=tx,gy=ty-(sr.height*0.25-sr.height/2)/scale-0*1,t0=performance.now();gy=ty+(sr.height/2-sr.height*0.25)/scale;
+ (function step(now){var k=Math.min(1,(now-t0)/220),e=1-Math.pow(1-k,3);cam.cx=fx+(gx-fx)*e;cam.cy=fy+(gy-fy)*e;applyView();placeRename();if(k<1&&rnU)requestAnimationFrame(step)})(t0);
+ inp.focus({preventScroll:true});inp.select()}
+if(window.visualViewport){visualViewport.addEventListener('resize',placeRename);visualViewport.addEventListener('scroll',placeRename)}
+function closeRename(save){if(!rnU)return;camFree=false;setTimeout(function(){applyView();render()},0);var it=find(rnU),v=$('#rn-in').value.trim();rnU=null;$('#rename').classList.remove('show');$('#rn-in').blur();if(save&&it&&v&&v!==it.name){snapshot();it.name=v;commit()}}
 $('#rn-in').addEventListener('keydown',function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();closeRename(true)}else if(e.key==='Escape'){e.preventDefault();closeRename(false)}});
 $('#rn-ok').onclick=function(e){e.stopPropagation();closeRename(true)};
 document.addEventListener('pointerdown',function(e){if(rnU&&!e.target.closest('#rename'))closeRename(true)},true);
