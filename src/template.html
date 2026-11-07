@@ -239,7 +239,8 @@ body:not(.isadmin) .umenu .adm{display:none}
 .mh{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px 22px;border-bottom:1px solid var(--line);font-size:17px;font-weight:700;color:#2b2a27}
 .mx{border:0;background:#f4f2ed;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:#55524b}
 .mb{overflow:auto;padding:14px 22px 20px}
-.mtabs{display:flex;gap:6px;margin-bottom:12px}
+.mtabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.mtabs button{white-space:nowrap}
 .mtabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13.5px;cursor:pointer;color:#55524b}
 .mtabs button.on{background:#eef3fd;border-color:#d9e4fa;color:#1f4fbf;font-weight:600}
 .mtabs .sp{flex:1}
@@ -1018,6 +1019,10 @@ function api(m,p,b){
  return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b!==undefined?JSON.stringify(b):undefined})
   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(r.status===401&&p!=='/api/login'){signedOut(j.error);throw new Error(j.error||'Please sign in')}if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})},
    function(){throw new Error("Can't reach the server — check your connection")})}
+/* test site only: read-only access to the LIVE layouts. Only GET requests (and signing in) are allowed — nothing can be written to live from here. */
+var LIVE_API='https://mancave-api.adamtww.workers.dev',liveTok=null;try{liveTok=localStorage.getItem('cave-live-token')}catch(_){}try{if(localStorage.getItem('cave-live-api'))LIVE_API=localStorage.getItem('cave-live-api')}catch(_){}
+function liveGet(p){if(!TEST_SITE)return Promise.reject(new Error('Not available'));return fetch(LIVE_API+p,{method:'GET',headers:liveTok?{authorization:'Bearer '+liveTok}:{}}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(r.status===401){liveTok=null;try{localStorage.removeItem('cave-live-token')}catch(_){}}if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})},function(){throw new Error("Can't reach the live server")})}
+function liveLogin(u,pw){return fetch(LIVE_API+'/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:u,password:pw})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'Sign-in failed');liveTok=j.token;try{localStorage.setItem('cave-live-token',liveTok)}catch(_){}return j})})}
 function utc(ts){return ts?new Date(String(ts).replace(' ','T')+'Z'):null}
 function ago(ts){var d=utc(ts);if(!d)return '';var s=(Date.now()-d)/1000;if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' hr ago';if(s<86400*7)return Math.floor(s/86400)+' day'+(s<172800?'':'s')+' ago';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()===new Date().getFullYear()?undefined:'numeric'})}
 function whenFull(ts){var d=utc(ts);return d?d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
@@ -1041,7 +1046,7 @@ function showLogin(msg){$('#login').classList.add('show');$('#li-err').textConte
 function signedOut(msg){tok=null;me=null;cur=null;savedJSON=null;try{localStorage.removeItem('cave-token');localStorage.removeItem('cave-cur');localStorage.removeItem('cave-build');localStorage.setItem('cave-migrated','1')}catch(_){}S={lot:{w:100,d:100},items:[]};undoS=[];redoS=[];sel=null;render();closeModal();cloudUI();showLogin(msg)}
 $('#login-f').onsubmit=function(e){e.preventDefault();var u=$('#li-u').value.trim(),p=$('#li-p').value,b=$('#li-go');if(!u||!p){$('#li-err').textContent='Enter your username and password';return}
  b.disabled=true;b.textContent='Signing in…';$('#li-err').textContent='';
- api('POST','/api/login',{username:u,password:p}).then(function(j){tok=j.token;me=j.user;try{localStorage.setItem('cave-token',tok)}catch(_){}$('#li-p').value='';$('#login').classList.remove('show');cloudUI();return openInitial()})
+ if(TEST_SITE&&!liveTok)liveLogin(u,p).catch(function(){});api('POST','/api/login',{username:u,password:p}).then(function(j){tok=j.token;me=j.user;try{localStorage.setItem('cave-token',tok)}catch(_){}$('#li-p').value='';$('#login').classList.remove('show');cloudUI();return openInitial()})
   .catch(function(err){$('#li-err').textContent=err.message}).then(function(){b.disabled=false;b.textContent='Sign in'})};
 function cloudBoot(){if(!tok){showLogin();return}api('GET','/api/me').then(function(j){me=j.user;cloudUI();return openInitial()}).catch(function(err){if(tok){flash('Offline — working from this browser for now');cloudUI()}})}
 /* first open after signing in: last layout, else your newest, else move this browser's plan into your account */
@@ -1082,8 +1087,24 @@ function guard(fn){if(!isDirty())return fn();askM('Unsaved changes','You have un
 /* ---- Layouts browser ---- */
 var lyTab='mine';
 function openLayouts(){if(!me)return showLogin();modal('Layouts','<div class="mempty">Loading…</div>');api('GET','/api/layouts').then(function(j){lyCache=j.layouts;renderLayouts()}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+function bindLy(){$('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts()}}}
+function renderLive(head){
+ var note='<div class="ms" style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Your real layouts from the live site. This is <b>read-only</b>: copying makes a new layout in the <b>test</b> database and never changes live.</div>';
+ if(!liveTok){$('#mdl-b').innerHTML=head+note+'<form class="mrowform" id="lv-f"><input id="lv-u" placeholder="Live username" autocapitalize="none" value="'+escH(me?me.username:'')+'"><input id="lv-p" type="password" placeholder="Live password"><button class="mbtn pri" type="submit">Sign in to live</button></form><div class="merr" id="lv-e" style="font-size:13px;color:#b3412f;min-height:16px"></div>';
+  bindLy();$('#lv-f').onsubmit=function(e){e.preventDefault();liveLogin($('#lv-u').value.trim(),$('#lv-p').value).then(function(){renderLayouts()}).catch(function(err){$('#lv-e').textContent=err.message})};return}
+ liveGet('/api/layouts').then(function(j){var list=j.layouts,h=head+note;
+  if(list.length)h+='<div style="display:flex;justify-content:flex-end;margin:4px 0 2px"><button class="mbtn" data-k="liveall">Copy all '+list.length+' to test</button></div>';else h+='<div class="mempty">No live layouts yet.</div>';
+  list.forEach(function(l){h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+'</div><div class="ms">by <b>'+escH(l.owner)+'</b> · saved '+ago(l.updated_at)+'</div></div><div class="ma"><button class="mbtn pri" data-k="livecopy">Copy to test</button></div></div>'});
+  $('#mdl-b').innerHTML=h;
+  $('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts();return}var k=e.target.closest('[data-k]');if(!k)return;
+   var copyOne=function(l){return liveGet('/api/layouts/'+l.id).then(function(x){return api('POST','/api/layouts',{name:x.layout.name+' (from live · '+x.layout.owner+')',data:x.layout.data})})};
+   if(k.dataset.k==='livecopy'){var id=+k.closest('.mrow').dataset.id,l=list.find(function(x){return x.id===id});k.disabled=true;k.textContent='Copying…';
+    guard(function(){copyOne(l).then(function(r){return openLayout(r.layout.id)}).then(function(){flash('Copied “'+l.name+'” into the test site')}).catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy to test'})})}
+   if(k.dataset.k==='liveall'){k.disabled=true;k.textContent='Copying…';var i=0,next=function(){if(i>=list.length){flash('Copied '+list.length+' live layouts into the test site');lyTab='mine';openLayouts();return}return copyOne(list[i++]).then(next)};next().catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy all to test'})}}
+ }).catch(function(err){$('#mdl-b').innerHTML=head+note+'<div class="mempty">'+escH(err.message)+'</div>';bindLy()})}
 function renderLayouts(){var mine=lyCache.filter(function(l){return l.owner_id===me.id}),oth=lyCache.filter(function(l){return l.owner_id!==me.id}),list=lyTab==='mine'?mine:oth;
- var h='<div class="mtabs"><button data-tab="mine" class="'+(lyTab==='mine'?'on':'')+'">My layouts ('+mine.length+')</button><button data-tab="shared" class="'+(lyTab==='shared'?'on':'')+'">Everyone else ('+oth.length+')</button><span class="sp"></span><button data-k="new" class="mbtn pri">+ New layout</button></div>';
+ var h='<div class="mtabs"><button data-tab="mine" class="'+(lyTab==='mine'?'on':'')+'">My layouts ('+mine.length+')</button><button data-tab="shared" class="'+(lyTab==='shared'?'on':'')+'">Everyone else ('+oth.length+')</button>'+(TEST_SITE?'<button data-tab="live" class="'+(lyTab==='live'?'on':'')+'">Live (read-only)</button>':'')+'<span class="sp"></span><button data-k="new" class="mbtn pri">+ New layout</button></div>';
+ if(lyTab==='live'){$('#mdl-b').innerHTML=h+'<div class="mempty">Loading live layouts…</div>';bindLy();renderLive(h);return}
  if(!list.length)h+='<div class="mempty">'+(lyTab==='mine'?'You have no layouts yet.':'Nobody else has saved a layout yet.')+'</div>';
  list.forEach(function(l){var open=cur&&cur.id===l.id;
   h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
