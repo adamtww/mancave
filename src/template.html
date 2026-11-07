@@ -7,6 +7,7 @@
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:13px}
 button,input{font:inherit;color:inherit}
 .app{display:grid;grid-template-rows:48px 1fr 30px;height:100vh}
+@supports (height:100dvh){.app{height:100dvh}}
 .top{display:flex;align-items:center;gap:6px;padding:0 12px;background:var(--paper);border-bottom:1px solid var(--line)}
 .title{font-weight:600;margin-right:10px}
 .tool{border:1px solid transparent;background:none;border-radius:7px;padding:6px 10px;cursor:pointer;color:#55524b;display:flex;gap:6px;align-items:center}
@@ -694,7 +695,9 @@ var CAM_TOP=6;
 /* the canvas window: fixed to the size the lot has when fully zoomed out (Add Objects uses the whole stage) */
 var CAN_ML=16;
 var INFO_GAP=14,UNDO_H=56;
-function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};SH=Math.max(1,SH-UNDO_H);var inf=$('#info'),iw=inf?inf.offsetWidth:0,lb=$('#lib'),lw=lb?lb.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0)-(lw?lw+INFO_GAP:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
+/* how far the top bar reaches into the canvas area (Safari can render it taller than its slot) */
+function barOverlap(){if(furn)return 0;var h=$('#hist');if(!h||!stage)return 0;return Math.max(0,Math.ceil(h.getBoundingClientRect().bottom-stage.getBoundingClientRect().top))}
+function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};SH=Math.max(1,SH-UNDO_H-barOverlap());var inf=$('#info'),iw=inf?inf.offsetWidth:0,lb=$('#lib'),lw=lb?lb.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0)-(lw?lw+INFO_GAP:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
 function minScale(){var v=viewDims(),W=v.w,H=v.h-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 var camFree=false;
 function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
@@ -798,7 +801,7 @@ function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd
  if(r&&!fitInto(rect,r)){flash('Not enough room to turn it here');return}snapshot();it.x=rect.x;it.y=rect.y;it.w=nw;it.d=nd;it.rot=((it.rot||0)+1)%4;commit()}
 $('#im-rot').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))rotateObj(it)};
 $('#im-del').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))remove(it.u)};
-function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';var lb=$('#lib'),lbw=lb&&!furn?lb.offsetWidth:0,svgL=furn?0:CAN_ML+(lbw?lbw+INFO_GAP:0);svg.style.left=svgL+'px';svg.style.top=(furn?0:UNDO_H)+'px';var ub=$('#undobar');if(ub)ub.style.left=svgL+'px';var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+svgL+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2)+'px';if(lb){lb.style.left=(stage.offsetLeft+CAN_ML)+'px';lb.style.top=inf.style.top}}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';var lb=$('#lib'),lbw=lb&&!furn?lb.offsetWidth:0,svgL=furn?0:CAN_ML+(lbw?lbw+INFO_GAP:0);svg.style.left=svgL+'px';var ov=barOverlap();svg.style.top=(furn?0:UNDO_H+ov)+'px';var ub=$('#undobar');if(ub){ub.style.left=svgL+'px';ub.style.top=(6+ov)+'px'}var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+svgL+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2+ov)+'px';if(lb){lb.style.left=(stage.offsetLeft+CAN_ML)+'px';lb.style.top=inf.style.top}}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
 function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
