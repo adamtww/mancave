@@ -195,7 +195,12 @@ body.furn .info{display:none!important}
 .testpill{display:none;font-size:11.5px;font-weight:800;letter-spacing:.06em;color:#fff;background:#e0457b;border-radius:999px;padding:4px 10px;white-space:nowrap;vertical-align:middle}
 body.testsite .testpill{display:inline-block}
 .lttl .testpill{margin-left:10px;font-size:11px}
-body.testsite .mid>.hist{background:repeating-linear-gradient(135deg,#fff5f8,#fff5f8 12px,#fdeef3 12px,#fdeef3 24px)}
+.testbar{display:none}
+body.testsite .testbar{display:flex;align-items:center;justify-content:center;gap:14px;height:36px;background:#d62828;color:#fff;font-size:13.5px;letter-spacing:.02em;box-shadow:0 2px 6px rgba(0,0,0,.15);position:relative;z-index:50}
+body.testsite .testbar b{font-size:15px;font-weight:900;letter-spacing:.14em}
+body.testsite .testbar span{opacity:.92}
+body.testsite .app{height:calc(100vh - 36px)}
+body.testsite .cloud .testpill{display:none}
 .cloud{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
 .lychip{display:flex;align-items:center;gap:8px;max-width:340px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px 8px 14px;font-size:14px;color:#2b2a27;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .lychip:hover{border-color:#c9c5bb}
@@ -1183,7 +1188,12 @@ artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventList
 /* ================= Cloud: sign-in, shared layouts, history, admin ================= */
 /* the test site (test.*.pages.dev) uses its own backend + database, so test saves never touch real layouts */
 var TEST_SITE=/^test\./.test(location.hostname);
-var API=TEST_SITE?'https://mancave-api-test.adamtww.workers.dev':'https://mancave-api.adamtww.workers.dev';if(TEST_SITE)document.body.classList.add('testsite');try{if(localStorage.getItem('cave-api'))API=localStorage.getItem('cave-api')}catch(_){}
+var API=TEST_SITE?'https://mancave-api-test.adamtww.workers.dev':'https://mancave-api.adamtww.workers.dev';
+if(TEST_SITE){document.body.classList.add('testsite');
+ var tb=document.createElement('div');tb.className='testbar';tb.innerHTML='<b>TEST VERSION</b><span>Saves go to the test database — not your real layouts</span>';document.body.insertBefore(tb,document.body.firstChild);
+ document.title='🧪 TEST — '+document.title;
+ var fi=document.createElement('link');fi.rel='icon';fi.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#d62828"/><text x="32" y="45" font-family="Arial,sans-serif" font-size="38" font-weight="900" fill="#fff" text-anchor="middle">T</text></svg>');document.head.appendChild(fi);
+ setTimeout(function(){if(typeof applyView==='function')applyView()},0)}try{if(localStorage.getItem('cave-api'))API=localStorage.getItem('cave-api')}catch(_){}
 var me=null,tok=null,cur=null,savedJSON=null,cloudBusy=false,lyCache=[];
 try{tok=localStorage.getItem('cave-token')}catch(_){}
 function api(m,p,b){
