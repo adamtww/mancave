@@ -660,7 +660,8 @@ var emAt=null;
 function showEmenu(cx,cy){var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
  if(w.x<0||w.y<0||w.x>S.lot.w||w.y>S.lot.d||roomAtPoint(w.x,w.y)){hideEmenu();return}
  emAt={x:w.x,y:w.y};var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
- m.style.left=Math.min(sr.width-m.offsetWidth-8,cx-sr.left+10)+'px';m.style.top=Math.min(sr.height-60,cy-sr.top+10)+'px'}
+ var cr=svg.getBoundingClientRect(),mw=m.offsetWidth||140,mh=m.offsetHeight||48,L=cr.left-sr.left+8,Rb=Math.min(sr.width,cr.right-sr.left)-8,T=cr.top-sr.top+8,Bb=Math.min(sr.height,cr.bottom-sr.top)-8,lx=cx-sr.left+10,ly=cy-sr.top+10;if(lx+mw>Rb)lx=cx-sr.left-10-mw;if(ly+mh>Bb)ly=cy-sr.top-10-mh;
+ m.style.left=Math.max(L,Math.min(Rb-mw,lx))+'px';m.style.top=Math.max(T,Math.min(Bb-mh,ly))+'px'}
 function hideEmenu(){emAt=null;var m=$('#emenu');if(m)m.className='rmenu emenu'}
 function addRoomAt(px,py){var W=15,D=15,L=S.lot;W=Math.min(W,L.w);D=Math.min(D,L.d);var obs=S.items.filter(isRoom),best=null;
  function free(x,y){return !obs.some(function(r){return ovR(x,W,r.x,r.w)&&ovR(y,D,r.y,r.d)})}
@@ -739,13 +740,16 @@ stage.addEventListener('wheel',function(){if(emAt)hideEmenu()},{passive:true});
 function placeRMenu(){var it0=sel&&find(sel),sizing=!!(it0&&isRoom(it0)&&it0.sz),other=$(sizing?'#rmenu':'#cmenu');if(other){other.className='rmenu';other.dataset.u=''}
  var m=$(sizing?'#cmenu':'#rmenu');if(!m)return;var it=it0;if(sizing){$('#cm-lbl').textContent=it.ed?'Done':'Confirm';renderSwatches(it)}if(!it||!isRoom(it)||drag||draft){m.className='rmenu';m.dataset.u='';return}
  var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
- if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}var cls=(sizing&&warnU===it.u?' warn':'')+(sizing&&it.ed?' ed':'')+(/ shake/.test(m.className)?' shake':'');m.className='rmenu show'+cls;m.style.left='0px';var mw=m.offsetWidth||150,left=tr.x-sr.left+12,flip=left+mw>sr.width-8&&tl.x-sr.left-12-mw>=8;m.className='rmenu show'+(flip?' left':'')+cls;if(flip){mw=m.offsetWidth||mw;left=tl.x-sr.left-12-mw}m.style.left=Math.max(8,left)+'px';m.style.top=Math.max(8,Math.min(sr.height-140,tr.y-sr.top))+'px'}
+ if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}var cls=(sizing&&warnU===it.u?' warn':'')+(sizing&&it.ed?' ed':'')+(/ shake/.test(m.className)?' shake':'');fitMenu(m,tl,tr,sr,cls,8)}
+/* keep pop-up menus inside the canvas window: right of the target, else left, else pushed inside */
+function fitMenu(m,tl,tr,sr,cls,minL){var cr=furn?sr:svg.getBoundingClientRect(),L=Math.max(minL,cr.left-sr.left+8),Rb=Math.min(sr.width,cr.right-sr.left)-8,T=Math.max(8,cr.top-sr.top+8),Bb=Math.min(sr.height,cr.bottom-sr.top)-8;
+ m.className='rmenu show'+cls;m.style.left='0px';var mw=m.offsetWidth||150,left=tr.x-sr.left+12,flip=left+mw>Rb&&tl.x-sr.left-12-mw>=L;m.className='rmenu show'+(flip?' left':'')+cls;mw=m.offsetWidth||mw;if(flip)left=tl.x-sr.left-12-mw;left=Math.max(L,Math.min(left,Rb-mw));var mh=m.offsetHeight||140;
+ m.style.left=left+'px';m.style.top=Math.max(T,Math.min(Bb-mh,tr.y-sr.top))+'px'}
 var _prm=placeRMenu;placeRMenu=function(){_prm();placeIMenu()};
 function placeIMenu(){var m=$('#imenu'),it=sel&&find(sel);if(!m)return;if(!it||isRoom(it)||drag||draft||(cdrag&&cdrag.on)||cdU){m.className='rmenu';m.dataset.u='';return}
  var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
  var minL=8;if(furn){var fp=$('#fpanel').getBoundingClientRect();minL=fp.right-sr.left+8}
- if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}m.className='rmenu show';m.style.left='0px';var mw=m.offsetWidth||150,mh=m.offsetHeight||180,left=tr.x-sr.left+12,flip=left+mw>sr.width-8&&tl.x-sr.left-12-mw>=minL;m.className='rmenu show'+(flip?' left':'');if(flip){mw=m.offsetWidth||mw;left=tl.x-sr.left-12-mw}
- m.style.left=Math.max(minL,left)+'px';m.style.top=Math.max(8,Math.min(sr.height-mh-8,tr.y-sr.top))+'px'}
+ if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}fitMenu(m,tl,tr,sr,'',minL)}
 function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd=it.w,rect={x:snap(cx-nw/2),y:snap(cy-nd/2),w:nw,d:nd};
  if(r&&!fitInto(rect,r)){flash('Not enough room to turn it here');return}snapshot();it.x=rect.x;it.y=rect.y;it.w=nw;it.d=nd;it.rot=((it.rot||0)+1)%4;commit()}
 $('#im-ins').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&it.r&&BY[it.r])showDetails(it.r)};
