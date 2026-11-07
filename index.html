@@ -205,6 +205,13 @@ body.furn .info{display:none!important}
 .info .ict{color:#2b2a27;font-weight:600;font-variant-numeric:tabular-nums}
 .info .ict em{font-style:normal;font-weight:500;color:#8a857a;margin-left:4px}
 .info .ic2{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.info .isvc{margin:10px 0 4px;padding:10px 12px;background:#eef3fd;border:1px solid #d9e4fa;border-radius:10px}
+.info .isvc>span{font-size:13.5px;color:#3b5fa8}
+.info .isvc>b{float:right;font-size:16px;color:#1f4fbf;font-variant-numeric:tabular-nums}
+.info .iroom{padding:8px 0;border-bottom:1px solid #f0ede6}
+.info .iroom .ict em{font-style:normal;font-size:11px;font-weight:600;color:#9a6a12;background:#fdf6e6;border-radius:6px;padding:1px 6px;margin-left:6px}
+.info .ibar{height:5px;background:#f0ede6;border-radius:3px;margin:6px 0 3px;overflow:hidden}
+.info .ibar i{display:block;height:100%;background:var(--accent);opacity:.7;border-radius:3px}
 .info .iwarn{margin-top:14px;font-size:12.5px;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:8px;padding:8px 10px}
 .fpanel{position:absolute;left:16px;top:10px;bottom:16px;width:clamp(240px,28%,400px);display:none;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:6;overflow:hidden;animation:fpIn .22s ease-out}
 body.furn .fpanel{display:flex}
@@ -598,9 +605,26 @@ function roomPowerCard(r){var o=roomPower2(r),ap=o.est?'≈ ':'';
  h+='<div class="irow"><span>Breaker slots</span><b>'+o.slots+'</b></div>';
  if(o.est)h+='<div class="iwarn">⚠ '+o.est+' value'+(o.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
+/* whole-warehouse power rollup */
+function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,items:0,c240:0,c120:0,slots:0},per=[];
+ rooms.forEach(function(r){var o=roomPower2(r);if(!o.items)return;tot.w+=o.w;tot.max=Math.max(tot.max,o.max);tot.est+=o.est;tot.items+=o.items;tot.slots+=o.slots;o.circ.forEach(function(c){if(c.V>=208)tot.c240+=c.n;else tot.c120+=c.n});per.push({name:r.name,w:o.w,slots:o.slots})});
+ var h='<div class="isec">Power</div>';
+ if(!tot.items)return h+'<div class="in2">No powered objects placed yet. Select a room and use Add Objects to start planning power.</div>';
+ var ap=tot.est?'≈ ':'',peak=tot.max+(tot.w-tot.max)*0.5,amps=peak/240,need=amps*1.25,svc=[100,125,150,200,225,400,600,800,1200].find(function(a){return a>=need})||Math.ceil(need/100)*100;
+ h+='<div class="irow"><span>Total connected load</span><b>'+ap+fmtW(tot.w)+'</b></div>';
+ h+='<div class="irow"><span>Likely peak <i class="ihint">(not all at once)</i></span><b>≈ '+fmtW(peak)+'</b></div>';
+ h+='<div class="irow"><span>Peak current <i class="ihint">at 240V</i></span><b>≈ '+Math.ceil(amps)+' A</b></div>';
+ h+='<div class="isvc"><span>Suggested electrical service</span><b>'+svc+' A</b><div class="ic2">Peak current + 25% headroom, rounded up to a standard size. Confirm with an electrician.</div></div>';
+ h+='<div class="irow"><span>Circuits</span><b>'+(tot.c240?tot.c240+'× 240V':'')+(tot.c240&&tot.c120?' · ':'')+(tot.c120?tot.c120+'× 120V':'')+'</b></div>';
+ h+='<div class="irow"><span>Breaker slots</span><b>'+tot.slots+'</b></div>';
+ per.sort(function(a,b){return b.w-a.w});
+ h+='<div class="isub">By room</div>';
+ per.forEach(function(p,i){var pct=tot.w?p.w/tot.w*100:0;h+='<div class="iroom"><div class="ic1"><span class="ict">'+escH(p.name)+(i===0&&per.length>1?' <em>biggest</em>':'')+'</span><b>'+fmtW(p.w)+'</b></div><div class="ibar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="ic2">'+p.slots+' breaker slot'+(p.slots===1?'':'s')+'</div></div>'});
+ if(tot.est)h+='<div class="iwarn">⚠ '+tot.est+' value'+(tot.est>1?'s are':' is')+' estimated (≈)</div>';
+ return h}
 function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
-  b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>';return}
+  b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
  h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):'<div class="in2">Object details coming next.</div>'}
 function renderStatus(){histUI();renderInfo();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
