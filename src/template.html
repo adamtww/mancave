@@ -467,7 +467,7 @@ var CAM_M=3;
 var CAM_TOP=6;
 /* the canvas window: fixed to the size the lot has when fully zoomed out (Add Objects uses the whole stage) */
 var CAN_ML=16;
-var INFO_GAP=24;
+var INFO_GAP=14;
 function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};var inf=$('#info'),iw=inf?inf.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
 function minScale(){var v=viewDims(),W=v.w,H=v.h-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 var camFree=false;
