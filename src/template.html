@@ -190,6 +190,44 @@ body.furn .info{display:none!important}
 .info .ih{padding:16px 18px 12px;font-size:17px;font-weight:700;color:#2b2a27;border-bottom:1px solid var(--line)}
 .info .ib{flex:1;overflow:auto;padding:14px 18px}
 .info .in2{font-size:13px;color:var(--muted)}
+/* Object Library card, right of Info */
+.mid>.lib{position:absolute;width:clamp(300px,24vw,420px);bottom:16px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(40,36,28,.10),0 2px 6px rgba(40,36,28,.05);z-index:4;display:flex;flex-direction:column;overflow:hidden}
+body.furn .lib{display:none!important}
+.lib .lh{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 12px 20px;border-bottom:1px solid var(--line)}
+.lib .lt{font-size:17px;font-weight:700;color:#2b2a27;white-space:nowrap}
+.lib .lbtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#55524b;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex:none}
+.lib .lbody{flex:1;min-height:0;display:flex;flex-direction:column}
+.lib .lq{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.lib .lq input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:14px;outline:none}
+.lib .lq input:focus{border-color:var(--accent)}
+.lib .lnew{border:1px solid #d9e4fa;background:#eef3fd;color:#1f4fbf;border-radius:8px;padding:0 12px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.lib .lb{flex:1;overflow:auto;padding:4px 0 12px}
+.lib .lcat{padding:12px 20px 4px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a857a;display:flex;align-items:center;gap:7px}
+.lib .lcat i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.lib .li{padding:8px 20px;cursor:pointer;border-bottom:1px solid #f4f2ed}
+.lib .li:hover{background:#f8f7f3}
+.lib .li .ln{font-size:14px;color:#2b2a27;display:flex;gap:6px;align-items:baseline}
+.lib .li .ln em{font-style:normal;font-size:10.5px;font-weight:700;color:#1f4fbf;background:#eef3fd;border-radius:5px;padding:1px 5px}
+.lib .li .ls{font-size:12px;color:var(--muted);margin-top:2px}
+.lib.col{width:48px!important}
+.lib.col .lbody{display:none}
+.lib.col .lh{flex-direction:column;gap:14px;padding:12px 0;border:0;height:100%;justify-content:flex-start}
+.lib.col .lt{writing-mode:vertical-rl;font-size:14px;color:#55524b}
+.lib.col .lbtn svg{transform:rotate(180deg)}
+.lib .lf{padding:14px 20px 18px}
+.lib .lback{border:0;background:none;color:var(--accent);font-size:13.5px;cursor:pointer;padding:0 0 10px}
+.lib .lf h3{margin:0 0 12px;font-size:16px;color:#2b2a27}
+.lib .fl{display:block;font-size:12px;color:#8a857a;margin:10px 0 4px}
+.lib .fi{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;background:#fff;outline:none;font-family:inherit}
+.lib .fi:focus{border-color:var(--accent)}
+.lib .f2{display:flex;gap:10px}.lib .f2>div{flex:1;min-width:0}
+.lib .fc{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#3d3b36;margin:12px 0 2px;cursor:pointer}
+.lib .fsec{margin:18px 0 2px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a857a}
+.lib .fbtns{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.lib .fb{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font-size:14px;cursor:pointer;color:#3d3b36}
+.lib .fb.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.lib .fb.red{color:#b3412f;border-color:#f0cfc8}
+.lib .fnote{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.4}
 /* Info: floating rounded card beside the canvas window */
 .mid>.info{width:clamp(312px,28.8vw,456px);bottom:16px;background:#fff;border:1px solid var(--line);border-left:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(40,36,28,.10),0 2px 6px rgba(40,36,28,.05);z-index:4}
 .mid>.info .ih{padding:16px 20px 12px}
@@ -289,7 +327,7 @@ body.touch .cswatch{max-width:200px}
   <button class="chev chevopen" id="dexp" title="Show the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle"><span>Add Objects</span><button class="chev" id="dcol" title="Hide the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
   <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button><span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on"><span class="L">Drawings</span><span class="S">Art</span></button><button data-a="off"><span class="L">Boxes</span><span class="S">Box</span></button></span></div><div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
    <div class="rmenu emenu" id="emenu"><button class="rmb" id="em-room"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M12 8v8M8 12h8"/></svg><span>Add Room</span></button></div><div class="rename" id="rename"><input id="rn-in" maxlength="40" placeholder="Room name" autocomplete="off"><button id="rn-ok">Save</button></div><div class="rmenu" id="cmenu"><button class="rmb cfm" id="cm-ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span id="cm-lbl">Confirm</span></button><div class="cswatch" id="cm-sw"></div><button class="rmb rmv" id="cm-rm"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button><button class="rmb rmv" id="cm-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="rmenu" id="imenu"><button class="rmb" id="im-ins"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Inspect</span></button><button class="rmb" id="im-rot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg><span>Rotate</span></button><button class="rmb rmred" id="im-del"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="fpanel" id="fpanel"><div class="fph">Objects</div><div class="fpq" id="fpq"></div><div class="fpb" id="fpb"></div></div><div class="fbar" id="fbar"><span class="ft">Adding to <b id="fb-n"></b></span><button class="rmb cfm" id="fb-ok"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Done</span></button><button class="rmb rmred" id="fb-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="cdlg" id="cdlg"><div class="cbox"><div class="ct" id="cd-t"></div><div class="cm" id="cd-m"></div><div class="cb"><button id="cd-no">Cancel</button><button class="danger" id="cd-yes">Remove</button></div></div></div><div class="rmenu" id="rmenu"><button class="rmb" id="rm-edit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg><span>Edit</span></button><button class="rmb" id="rm-add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button><button class="rmb rmred" id="rm-del"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
- <aside class="info" id="info"><div class="ih" id="info-h">Warehouse</div><div class="ib" id="info-b"></div></aside>
+ <aside class="info" id="info"><div class="ih" id="info-h">Warehouse</div><div class="ib" id="info-b"></div></aside><aside class="lib" id="lib"><div class="lh"><span class="lt">Object Library</span><button class="lbtn" id="lib-tg" title="Collapse / expand"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg></button></div><div class="lbody"><div class="lq"><input id="lq" placeholder="Search objects…" autocomplete="off"><button class="lnew" id="lib-new">+ New</button></div><div class="lb" id="lib-b"></div></div></aside>
  </div>
  <div class="status" id="status"></div>
 </div>
@@ -298,6 +336,12 @@ body.touch .cswatch{max-width:200px}
 (function(){
 "use strict";
 /*CATALOG*/
+/* Object Library edits: saved per browser, layered over the built-in catalog */
+var LIBK='cave-lib',LIB={},DEF={},LIB_KEYS=['n','c','w','d','cl','cf','p','est','no'];
+try{LIB=JSON.parse(localStorage.getItem(LIBK)||'{}')||{}}catch(_){LIB={}}
+CATALOG.forEach(function(c){DEF[c.r]=JSON.parse(JSON.stringify(c))});
+Object.keys(LIB).forEach(function(r){var o=LIB[r];if(!o)return;if(BY[r]){LIB_KEYS.forEach(function(k){if(k in o){if(o[k]==null)delete BY[r][k];else BY[r][k]=o[k]}})}else if(o.custom){var c={r:r};LIB_KEYS.forEach(function(k){if(o[k]!=null)c[k]=o[k]});CATALOG.push(c);BY[r]=c}});
+function saveLib(){try{localStorage.setItem(LIBK,JSON.stringify(LIB))}catch(_){}}
 /*ICONS*/
 var $=function(s){return document.querySelector(s)};
 var svg=$('#svg'),stage=$('#stage'),PAD=4;
@@ -565,7 +609,7 @@ var CAM_TOP=6;
 /* the canvas window: fixed to the size the lot has when fully zoomed out (Add Objects uses the whole stage) */
 var CAN_ML=16;
 var INFO_GAP=14;
-function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};var inf=$('#info'),iw=inf?inf.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
+function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};var inf=$('#info'),iw=inf?inf.offsetWidth:0,lb=$('#lib'),lw=lb?lb.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0)-(lw?lw+INFO_GAP:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
 function minScale(){var v=viewDims(),W=v.w,H=v.h-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 var camFree=false;
 function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
@@ -670,7 +714,7 @@ function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd
 $('#im-ins').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&it.r&&BY[it.r])showDetails(it.r)};
 $('#im-rot').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))rotateObj(it)};
 $('#im-del').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))remove(it.u)};
-function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';svg.style.left=furn?'0px':CAN_ML+'px';var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+CAN_ML+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2)+'px'}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';svg.style.left=furn?'0px':CAN_ML+'px';var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+CAN_ML+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2)+'px';var lb=$('#lib');if(lb){lb.style.left=(stage.offsetLeft+CAN_ML+W+INFO_GAP+inf.offsetWidth+INFO_GAP)+'px';lb.style.top=inf.style.top}}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
 function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
@@ -830,6 +874,53 @@ window.addEventListener('message',function(e){var m=e.data&&e.data.caveCmd;if(!m
   if(calls.length>1)window.cave.batch(run);else run();
   out={id:m.id,ok:true,result:res.length===1?res[0]:res}}catch(err){out={id:m.id,ok:false,error:String(err&&err.message||err)}}
  try{e.source.postMessage({caveReply:JSON.parse(JSON.stringify(out===undefined?null:out))},e.origin)}catch(err){}});
+/* ---------- Object Library ---------- */
+var libSel=null,libNew=false;
+(function(){var c=null;try{c=localStorage.getItem('cave-libc')}catch(_){}var col=c==null?window.innerWidth<1500:c==='1';$('#lib').classList.toggle('col',col)})();
+$('#lib-tg').onclick=function(){var l=$('#lib');l.classList.toggle('col');try{localStorage.setItem('cave-libc',l.classList.contains('col')?'1':'0')}catch(_){}applyView();render()};
+$('#lq').oninput=function(){renderLib()};
+$('#lib-new').onclick=function(){libSel=null;libNew=true;renderLib()};
+function libSummary(c){var s=fmtN(c.w)+' × '+fmtN(c.d)+' ft';if(c.p)s+=' · '+c.p[0]+'V '+fmtW(c.p[1])+(c.p[3]?' · dedicated':'');else s+=' · no power';return (c.est?'≈ ':'')+s}
+function placedCount(r){return S.items.filter(function(i){return i.r===r}).length}
+function renderLib(){var b=$('#lib-b');if(!b)return;if(libSel||libNew){b.innerHTML=libForm(libSel?BY[libSel]:null);return}
+ var q=($('#lq').value||'').toLowerCase(),h='';
+ CATS.forEach(function(ct){if(ct[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===ct[0]&&!i.z&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
+  h+='<div class="lcat"><i style="background:'+ct[1]+'"></i>'+escH(ct[0])+'</div>';
+  list.forEach(function(i){var tag=LIB[i.r]?(LIB[i.r].custom?'<em>custom</em>':'<em>edited</em>'):'';h+='<div class="li" data-r="'+escH(i.r)+'"><div class="ln">'+escH(i.n)+tag+'</div><div class="ls">'+escH(libSummary(i))+'</div></div>'})});
+ b.innerHTML=h||'<div class="fnote" style="padding:14px 20px">No objects match.</div>'}
+function libForm(c){var isNew=!c;c=c||{n:'',c:'Wishlist',w:3,d:3,cl:2,cf:1,est:1};var p=c.p||[120,500,20,0],cats=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}),n=c.r?placedCount(c.r):0;
+ var h='<div class="lf"><button class="lback" id="lf-back">‹ All objects</button><h3>'+(isNew?'New object':'Edit object')+'</h3>';
+ h+='<label class="fl">Name</label><input class="fi" id="lf-n" value="'+escH(c.n)+'">';
+ h+='<label class="fl">Category</label><select class="fi" id="lf-c">'+cats.map(function(x){return '<option'+(x[0]===c.c?' selected':'')+'>'+escH(x[0])+'</option>'}).join('')+'</select>';
+ h+='<div class="fsec">Size</div><div class="f2"><div><label class="fl">Width (ft)</label><input class="fi" id="lf-w" type="number" step="0.5" min="0.5" value="'+c.w+'"></div><div><label class="fl">Depth (ft)</label><input class="fi" id="lf-d" type="number" step="0.5" min="0.5" value="'+c.d+'"></div></div>';
+ h+='<div class="f2"><div><label class="fl">Clearance (ft)</label><input class="fi" id="lf-cl" type="number" step="0.5" min="0" value="'+(c.cl||0)+'"></div><div><label class="fl">Clearance side</label><select class="fi" id="lf-cf"><option value="0"'+(c.cf?'':' selected')+'>All around</option><option value="1"'+(c.cf?' selected':'')+'>In front only</option></select></div></div>';
+ h+='<div class="fsec">Power</div><label class="fc"><input type="checkbox" id="lf-hp"'+(c.p||isNew?' checked':'')+'> Needs power</label>';
+ h+='<div class="f2"><div><label class="fl">Voltage</label><select class="fi" id="lf-v"><option'+(p[0]===120?' selected':'')+'>120</option><option'+(p[0]===240?' selected':'')+'>240</option></select></div><div><label class="fl">Watts</label><input class="fi" id="lf-wt" type="number" step="50" min="0" value="'+p[1]+'"></div></div>';
+ h+='<div class="f2"><div><label class="fl">Breaker (A)</label><input class="fi" id="lf-a" type="number" step="5" min="5" value="'+p[2]+'"></div><div><label class="fl">&nbsp;</label><label class="fc" style="margin:8px 0 0"><input type="checkbox" id="lf-dd"'+(p[3]?' checked':'')+'> Dedicated circuit</label></div></div>';
+ h+='<label class="fc"><input type="checkbox" id="lf-est"'+(c.est?' checked':'')+'> Size / power are estimates</label>';
+ h+='<label class="fl">Notes</label><textarea class="fi" id="lf-no" rows="3">'+escH(c.no||'')+'</textarea>';
+ h+='<div class="fbtns"><button class="fb pri" id="lf-save">Save</button><button class="fb" id="lf-cancel">Cancel</button>';
+ if(c.r&&LIB[c.r]&&!LIB[c.r].custom)h+='<button class="fb" id="lf-reset">Reset to default</button>';
+ if(c.r&&LIB[c.r]&&LIB[c.r].custom)h+='<button class="fb red" id="lf-del">Delete</button>';
+ h+='</div>';
+ if(n)h+='<div class="fnote">'+n+' placed on the plan — saving updates '+(n===1?'it':'them')+' too.</div>';
+ h+='<div class="fnote">Edits are saved in this browser.</div></div>';return h}
+function libUpdatePlaced(r,oldName){var c=BY[r];S.items.forEach(function(i){if(i.r!==r)return;var sw=(i.rot||0)%2,nw=sw?c.d:c.w,nd=sw?c.w:c.d,cx=i.x+i.w/2,cy=i.y+i.d/2;i.x=snap(cx-nw/2);i.y=snap(cy-nd/2);i.w=nw;i.d=nd;i.cl=c.cl||0;i.cm=c.cf?'front':'all';if(i.name===oldName)i.name=c.n})}
+function libRead(){var v=function(id){return $('#'+id).value},num=function(id,mn){var x=parseFloat(v(id));return isFinite(x)&&x>=mn?x:null};
+ var o={n:v('lf-n').trim(),c:v('lf-c'),w:num('lf-w',0.5),d:num('lf-d',0.5),cl:num('lf-cl',0)||0,cf:v('lf-cf')==='1'?1:null,est:$('#lf-est').checked?1:null,no:v('lf-no').trim()||null};
+ if(!o.n){flash('Give it a name');return null}if(o.w==null||o.d==null){flash('Width and depth must be at least 0.5 ft');return null}
+ o.p=$('#lf-hp').checked?[+v('lf-v'),num('lf-wt',0)||0,num('lf-a',5)||20,$('#lf-dd').checked?1:0]:null;return o}
+document.addEventListener('click',function(e){var t=e.target;if(!t.closest||!t.closest('#lib'))return;
+ var li=t.closest('.li[data-r]');if(li){libSel=li.dataset.r;libNew=false;renderLib();$('#lib-b').scrollTop=0;return}
+ if(t.closest('#lf-back')||t.closest('#lf-cancel')){libSel=null;libNew=false;renderLib();return}
+ if(t.closest('#lf-save')){var o=libRead();if(!o)return;var r=libSel;
+  if(libNew){r='u-'+Date.now().toString(36);var c={r:r};LIB_KEYS.forEach(function(k){if(o[k]!=null)c[k]=o[k]});CATALOG.push(c);BY[r]=c;LIB[r]=Object.assign({custom:1},o)}
+  else{var cc=BY[r],old=cc.n;LIB_KEYS.forEach(function(k){if(o[k]==null)delete cc[k];else cc[k]=o[k]});LIB[r]=Object.assign(LIB[r]&&LIB[r].custom?{custom:1}:{},o);if(placedCount(r)){snapshot();libUpdatePlaced(r,old);commit()}}
+  saveLib();libSel=null;libNew=false;renderLib();renderCats();render();flash('Saved');return}
+ if(t.closest('#lf-reset')&&libSel){var r2=libSel,c2=BY[r2],old2=c2.n;Object.keys(c2).forEach(function(k){if(k!=='r')delete c2[k]});Object.assign(c2,JSON.parse(JSON.stringify(DEF[r2])));delete LIB[r2];saveLib();if(placedCount(r2)){snapshot();libUpdatePlaced(r2,old2);commit()}libSel=null;renderLib();renderCats();render();flash('Reset to default');return}
+ if(t.closest('#lf-del')&&libSel){var r3=libSel;if(placedCount(r3)){flash('Remove the placed copies first');return}delete LIB[r3];delete BY[r3];var ix=CATALOG.findIndex(function(x){return x.r===r3});if(ix>=0)CATALOG.splice(ix,1);saveLib();libSel=null;renderLib();renderCats();render();flash('Deleted');return}
+});
+renderLib();
 artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventListener('resize',function(){});
 })();
 </script></body></html>
