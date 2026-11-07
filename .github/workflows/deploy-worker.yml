@@ -5,11 +5,11 @@ name: Deploy API
 
 on:
   push:
-    branches: [main]
+    branches: [main, test]
     paths: ['worker/**', '.github/workflows/deploy-worker.yml']
   workflow_dispatch:
 
-concurrency: deploy-api
+concurrency: deploy-api-${{ github.ref_name }}
 
 jobs:
   deploy:
@@ -30,22 +30,30 @@ jobs:
       - name: Install Wrangler
         run: npm install -g wrangler@4
 
+      - name: Pick live or test backend
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "WORKER_NAME=mancave-api" >> "$GITHUB_ENV"; echo "DB_NAME=mancave-db" >> "$GITHUB_ENV"
+          else
+            echo "WORKER_NAME=mancave-api-test" >> "$GITHUB_ENV"; echo "DB_NAME=mancave-db-test" >> "$GITHUB_ENV"
+          fi
+
       - name: Find or create the database
         run: |
           find_id() {
-            wrangler d1 list --json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const a=JSON.parse(d);const x=a.find(z=>z.name==='mancave-db');process.stdout.write(x?x.uuid:'')})"
+            wrangler d1 list --json | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const a=JSON.parse(d);const x=a.find(z=>z.name===process.env.DB_NAME);process.stdout.write(x?x.uuid:'')})"
           }
           ID="$(find_id)"
           if [ -z "$ID" ]; then
-            wrangler d1 create mancave-db
+            wrangler d1 create "$DB_NAME"
             ID="$(find_id)"
           fi
           if [ -z "$ID" ]; then echo "Could not find or create the D1 database"; exit 1; fi
-          sed -i "s/__D1_ID__/$ID/" wrangler.toml
-          echo "Using database $ID"
+          sed -i "s/__D1_ID__/$ID/; s/__WORKER_NAME__/$WORKER_NAME/; s/__DB_NAME__/$DB_NAME/" wrangler.toml
+          echo "Deploying $WORKER_NAME with database $DB_NAME ($ID)"
 
       - name: Create or update tables
-        run: wrangler d1 execute mancave-db --remote --file schema.sql
+        run: wrangler d1 execute "$DB_NAME" --remote --file schema.sql
 
       - name: Deploy the Worker
         run: wrangler deploy
@@ -62,4 +70,4 @@ jobs:
       - name: Check it is up
         run: |
           sleep 5
-          curl -fsS https://mancave-api.adamtww.workers.dev/api/health && echo " — API is live"
+          curl -fsS "https://$WORKER_NAME.adamtww.workers.dev/api/health" && echo " — $WORKER_NAME is live"
