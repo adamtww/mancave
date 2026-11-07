@@ -539,6 +539,7 @@ function render(){
   if(it.cm==='front'){var fe=frontEdge(it);h+='<line x1="'+fe[0]+'" y1="'+fe[1]+'" x2="'+fe[2]+'" y2="'+fe[3]+'" stroke="#5f5b52" stroke-width="0.3" pointer-events="none"/>'}
   h+=(ART(it.r)?(it.u===sel?label(it,{pill:1,color:'#fff',weight:600,cap:1.0}):'<title>'+esc(it.name)+'</title>'):label(it))+'</g>'});
  var si=sel&&find(sel);
+ var gds=(drag&&drag.gd)||(draft&&draft.gd);if(gds&&gds.length)gds.forEach(function(g){var sw=(1.5/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3);h+=g.x!=null?'<line x1="'+g.x+'" y1="0" x2="'+g.x+'" y2="'+S.lot.d+'" stroke="#e0457b" stroke-width="'+sw+'" stroke-dasharray="'+da+'" pointer-events="none"/>':'<line x1="0" y1="'+g.y+'" x2="'+S.lot.w+'" y2="'+g.y+'" stroke="#e0457b" stroke-width="'+sw+'" stroke-dasharray="'+da+'" pointer-events="none"/>'});
  var fr=furn&&find(furn);if(fr)h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+fr.x+' '+fr.y+'V'+(fr.y+fr.d)+'H'+(fr.x+fr.w)+'V'+fr.y+'Z" fill="#24231f" fill-opacity="0.38" fill-rule="evenodd" pointer-events="none"/>';
  if(si&&si.u!==furn){if(true){var dl=7/scale,gp=5/scale;h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" pointer-events="none"/><rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></rect>'}
   else h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2/scale)+'" pointer-events="none"/>'}
@@ -608,6 +609,11 @@ function resizeRect(o,h,x2,y2,obs,ms){var x=o.x,y=o.y,w=o.w,d=o.d;
  if(h.indexOf('n')>=0){var bt=o.y+o.d,t=Math.min(y2,bt-ms);obs.forEach(function(b){if(ovR(x,Math.max(w,EPS*4),b.x,b.w)&&b.y+b.d<=o.y+EPS)t=Math.max(t,b.y+b.d)});y=t;d=bt-t}
  if(h.indexOf('s')>=0){var bb=Math.max(o.y+ms,y2);obs.forEach(function(b){if(ovR(x,Math.max(w,EPS*4),b.x,b.w)&&b.y>=o.y+o.d-EPS)bb=Math.min(bb,b.y)});d=bb-o.y}
  return {x:x,y:y,w:w,d:d}}
+/* edge snapping: line up with nearby rooms / the lot, released once you drag past it */
+var SNAP_PX=10;
+function roomLines(except){var xs=[0,S.lot.w],ys=[0,S.lot.d];S.items.forEach(function(r){if(isRoom(r)&&r!==except){xs.push(r.x,r.x+r.w);ys.push(r.y,r.y+r.d)}});return {xs:xs,ys:ys}}
+function snapEdges(es,cs){var T=SNAP_PX/scale,b=null;es.forEach(function(e){cs.forEach(function(c){var dd=c-e;if(Math.abs(dd)<T&&(!b||Math.abs(dd)<Math.abs(b.d)))b={d:dd,c:c}})});return b}
+function keepGuides(gd,r){return gd.filter(function(g){return g.x!=null?Math.abs(g.x-r.x)<EPS*4||Math.abs(g.x-r.x-r.w)<EPS*4:Math.abs(g.y-r.y)<EPS*4||Math.abs(g.y-r.y-r.d)<EPS*4})}
 function inRoom(px,py){return S.items.some(function(r){return isRoom(r)&&px>r.x+EPS&&px<r.x+r.w-EPS&&py>r.y+EPS&&py<r.y+r.d-EPS})}
 function downCore(e){var p=pt(e);
  if(tool==='room'){var bx=cl(snap(p.x),0,S.lot.w),by=cl(snap(p.y),0,S.lot.d);if(inRoom(bx,by))return;draft={x0:bx,y0:by,x:bx,y:by,w:0,d:0,obs:roomObs(null)};return}
@@ -618,12 +624,12 @@ function downCore(e){var p=pt(e);
  var kids=isRoom(it)?S.items.filter(function(i){return !isRoom(i)&&inside(i,it)}).map(function(i){return {it:i,x:i.x,y:i.y}}):[];
  drag={mode:'move',it:it,sx:p.x,sy:p.y,ox:it.x,oy:it.y,kids:kids,moved:false,obs:isRoom(it)?roomObs(it):null,home:isRoom(it)?null:roomOf(it)};render()}
 function moveCore(e){var p=pt(e);
- if(draft){var x=cl(snap(p.x),0,S.lot.w),y=cl(snap(p.y),0,S.lot.d);var rr=resizeRect({x:draft.x0,y:draft.y0,w:0,d:0},(x>=draft.x0?'e':'w')+(y>=draft.y0?'s':'n'),x,y,draft.obs,0);draft.x=rr.x;draft.y=rr.y;draft.w=rr.w;draft.d=rr.d;render();return}
+ if(draft){var x=cl(snap(p.x),0,S.lot.w),y=cl(snap(p.y),0,S.lot.d);draft.L=draft.L||roomLines(null);var sx=snapEdges([p.x],draft.L.xs),sy=snapEdges([p.y],draft.L.ys);draft.gd=[];if(sx){x=sx.c;draft.gd.push({x:sx.c})}if(sy){y=sy.c;draft.gd.push({y:sy.c})}var rr=resizeRect({x:draft.x0,y:draft.y0,w:0,d:0},(x>=draft.x0?'e':'w')+(y>=draft.y0?'s':'n'),x,y,draft.obs,0);draft.x=rr.x;draft.y=rr.y;draft.w=rr.w;draft.d=rr.d;draft.gd=keepGuides(draft.gd,rr);render();return}
  if(!drag)return;
- if(drag.mode==='move'){var dx=cl(snap(p.x-drag.sx),-drag.ox,S.lot.w-drag.it.w-drag.ox),dy=cl(snap(p.y-drag.sy),-drag.oy,S.lot.d-drag.it.d-drag.oy);if(drag.obs){var sw=sweep(drag.it,drag.ox+dx,drag.oy+dy,drag.obs);dx=sw.x-drag.ox;dy=sw.y-drag.oy}
- if(!isRoom(drag.it)&&drag.home){var tr={x:drag.ox+dx,y:drag.oy+dy,w:drag.it.w,d:drag.it.d},pr=roomAtPoint(p.x,p.y);if(!(pr&&fitInto(tr,pr)))fitInto(tr,drag.home);dx=tr.x-drag.ox;dy=tr.y-drag.oy}if(dx||dy)drag.moved=true;drag.it.x=drag.ox+dx;drag.it.y=drag.oy+dy;drag.kids.forEach(function(k){k.it.x=k.x+dx;k.it.y=k.y+dy});render()}
- else{var o=drag.o,it=drag.it,h=drag.h,x2=cl(snap(p.x),0,S.lot.w),y2=cl(snap(p.y),0,S.lot.d);
-  var nr=limitToKids(resizeRect(o,h,x2,y2,drag.obs,1),h,drag.kb,o);it.x=nr.x;it.y=nr.y;it.w=nr.w;it.d=nr.d;
+ if(drag.mode==='move'){var dx=cl(snap(p.x-drag.sx),-drag.ox,S.lot.w-drag.it.w-drag.ox),dy=cl(snap(p.y-drag.sy),-drag.oy,S.lot.d-drag.it.d-drag.oy);drag.gd=[];if(isRoom(drag.it)){drag.L=drag.L||roomLines(drag.it);var rx=drag.ox+(p.x-drag.sx),ry=drag.oy+(p.y-drag.sy),mx=snapEdges([rx,rx+drag.it.w],drag.L.xs),my=snapEdges([ry,ry+drag.it.d],drag.L.ys);if(mx){dx=cl(rx+mx.d-drag.ox,-drag.ox,S.lot.w-drag.it.w-drag.ox);drag.gd.push({x:mx.c})}if(my){dy=cl(ry+my.d-drag.oy,-drag.oy,S.lot.d-drag.it.d-drag.oy);drag.gd.push({y:my.c})}}if(drag.obs){var sw=sweep(drag.it,drag.ox+dx,drag.oy+dy,drag.obs);dx=sw.x-drag.ox;dy=sw.y-drag.oy}
+ if(!isRoom(drag.it)&&drag.home){var tr={x:drag.ox+dx,y:drag.oy+dy,w:drag.it.w,d:drag.it.d},pr=roomAtPoint(p.x,p.y);if(!(pr&&fitInto(tr,pr)))fitInto(tr,drag.home);dx=tr.x-drag.ox;dy=tr.y-drag.oy}if(dx||dy)drag.moved=true;drag.it.x=drag.ox+dx;drag.it.y=drag.oy+dy;if(drag.gd.length)drag.gd=keepGuides(drag.gd,drag.it);drag.kids.forEach(function(k){k.it.x=k.x+dx;k.it.y=k.y+dy});render()}
+ else{var o=drag.o,it=drag.it,h=drag.h,x2=cl(snap(p.x),0,S.lot.w),y2=cl(snap(p.y),0,S.lot.d);drag.gd=[];if(isRoom(it)){drag.L=drag.L||roomLines(it);if(/[we]/.test(h)){var qx=snapEdges([p.x],drag.L.xs);if(qx){x2=qx.c;drag.gd.push({x:qx.c})}}if(/[ns]/.test(h)){var qy=snapEdges([p.y],drag.L.ys);if(qy){y2=qy.c;drag.gd.push({y:qy.c})}}}
+  var nr=limitToKids(resizeRect(o,h,x2,y2,drag.obs,1),h,drag.kb,o);it.x=nr.x;it.y=nr.y;it.w=nr.w;it.d=nr.d;if(drag.gd.length)drag.gd=keepGuides(drag.gd,it);
   render()}}
 function up(e){if(draft){var d=draft;draft=null;if(d.w>=2&&d.d>=2){snapshot();var n=S.items.filter(isRoom).length+1;var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:d.x,y:d.y,w:d.w,d:d.d,cl:0,lk:true};S.items.push(it);sel=it.u;if(!(e&&e.shiftKey)&&!multiDraw)setTool('sel')}commit();return}
  if(drag){var m=drag.mode==='resize'||drag.moved,dit=drag.it,tap=!m&&drag.mode==='move'&&isRoom(dit)&&dit.sz;if(!m)undoS.pop();drag=null;commit();if(tap)showRename(dit)}}
