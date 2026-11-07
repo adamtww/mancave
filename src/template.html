@@ -383,7 +383,7 @@ function render(){
  renderInsp();renderStatus();$('#lw').value=S.lot.w;$('#ld').value=S.lot.d;
 }
 function handles(it){var x=it.x,y=it.y,w=it.w,d=it.d;return [{h:'nw',x:x,y:y,c:'nwse-resize'},{h:'n',x:x+w/2,y:y,c:'ns-resize'},{h:'ne',x:x+w,y:y,c:'nesw-resize'},{h:'e',x:x+w,y:y+d/2,c:'ew-resize'},{h:'se',x:x+w,y:y+d,c:'nwse-resize'},{h:'s',x:x+w/2,y:y+d,c:'ns-resize'},{h:'sw',x:x,y:y+d,c:'nesw-resize'},{h:'w',x:x,y:y+d/2,c:'ew-resize'}]}
-function histUI(){var u=$('#undo'),r=$('#redo');if(u)u.disabled=!undoS.length;if(r)r.disabled=!redoS.length}
+function histUI(){var u=$('#undo'),r=$('#redo'),lk=!!sizingRoom();if(u)u.disabled=lk||!undoS.length;if(r)r.disabled=lk||!redoS.length}
 function renderStatus(){histUI();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
