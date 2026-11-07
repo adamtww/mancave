@@ -13,7 +13,7 @@ async def main():
         print("menu:",await pg.evaluate("document.querySelector('#imenu').className"))
         await pg.screenshot(path="/home/claude/build/im.png",clip={"x":300,"y":56,"width":900,"height":600})
         await pg.click("#im-rot");await pg.wait_for_timeout(200);print("rotated:",(await I())[0])
-        await pg.click("#im-ins");await pg.wait_for_timeout(250);print("inspect:",await pg.evaluate("document.querySelector('#det').className"),await pg.inner_text("#det .nm"))
+        pass
         await pg.click("#im-del");await pg.wait_for_timeout(200);print("after remove:",await I(),await pg.evaluate("document.querySelector('#imenu').className"))
         # furn mode
         await pg.evaluate("cave.select(cave.find('Kitchen')[0].u)");await pg.wait_for_timeout(200);await pg.click("#rm-add");await pg.wait_for_timeout(600)
