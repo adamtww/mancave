@@ -25,6 +25,8 @@ button,input{font:inherit;color:inherit}
 /* top toolbar retired for now */
 .app>.top{display:none!important}
 .app,body.touch .app{grid-template-rows:1fr auto!important}
+.hist .artseg{display:none!important}
+body.art-on .hist .artseg{display:inline-flex!important}
 .hist .artseg{position:static;transform:none;margin-left:22px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.06);align-self:stretch}
 .hist .artseg button{padding:10px 16px;font-size:14px}
 #drawer,#dexp,#dcol{display:none!important}
@@ -821,7 +823,9 @@ var drag=null,draft=null;
 function inside(i,r){var cx=i.x+i.w/2,cy=i.y+i.d/2;return cx>=r.x&&cx<=r.x+r.w&&cy>=r.y&&cy<=r.y+r.d}
 /* room collision: rooms can touch but not overlap */
 var EPS=1e-6;
-var showArt=true;try{showArt=localStorage.getItem('cave-art')!=='off'}catch(e){}
+/* Drawings are parked for now: always show plain boxes + labels. Flip ART_ENABLED to bring the Drawings/Boxes toggle back. */
+var ART_ENABLED=false;
+var showArt=false;if(ART_ENABLED){try{showArt=localStorage.getItem('cave-art')!=='off'}catch(e){}}
 function ART(r){return showArt&&ICONS[r]}
 var ROOMCOLS=['','#e07a5f','#f2a65a','#e9c46a','#8ab17d','#2a9d8f','#5b8bd9','#8e7cc3','#d47fa6','#8d8a83'];
 function ovR(a0,al,b0,bl){return a0<b0+bl-EPS&&b0<a0+al-EPS}
