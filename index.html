@@ -707,7 +707,7 @@ function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
  h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):objCard(it)}
-function renderStatus(){histUI();renderInfo();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
+function renderStatus(){histUI();renderInfo();if(typeof libSync==='function'&&$('#lib-b'))libSync();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
 function renderInsp(){var it=sel&&find(sel),el=$('#insp');if(!it){el.className='insp';return}
@@ -1057,7 +1057,10 @@ window.addEventListener('message',function(e){var m=e.data&&e.data.caveCmd;if(!m
   out={id:m.id,ok:true,result:res.length===1?res[0]:res}}catch(err){out={id:m.id,ok:false,error:String(err&&err.message||err)}}
  try{e.source.postMessage({caveReply:JSON.parse(JSON.stringify(out===undefined?null:out))},e.origin)}catch(err){}});
 /* ---------- Object Library ---------- */
-var libSel=null,libNew=false;
+var libSel=null,libNew=false,libSyncR=null;
+/* follow the canvas selection: a selected object opens its entry; deselecting goes back to the list */
+function libSync(){var it=sel&&find(sel),want=it&&!isRoom(it)&&it.r&&BY[it.r]?it.r:null;if(want===libSyncR)return;
+ if(want){libSel=want;libNew=false}else if(libSyncR){libSel=null;libNew=false}libSyncR=want;renderLib();var b=$('#lib-b');if(b)b.scrollTop=0}
 (function(){var c=null;try{c=localStorage.getItem('cave-libc')}catch(_){}var col=c==null?window.innerWidth<1500:c==='1';$('#lib').classList.toggle('col',col)})();
 $('#lib-tg').onclick=function(){var l=$('#lib');l.classList.toggle('col');try{localStorage.setItem('cave-libc',l.classList.contains('col')?'1':'0')}catch(_){}applyView();render()};
 $('#lq').oninput=function(){renderLib()};
@@ -1098,8 +1101,8 @@ document.addEventListener('click',function(e){var t=e.target;if(!t.closest||!t.c
  if(t.closest('#lf-save')){var o=libRead();if(!o)return;var r=libSel;
   if(libNew){r='u-'+Date.now().toString(36);var c={r:r};LIB_KEYS.forEach(function(k){if(o[k]!=null)c[k]=o[k]});CATALOG.push(c);BY[r]=c;LIB[r]=Object.assign({custom:1},o)}
   else{var cc=BY[r],old=cc.n;LIB_KEYS.forEach(function(k){if(o[k]==null)delete cc[k];else cc[k]=o[k]});LIB[r]=Object.assign(LIB[r]&&LIB[r].custom?{custom:1}:{},o);if(placedCount(r)){snapshot();libUpdatePlaced(r,old);commit()}}
-  saveLib();libSel=null;libNew=false;renderLib();renderCats();render();flash('Saved');return}
- if(t.closest('#lf-reset')&&libSel){var r2=libSel,c2=BY[r2],old2=c2.n;Object.keys(c2).forEach(function(k){if(k!=='r')delete c2[k]});Object.assign(c2,JSON.parse(JSON.stringify(DEF[r2])));delete LIB[r2];saveLib();if(placedCount(r2)){snapshot();libUpdatePlaced(r2,old2);commit()}libSel=null;renderLib();renderCats();render();flash('Reset to default');return}
+  saveLib();libSel=(!libNew&&libSyncR===r)?r:null;libNew=false;renderLib();renderCats();render();flash('Saved');return}
+ if(t.closest('#lf-reset')&&libSel){var r2=libSel,c2=BY[r2],old2=c2.n;Object.keys(c2).forEach(function(k){if(k!=='r')delete c2[k]});Object.assign(c2,JSON.parse(JSON.stringify(DEF[r2])));delete LIB[r2];saveLib();if(placedCount(r2)){snapshot();libUpdatePlaced(r2,old2);commit()}libSel=libSyncR===r2?r2:null;renderLib();renderCats();render();flash('Reset to default');return}
  if(t.closest('#lf-del')&&libSel){var r3=libSel;if(placedCount(r3)){flash('Remove the placed copies first');return}delete LIB[r3];delete BY[r3];var ix=CATALOG.findIndex(function(x){return x.r===r3});if(ix>=0)CATALOG.splice(ix,1);saveLib();libSel=null;renderLib();renderCats();render();flash('Deleted');return}
 });
 renderLib();
