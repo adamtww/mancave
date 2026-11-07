@@ -1,0 +1,13 @@
+# Deployed by .github/workflows/deploy-worker.yml — the database id is filled in there.
+name = "mancave-api"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[vars]
+ADMIN_USERNAME = "adam"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mancave-db"
+database_id = "__D1_ID__"
