@@ -492,9 +492,9 @@ function render(){
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">'+(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="'+Math.min(0.225,3/scale).toFixed(3)+'"/>';
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
-  var hint=it.ed&&it.sz&&!it.ph,hs=11/scale,band=24/scale+hs,hin=hint&&it.d-band>=it.d*0.5&&it.w>=hs*12,lr=hin?{name:it.name,x:it.x,y:it.y,w:it.w,d:it.d-band+6/scale}:it;
-  h+=label(lr,{cap:Math.min(lr.w,lr.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#000',op:it.u===furn?0.1:0.3,weight:600});
-  if(hint){var hy=hin?it.y+it.d-20/scale-hs*0.2:it.y+it.d+22/scale+hs*0.8;var nar=!hin&&it.w<hs*11.5;h+='<text x="'+(nar?it.x+it.w:it.x+it.w/2)+'" y="'+hy.toFixed(3)+'" font-size="'+hs.toFixed(3)+'" fill="#000" fill-opacity="0.55" text-anchor="'+(nar?'end':'middle')+'" pointer-events="none"'+(hin?'':' stroke="#fbfaf7" stroke-width="'+(hs*0.3).toFixed(3)+'" paint-order="stroke"')+'>(Click Here to Rename)</text>'}
+  var pen=it.ed&&it.sz&&!it.ph,lr=pen?{name:it.name,x:it.x+it.w*0.09,y:it.y,w:it.w*0.82,d:it.d}:it;
+  var lt=label(lr,{cap:Math.min(lr.w,lr.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,hf:0.72,color:'#000',op:it.u===furn?0.1:0.3,weight:600});h+=pen?lt.replace('<text ','<text data-rl="1" '):lt;
+
   h+='</g>'});
  items.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o" data-u="'+it.u+'">';
@@ -519,6 +519,8 @@ function render(){
   if(ART(ghost.r))h+='<g opacity=".7">'+iconFor(ghost)+'</g>';h+=label({x:ghost.x,y:ghost.y,w:ghost.w,d:ghost.d,name:ghost.name},ART(ghost.r)?{halo:1,cap:0.9}:null)}
  if(draft)h+='<rect x="'+draft.x+'" y="'+draft.y+'" width="'+draft.w+'" height="'+draft.d+'" fill="rgba(47,111,237,.06)" stroke="var(--accent)" stroke-width="0.35" stroke-dasharray="0.8 0.5"/><text x="'+(draft.x+draft.w/2)+'" y="'+(draft.y+draft.d/2)+'" font-size="1.3" fill="var(--accent)" text-anchor="middle">'+draft.w+' × '+draft.d+'</text>';
  svg.innerHTML=h;
+ var rl=svg.querySelector('text[data-rl]');if(rl){try{var nc=rl.getNumberOfChars();if(nc){var ex=rl.getExtentOfChar(nc-1),fz=+rl.getAttribute('font-size'),ps=Math.max(fz*0.5,14/scale),px=ex.x+ex.width+ps*0.3,py=ex.y+ex.height*0.52-ps/2,tf=rl.getAttribute('transform')||'';
+  rl.insertAdjacentHTML('afterend','<g transform="'+tf+' translate('+px.toFixed(3)+' '+py.toFixed(3)+') scale('+(ps/24).toFixed(4)+')" pointer-events="none" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></g>')}}catch(_){}}
  renderInsp();renderStatus();$('#lw').value=S.lot.w;$('#ld').value=S.lot.d;
 }
 function handles(it){var x=it.x,y=it.y,w=it.w,d=it.d;return [{h:'nw',x:x,y:y,c:'nwse-resize'},{h:'n',x:x+w/2,y:y,c:'ns-resize'},{h:'ne',x:x+w,y:y,c:'nesw-resize'},{h:'e',x:x+w,y:y+d/2,c:'ew-resize'},{h:'se',x:x+w,y:y+d,c:'nwse-resize'},{h:'s',x:x+w/2,y:y+d,c:'ns-resize'},{h:'sw',x:x,y:y+d,c:'nesw-resize'},{h:'w',x:x,y:y+d/2,c:'ew-resize'}]}
