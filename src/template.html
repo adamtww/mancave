@@ -190,6 +190,77 @@ body.furn .info{display:none!important}
 .info .ih{padding:16px 18px 12px;font-size:17px;font-weight:700;color:#2b2a27;border-bottom:1px solid var(--line)}
 .info .ib{flex:1;overflow:auto;padding:14px 18px}
 .info .in2{font-size:13px;color:var(--muted)}
+/* ---- cloud: header controls, sign-in, dialogs ---- */
+.mid>.hist{align-items:center}
+.cloud{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.lychip{display:flex;align-items:center;gap:8px;max-width:340px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px 8px 14px;font-size:14px;color:#2b2a27;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lychip:hover{border-color:#c9c5bb}
+.lychip .lyn{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lychip .lytag{font-size:11.5px;font-weight:600;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:999px;padding:1px 8px;white-space:nowrap}
+.lychip .lytag:empty{display:none}
+.lychip svg{flex:none;color:#8a857a}
+.lyst{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.lyst.dirty{color:#b26b00;font-weight:600}
+.lyst.err{color:#b3412f;font-weight:600}
+.hb.savebtn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.hb.savebtn:disabled{background:#fff;color:#3d3b36;border-color:var(--line);font-weight:500}
+.uwrap{position:relative}
+.umenu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.14);padding:6px;display:none;flex-direction:column;min-width:190px;z-index:30}
+.umenu.show{display:flex}
+.umenu button{border:0;background:none;text-align:left;padding:10px 12px;border-radius:8px;font-size:14px;color:#2b2a27;cursor:pointer}
+.umenu button:hover{background:#f4f2ed}
+.umenu .uout{color:#b3412f;border-top:1px solid #f0ede6;border-radius:0 0 8px 8px;margin-top:4px}
+body:not(.isadmin) .umenu .adm{display:none}
+.login{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;align-items:center;justify-content:center}
+.login.show{display:flex}
+.lbox{width:min(360px,90vw);background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgba(40,36,28,.12);padding:28px 26px 22px;display:flex;flex-direction:column;gap:12px}
+.lbox .lttl{font-size:24px;font-weight:700;color:#2b2a27}
+.lbox .lsub{font-size:14px;color:var(--muted);margin:-6px 0 6px}
+.lbox label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:#6b675e}
+.lbox input{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;outline:none}
+.lbox input:focus{border-color:var(--accent)}
+.lbox button{margin-top:6px;border:0;background:var(--accent);color:#fff;font-weight:600;font-size:15px;border-radius:999px;padding:12px;cursor:pointer}
+.lbox button:disabled{opacity:.6}
+.lbox .lerr{min-height:18px;font-size:13px;color:#b3412f}
+.lbox .lhint{font-size:12px;color:#aaa59a;text-align:center}
+.mdl{position:fixed;inset:0;z-index:75;display:none;align-items:center;justify-content:center;background:rgba(30,29,26,.28)}
+.mdl.show{display:flex}
+.mbox{background:#fff;border-radius:18px;width:min(560px,92vw);max-height:84vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.25);animation:rmIn .14s ease-out;overflow:hidden}
+.mbox.sm{width:min(380px,92vw)}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px 22px;border-bottom:1px solid var(--line);font-size:17px;font-weight:700;color:#2b2a27}
+.mx{border:0;background:#f4f2ed;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;color:#55524b}
+.mb{overflow:auto;padding:14px 22px 20px}
+.mtabs{display:flex;gap:6px;margin-bottom:12px}
+.mtabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13.5px;cursor:pointer;color:#55524b}
+.mtabs button.on{background:#eef3fd;border-color:#d9e4fa;color:#1f4fbf;font-weight:600}
+.mtabs .sp{flex:1}
+.mrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f0ede6}
+.mrow .mi{flex:1;min-width:0}
+.mrow .mn{font-size:14.5px;color:#2b2a27;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow .mn em{font-style:normal;font-size:11px;font-weight:700;color:#1f4fbf;background:#eef3fd;border-radius:5px;padding:1px 6px;margin-left:6px}
+.mrow .ms{font-size:12px;color:var(--muted);margin-top:2px}
+.mrow .ma{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:#3d3b36;white-space:nowrap}
+.mbtn:hover{background:#f4f2ed}
+.mbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.mbtn.red{color:#b3412f;border-color:#f0cfc8}
+.mempty{font-size:13.5px;color:var(--muted);padding:16px 0}
+.mform{display:flex;flex-direction:column;gap:10px}
+.mform label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:#6b675e}
+.mform input{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;outline:none}
+.mform input:focus{border-color:var(--accent)}
+.mform .mfb{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.mform .merr{min-height:16px;font-size:13px;color:#b3412f}
+.mform .mmsg{font-size:13.5px;color:#4b4840;line-height:1.45}
+.mrowform{display:flex;gap:8px;align-items:flex-end;padding:12px 0 4px;flex-wrap:wrap}
+.mrowform input{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px;outline:none}
+.ubar{margin:14px 0 4px}
+.ubar .ul{display:flex;justify-content:space-between;font-size:14px;color:#2b2a27}
+.ubar .ul b{font-variant-numeric:tabular-nums}
+.ubar .ut{height:8px;background:#f0ede6;border-radius:4px;margin-top:6px;overflow:hidden}
+.ubar .ut i{display:block;height:100%;border-radius:4px;background:#3aa37a}
+.ubar.mid .ut i{background:#e0a82e}.ubar.hi .ut i{background:#d64545}
+.unote{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.45}
 /* Object Library card, right of Info */
 .mid>.lib{position:absolute;width:clamp(300px,24vw,420px);bottom:16px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(40,36,28,.10),0 2px 6px rgba(40,36,28,.05);z-index:4;display:flex;flex-direction:column;overflow:hidden}
 body.furn .lib{display:none!important}
@@ -325,8 +396,8 @@ body.touch .cswatch{max-width:200px}
  </div>
  <div class="mid">
   <button class="chev chevopen" id="dexp" title="Show the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><div class="drawer open" id="drawer"><div class="in"><div class="s"><div class="dtitle"><span>Add Objects</span><button class="chev" id="dcol" title="Hide the object list"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div><input id="q" placeholder="Search equipment…"></div><div id="cats"></div></div></div>
-  <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button><span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on"><span class="L">Drawings</span><span class="S">Art</span></button><button data-a="off"><span class="L">Boxes</span><span class="S">Box</span></button></span></div><div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
-   <div class="rmenu emenu" id="emenu"><button class="rmb" id="em-room"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M12 8v8M8 12h8"/></svg><span>Add Room</span></button></div><div class="rename" id="rename"><input id="rn-in" maxlength="40" placeholder="Room name" autocomplete="off"><button id="rn-ok">Save</button></div><div class="rmenu" id="cmenu"><button class="rmb cfm" id="cm-ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span id="cm-lbl">Confirm</span></button><div class="cswatch" id="cm-sw"></div><button class="rmb rmv" id="cm-rm"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button><button class="rmb rmv" id="cm-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="rmenu" id="imenu"><button class="rmb" id="im-rot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg><span>Rotate</span></button><button class="rmb rmred" id="im-del"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="fpanel" id="fpanel"><div class="fph">Objects</div><div class="fpq" id="fpq"></div><div class="fpb" id="fpb"></div></div><div class="fbar" id="fbar"><span class="ft">Adding to <b id="fb-n"></b></span><button class="rmb cfm" id="fb-ok"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Done</span></button><button class="rmb rmred" id="fb-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="cdlg" id="cdlg"><div class="cbox"><div class="ct" id="cd-t"></div><div class="cm" id="cd-m"></div><div class="cb"><button id="cd-no">Cancel</button><button class="danger" id="cd-yes">Remove</button></div></div></div><div class="rmenu" id="rmenu"><button class="rmb" id="rm-edit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg><span>Edit</span></button><button class="rmb" id="rm-add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button><button class="rmb rmred" id="rm-del"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
+  <div class="hist" id="hist"><button class="hb" id="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button><button class="hb" id="redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg><span>Redo</span></button><span class="seg artseg" id="t-art" title="Show equipment as drawings or as plain labeled boxes"><button data-a="on"><span class="L">Drawings</span><span class="S">Art</span></button><button data-a="off"><span class="L">Boxes</span><span class="S">Box</span></button></span><div class="cloud" id="cloud"><button class="lychip" id="ly-open" title="Layouts"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg><span class="lyn" id="ly-name">Not signed in</span><span class="lytag" id="ly-tag"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button><span class="lyst" id="ly-st"></span><button class="hb savebtn" id="ly-save" title="Save (Ctrl+S)"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span id="ly-save-l">Save</span></button><div class="uwrap"><button class="hb" id="u-btn"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span id="u-name">—</span></button><div class="umenu" id="umenu"><button data-a="pw">Change password</button><button data-a="users" class="adm">Manage users</button><button data-a="usage" class="adm">Usage</button><button data-a="out" class="uout">Sign out</button></div></div></div></div><div class="stage" id="stage"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+   <div class="rmenu emenu" id="emenu"><button class="rmb" id="em-room"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M12 8v8M8 12h8"/></svg><span>Add Room</span></button></div><div class="rename" id="rename"><input id="rn-in" maxlength="40" placeholder="Room name" autocomplete="off"><button id="rn-ok">Save</button></div><div class="rmenu" id="cmenu"><button class="rmb cfm" id="cm-ok"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span id="cm-lbl">Confirm</span></button><div class="cswatch" id="cm-sw"></div><button class="rmb rmv" id="cm-rm"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button><button class="rmb rmv" id="cm-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="rmenu" id="imenu"><button class="rmb" id="im-rot"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg><span>Rotate</span></button><button class="rmb rmred" id="im-del"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="fpanel" id="fpanel"><div class="fph">Objects</div><div class="fpq" id="fpq"></div><div class="fpb" id="fpb"></div></div><div class="fbar" id="fbar"><span class="ft">Adding to <b id="fb-n"></b></span><button class="rmb cfm" id="fb-ok"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Done</span></button><button class="rmb rmred" id="fb-un"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg><span>Undo</span></button></div><div class="login" id="login"><form class="lbox" id="login-f" autocomplete="on"><div class="lttl">The Cave</div><div class="lsub">Sign in to open your warehouse layouts</div><label>Username<input id="li-u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false"></label><label>Password<input id="li-p" name="password" type="password" autocomplete="current-password"></label><div class="lerr" id="li-err"></div><button type="submit" id="li-go">Sign in</button><div class="lhint">Accounts are set up by Adam — ask him if you need one.</div></form></div><div class="mdl" id="mdl"><div class="mbox" id="mbox"><div class="mh"><span id="mdl-t"></span><button class="mx" id="mdl-x" aria-label="Close">×</button></div><div class="mb" id="mdl-b"></div></div></div><div class="cdlg" id="cdlg"><div class="cbox"><div class="ct" id="cd-t"></div><div class="cm" id="cd-m"></div><div class="cb"><button id="cd-no">Cancel</button><button class="danger" id="cd-yes">Remove</button></div></div></div><div class="rmenu" id="rmenu"><button class="rmb" id="rm-edit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg><span>Edit</span></button><button class="rmb" id="rm-add"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg><span>Add Objects</span></button><button class="rmb rmred" id="rm-del"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg><span>Remove</span></button></div><div class="insp" id="insp"></div><div class="det" id="det"></div></div>
  <aside class="info" id="info"><div class="ih" id="info-h">Warehouse</div><div class="ib" id="info-b"></div></aside><aside class="lib" id="lib"><div class="lh"><span class="lt">Object Library</span></div><div class="lbody"><div class="lq"><input id="lq" placeholder="Search objects…" autocomplete="off"><button class="lnew" id="lib-new">+ New</button></div><div class="lb" id="lib-b"></div></div></aside>
  </div>
  <div class="status" id="status"></div>
@@ -525,7 +596,7 @@ function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
  h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):objCard(it)}
-function renderStatus(){histUI();renderInfo();if(typeof libSync==='function'&&$('#lib-b'))libSync();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
+function renderStatus(){histUI();renderInfo();if(typeof cloudUI==='function')cloudUI();if(typeof libSync==='function'&&$('#lib-b'))libSync();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
 function renderInsp(){var it=sel&&find(sel),el=$('#insp');if(!it){el.className='insp';return}
@@ -923,5 +994,131 @@ document.addEventListener('click',function(e){var t=e.target;if(!t.closest||!t.c
 });
 renderLib();
 artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventListener('resize',function(){});
+/* ================= Cloud: sign-in, shared layouts, history, admin ================= */
+var API='https://mancave-api.adamtww.workers.dev';try{if(localStorage.getItem('cave-api'))API=localStorage.getItem('cave-api')}catch(_){}
+var me=null,tok=null,cur=null,savedJSON=null,cloudBusy=false,lyCache=[];
+try{tok=localStorage.getItem('cave-token')}catch(_){}
+function api(m,p,b){
+ return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b!==undefined?JSON.stringify(b):undefined})
+  .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(r.status===401&&p!=='/api/login'){signedOut(j.error);throw new Error(j.error||'Please sign in')}if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})},
+   function(){throw new Error("Can't reach the server — check your connection")})}
+function utc(ts){return ts?new Date(String(ts).replace(' ','T')+'Z'):null}
+function ago(ts){var d=utc(ts);if(!d)return '';var s=(Date.now()-d)/1000;if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400)return Math.floor(s/3600)+' hr ago';if(s<86400*7)return Math.floor(s/86400)+' day'+(s<172800?'':'s')+' ago';return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()===new Date().getFullYear()?undefined:'numeric'})}
+function whenFull(ts){var d=utc(ts);return d?d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):''}
+/* what gets saved: the lot, rooms & objects, plus the definitions of every object used */
+function packData(){var items=S.items.map(function(it){var o=Object.assign({},it);delete o.sz;delete o.ed;delete o.wasLk;delete o.ph;return o}),defs={};
+ items.forEach(function(it){if(it.r&&BY[it.r]&&!defs[it.r]){var c=Object.assign({},BY[it.r]);defs[it.r]=c}});return {lot:S.lot,items:items,defs:defs}}
+function packKey(){var d=packData();return JSON.stringify({lot:d.lot,items:d.items})}
+function applyData(d,name){(function(defs){Object.keys(defs||{}).forEach(function(r){if(!BY[r]){var c=Object.assign({},defs[r],{r:r});CATALOG.push(c);BY[r]=c}})})(d.defs);
+ S={lot:d.lot||{w:100,d:100},items:(d.items||[]).map(function(i){return Object.assign({},i)}),name:name};undoS=[];redoS=[];sel=null;infoOpenU=null;commit();fit();renderCats();renderLib()}
+function isDirty(){return !!cur&&savedJSON!==null&&packKey()!==savedJSON}
+function cloudUI(){var n=$('#ly-name');if(!n)return;
+ n.textContent=cur?cur.name:(me?'No layout open':'Not signed in');
+ $('#ly-tag').textContent=cur&&!cur.mine?(cur.owner+"'s · view only"):'';
+ var d=isDirty(),st=$('#ly-st'),off=!!tok&&!me;st.className='lyst'+(off?' err':d?' dirty':'');st.textContent=off?'Offline':cloudBusy?'Saving…':(d?'Unsaved changes':(cur?'Saved':''));
+ var sb=$('#ly-save');sb.disabled=!me||cloudBusy||(!d&&!!cur&&cur.mine);$('#ly-save-l').textContent=cur&&!cur.mine?'Save as my copy':'Save';
+ $('#u-name').textContent=me?me.username:'—';document.body.classList.toggle('isadmin',!!(me&&me.admin));
+ if(cur){S.name=cur.name;try{localStorage.setItem('cave-cur',String(cur.id))}catch(_){}}}
+function setCur(l,dataKey){cur={id:l.id,name:l.name,owner_id:l.owner_id,owner:l.owner,mine:!!me&&l.owner_id===me.id,based_on:l.based_on||null};savedJSON=dataKey;cloudUI();renderInfo()}
+/* ---- sign in / out ---- */
+function showLogin(msg){$('#login').classList.add('show');$('#li-err').textContent=msg||'';setTimeout(function(){($('#li-u').value?$('#li-p'):$('#li-u')).focus()},50)}
+function signedOut(msg){tok=null;me=null;cur=null;savedJSON=null;try{localStorage.removeItem('cave-token');localStorage.removeItem('cave-cur');localStorage.removeItem('cave-build');localStorage.setItem('cave-migrated','1')}catch(_){}S={lot:{w:100,d:100},items:[]};undoS=[];redoS=[];sel=null;render();closeModal();cloudUI();showLogin(msg)}
+$('#login-f').onsubmit=function(e){e.preventDefault();var u=$('#li-u').value.trim(),p=$('#li-p').value,b=$('#li-go');if(!u||!p){$('#li-err').textContent='Enter your username and password';return}
+ b.disabled=true;b.textContent='Signing in…';$('#li-err').textContent='';
+ api('POST','/api/login',{username:u,password:p}).then(function(j){tok=j.token;me=j.user;try{localStorage.setItem('cave-token',tok)}catch(_){}$('#li-p').value='';$('#login').classList.remove('show');cloudUI();return openInitial()})
+  .catch(function(err){$('#li-err').textContent=err.message}).then(function(){b.disabled=false;b.textContent='Sign in'})};
+function cloudBoot(){if(!tok){showLogin();return}api('GET','/api/me').then(function(j){me=j.user;cloudUI();return openInitial()}).catch(function(err){if(tok){flash('Offline — working from this browser for now');cloudUI()}})}
+/* first open after signing in: last layout, else your newest, else move this browser's plan into your account */
+function openInitial(){var localData=packData(),localKey=JSON.stringify({lot:localData.lot,items:localData.items}),last=null;try{last=+(localStorage.getItem('cave-cur')||0)}catch(_){}
+ return api('GET','/api/layouts').then(function(j){lyCache=j.layouts;var pick=lyCache.find(function(l){return l.id===last}),mine=lyCache.filter(function(l){return l.owner_id===me.id});
+  if(!pick)pick=mine[0];
+  if(pick)return openLayout(pick.id,{restoreLocal:pick.id===last?localKey:null,localData:localData});
+  var migrated=false;try{migrated=localStorage.getItem('cave-migrated')==='1'}catch(_){}
+  /* this browser's pre-account plan moves into the first account that signs in here, once */
+  if(!migrated&&S.items.length){try{localStorage.setItem('cave-migrated','1')}catch(_){}return createLayout('My Warehouse',localData,null,'Moved your plan from this browser into your account')}
+  try{localStorage.setItem('cave-migrated','1')}catch(_){}
+  if(lyCache.length)return openLayout(lyCache[0].id).then(function(){flash('Showing '+lyCache[0].owner+"'s layout — Save to make your own copy")});
+  return createLayout('My Warehouse',{lot:{w:100,d:100},items:[],defs:{}},null,'Welcome! Your layouts are saved to your account.')})}
+function openLayout(id,o){o=o||{};return api('GET','/api/layouts/'+id).then(function(j){var l=j.layout,key=JSON.stringify({lot:l.data.lot,items:l.data.items});
+  applyData(l.data,l.name);setCur(l,key);
+  if(o.restoreLocal&&o.restoreLocal!==key&&o.localData){applyData(o.localData,l.name);cloudUI();flash('Restored your unsaved changes')}
+  closeModal();render()})}
+function createLayout(name,data,basedOn,msg){cloudBusy=true;cloudUI();return api('POST','/api/layouts',{name:name,data:data,based_on:basedOn||undefined}).then(function(j){cloudBusy=false;
+  S.name=j.layout.name;setCur(j.layout,JSON.stringify({lot:data.lot,items:data.items}));render();flash(msg||'Saved');return j.layout}).catch(function(e){cloudBusy=false;cloudUI();flash(e.message);throw e})}
+function saveLayout(){if(!me||cloudBusy)return;if(sizingRoom()){nudgeConfirm&&nudgeConfirm();return}var data=packData(),key=JSON.stringify({lot:data.lot,items:data.items});
+ if(!cur)return createLayout('My Warehouse',data);
+ if(!cur.mine)return createLayout(cur.name.replace(/ \([^)]*'s copy\)$/,'')+' ('+me.username+"'s copy)",data,cur.id,'Saved as your own copy');
+ cloudBusy=true;cloudUI();return api('PUT','/api/layouts/'+cur.id,{name:cur.name,data:data}).then(function(){cloudBusy=false;savedJSON=key;cloudUI();flash('Saved')})
+  .catch(function(e){cloudBusy=false;cloudUI();flash(e.message)})}
+$('#ly-save').onclick=function(e){e.stopPropagation();saveLayout()};
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveLayout()}});
+window.addEventListener('beforeunload',function(e){if(isDirty()){e.preventDefault();e.returnValue=''}});
+/* ---- modal helpers ---- */
+function modal(title,html,small){$('#mdl-t').textContent=title;$('#mdl-b').innerHTML=html;$('#mbox').classList.toggle('sm',!!small);$('#mdl').classList.add('show')}
+function closeModal(){$('#mdl').classList.remove('show')}
+$('#mdl-x').onclick=closeModal;$('#mdl').addEventListener('pointerdown',function(e){if(e.target.id==='mdl')closeModal()});
+function askM(title,msg,yes,cb,danger){modal(title,'<div class="mform"><div class="mmsg">'+msg+'</div><div class="mfb"><button class="mbtn" data-k="no">Cancel</button><button class="mbtn '+(danger?'red':'pri')+'" data-k="yes">'+escH(yes)+'</button></div></div>',true);
+ $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;if(k.dataset.k==='yes')cb();else closeModal()}}
+function inputM(title,label,val,yes,cb,type){modal(title,'<form class="mform" id="im-f"><label>'+escH(label)+'<input id="im-v" type="'+(type||'text')+'" value="'+escH(val||'')+'"></label><div class="merr" id="im-e"></div><div class="mfb"><button type="button" class="mbtn" data-k="no">Cancel</button><button class="mbtn pri" type="submit">'+escH(yes)+'</button></div></form>',true);
+ var f=$('#im-f');$('#mdl-b').onclick=function(e){if(e.target.closest('[data-k="no"]'))closeModal()};f.onsubmit=function(e){e.preventDefault();cb($('#im-v').value,function(m){$('#im-e').textContent=m})};setTimeout(function(){var i=$('#im-v');i.focus();i.select&&i.select()},50)}
+/* leaving unsaved changes behind needs a yes */
+function guard(fn){if(!isDirty())return fn();askM('Unsaved changes','You have unsaved changes to <b>'+escH(cur.name)+'</b>. Open something else and lose them?','Discard changes',function(){savedJSON=packKey();fn()},true)}
+/* ---- Layouts browser ---- */
+var lyTab='mine';
+function openLayouts(){if(!me)return showLogin();modal('Layouts','<div class="mempty">Loading…</div>');api('GET','/api/layouts').then(function(j){lyCache=j.layouts;renderLayouts()}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+function renderLayouts(){var mine=lyCache.filter(function(l){return l.owner_id===me.id}),oth=lyCache.filter(function(l){return l.owner_id!==me.id}),list=lyTab==='mine'?mine:oth;
+ var h='<div class="mtabs"><button data-tab="mine" class="'+(lyTab==='mine'?'on':'')+'">My layouts ('+mine.length+')</button><button data-tab="shared" class="'+(lyTab==='shared'?'on':'')+'">Everyone else ('+oth.length+')</button><span class="sp"></span><button data-k="new" class="mbtn pri">+ New layout</button></div>';
+ if(!list.length)h+='<div class="mempty">'+(lyTab==='mine'?'You have no layouts yet.':'Nobody else has saved a layout yet.')+'</div>';
+ list.forEach(function(l){var open=cur&&cur.id===l.id;
+  h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
+  h+=(open?'':'<button class="mbtn pri" data-k="open">Open</button>')+'<button class="mbtn" data-k="hist">History</button>';
+  if(lyTab==='mine')h+='<button class="mbtn" data-k="ren">Rename</button><button class="mbtn" data-k="dup">Duplicate</button><button class="mbtn red" data-k="del">Delete</button>';
+  else h+='<button class="mbtn" data-k="copy">Make my copy</button>';
+  h+='</div></div>'});
+ $('#mdl-b').innerHTML=h;
+ $('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts();return}var k=e.target.closest('[data-k]');if(!k)return;var row=k.closest('.mrow'),id=row?+row.dataset.id:0,l=lyCache.find(function(x){return x.id===id});
+  switch(k.dataset.k){
+   case 'new':guard(function(){inputM('New layout','Name','Untitled warehouse','Create',function(v,err){createLayout(v||'Untitled warehouse',{lot:{w:100,d:100},items:[],defs:{}},null,'Created').then(function(nl){return openLayout(nl.id)}).catch(function(e){err(e.message)})})});break;
+   case 'open':guard(function(){openLayout(id).catch(function(e){flash(e.message)})});break;
+   case 'hist':openHistory(l);break;
+   case 'ren':inputM('Rename layout','Name',l.name,'Rename',function(v,err){api('PUT','/api/layouts/'+id,{name:v}).then(function(j){if(cur&&cur.id===id){cur.name=j.name;cloudUI();renderInfo()}openLayouts()}).catch(function(e){err(e.message)})});break;
+   case 'dup':api('GET','/api/layouts/'+id).then(function(j){return api('POST','/api/layouts',{name:j.layout.name+' (copy)',data:j.layout.data,based_on:id})}).then(function(){flash('Duplicated');openLayouts()}).catch(function(e){flash(e.message)});break;
+   case 'copy':api('GET','/api/layouts/'+id).then(function(j){return api('POST','/api/layouts',{name:j.layout.name+' ('+me.username+"'s copy)",data:j.layout.data,based_on:id})}).then(function(){flash('Copied to your layouts');lyTab='mine';openLayouts()}).catch(function(e){flash(e.message)});break;
+   case 'del':askM('Delete layout','Delete <b>'+escH(l.name)+'</b> and its history? This can’t be undone. Copies other people made are not affected.','Delete',function(){api('DELETE','/api/layouts/'+id).then(function(){if(cur&&cur.id===id){cur=null;savedJSON=null;cloudUI()}flash('Deleted');openLayouts()}).catch(function(e){flash(e.message)})},true);break}}}
+$('#ly-open').onclick=function(e){e.stopPropagation();openLayouts()};
+/* ---- version history ---- */
+function openHistory(l){modal('History — '+l.name,'<div class="mempty">Loading…</div>');api('GET','/api/layouts/'+l.id+'/versions').then(function(j){var h='<div class="ms" style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Every save is kept (latest 50). Loading an old version puts it on the canvas — press Save to keep it.</div>';
+  j.versions.forEach(function(v,i){h+='<div class="mrow" data-v="'+v.id+'"><div class="mi"><div class="mn">'+whenFull(v.created_at)+(i===0?'<em>latest</em>':'')+'</div><div class="ms">saved by '+escH(v.by||'?')+' · '+ago(v.created_at)+'</div></div><div class="ma"><button class="mbtn" data-k="load">Load</button></div></div>'});
+  $('#mdl-b').innerHTML=h;$('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k="load"]');if(!k)return;var vid=+k.closest('.mrow').dataset.v;
+   guard(function(){var go=function(){return api('GET','/api/versions/'+vid).then(function(x){applyData(x.version.data,l.name);cloudUI();closeModal();flash('Loaded the '+whenFull(x.version.created_at)+' version — Save to keep it')})};
+    (cur&&cur.id===l.id?go():openLayout(l.id).then(go)).catch(function(e){flash(e.message)})})}}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+/* ---- account menu ---- */
+$('#u-btn').onclick=function(e){e.stopPropagation();if(!me)return showLogin();$('#umenu').classList.toggle('show')};
+document.addEventListener('pointerdown',function(e){if(!e.target.closest('.uwrap'))$('#umenu').classList.remove('show')});
+$('#umenu').onclick=function(e){var b=e.target.closest('[data-a]');if(!b)return;$('#umenu').classList.remove('show');var a=b.dataset.a;
+ if(a==='out')guard(function(){api('POST','/api/logout').catch(function(){}).then(function(){signedOut('Signed out')})});
+ if(a==='pw')openPw();if(a==='users')openUsers();if(a==='usage')openUsage()};
+function openPw(){modal('Change password','<form class="mform" id="pw-f"><label>Current password<input id="pw-c" type="password" autocomplete="current-password"></label><label>New password<input id="pw-n" type="password" autocomplete="new-password"></label><div class="merr" id="pw-e"></div><div class="mfb"><button class="mbtn pri" type="submit">Change password</button></div></form>',true);
+ $('#mdl-b').onclick=null;$('#pw-f').onsubmit=function(e){e.preventDefault();api('POST','/api/password',{current:$('#pw-c').value,password:$('#pw-n').value}).then(function(){closeModal();flash('Password changed')}).catch(function(err){$('#pw-e').textContent=err.message})}}
+/* ---- admin: users ---- */
+function openUsers(){modal('Manage users','<div class="mempty">Loading…</div>');api('GET','/api/users').then(function(j){
+  var h='<form class="mrowform" id="nu-f"><input id="nu-u" placeholder="Username" autocapitalize="none" spellcheck="false"><input id="nu-p" placeholder="Password" type="text" autocomplete="off"><button class="mbtn pri" type="submit">Add user</button></form><div class="merr" id="nu-e" style="font-size:13px;color:#b3412f;min-height:16px"></div>';
+  j.users.forEach(function(u){h+='<div class="mrow" data-id="'+u.id+'" data-n="'+escH(u.username)+'"><div class="mi"><div class="mn">'+escH(u.username)+(u.is_admin?'<em>admin</em>':'')+(u.id===me.id?'<em>you</em>':'')+'</div><div class="ms">'+u.layouts+' layout'+(u.layouts===1?'':'s')+' · added '+ago(u.created_at)+'</div></div><div class="ma"><button class="mbtn" data-k="pw">Reset password</button>'+(u.id===me.id?'':'<button class="mbtn red" data-k="rm">Remove</button>')+'</div></div>'});
+  $('#mdl-b').innerHTML=h;
+  $('#nu-f').onsubmit=function(e){e.preventDefault();api('POST','/api/users',{username:$('#nu-u').value.trim(),password:$('#nu-p').value}).then(function(){flash('User added');openUsers()}).catch(function(err){$('#nu-e').textContent=err.message})};
+  $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;var row=k.closest('.mrow'),id=+row.dataset.id,n=row.dataset.n;
+   if(k.dataset.k==='pw')inputM('Reset password for '+n,'New password','','Set password',function(v,err){api('PUT','/api/users/'+id,{password:v}).then(function(){flash('Password reset — '+n+' is signed out everywhere');openUsers()}).catch(function(e2){err(e2.message)})},'text');
+   if(k.dataset.k==='rm')askM('Remove '+n,'Remove <b>'+escH(n)+'</b> and delete all of their layouts? This can’t be undone.','Remove user',function(){api('DELETE','/api/users/'+id).then(function(){flash('Removed '+n);openUsers()}).catch(function(e2){flash(e2.message)})},true)}}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+/* ---- admin: usage ---- */
+function fmtBytes(b){if(b==null)return '—';if(b<1e3)return b+' B';if(b<1e6)return (b/1e3).toFixed(1)+' KB';if(b<1e9)return (b/1e6).toFixed(1)+' MB';return +(b/1e9).toFixed(2)+' GB'}
+function ubar(label,val,max,fmt){if(val==null)return '<div class="ubar"><div class="ul"><span>'+label+'</span><b>—</b></div><div class="ut"><i style="width:0"></i></div></div>';var pct=Math.min(100,val/max*100),cls=pct>=80?' hi':pct>=50?' mid':'';
+ return '<div class="ubar'+cls+'"><div class="ul"><span>'+label+'</span><b>'+fmt(val)+' / '+fmt(max)+' · '+(pct<1&&val>0?'<1':Math.round(pct))+'%</b></div><div class="ut"><i style="width:'+Math.max(pct,val>0?1:0)+'%"></i></div></div>'}
+function openUsage(){modal('Usage — Cloudflare free plan','<div class="mempty">Loading…</div>');api('GET','/api/usage').then(function(u){var n=function(x){return Math.round(x).toLocaleString('en-US')},L=u.limits,t=u.today||{};
+  var ms=new Date(u.resetsAt)-Date.now(),hrs=Math.floor(ms/3600000),mins=Math.floor(ms%3600000/60000);
+  var h=ubar('Database storage',u.storageBytes,L.storageBytes,fmtBytes)+ubar('Rows read today',t.rowsRead,L.rowsRead,n)+ubar('Rows written today',t.rowsWritten,L.rowsWritten,n)+ubar('Worker requests today',t.requests,L.requests,n);
+  h+='<div class="unote">Daily counts reset in <b>'+hrs+' h '+mins+' min</b> (midnight UTC = '+new Date(u.resetsAt).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})+' your time). They cover your whole Cloudflare account and can lag a few minutes. '+(u.layouts!=null?u.layouts+' layouts saved.':'')+(u.note?'<br><b>Note:</b> '+escH(u.note):'')+'</div>';
+  $('#mdl-b').innerHTML=h;$('#mdl-b').onclick=null}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+cloudUI();cloudBoot();
+
 })();
 </script></body></html>
