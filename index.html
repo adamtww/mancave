@@ -568,6 +568,7 @@ function render(){
   if(it.cm==='front'){var fe=frontEdge(it);h+='<line x1="'+fe[0]+'" y1="'+fe[1]+'" x2="'+fe[2]+'" y2="'+fe[3]+'" stroke="#5f5b52" stroke-width="0.3" pointer-events="none"/>'}
   h+=(ART(it.r)?(it.u===sel?label(it,{pill:1,color:'#fff',weight:600,cap:1.0}):'<title>'+esc(it.name)+'</title>'):label(it))+'</g>'});
  var si=sel&&find(sel);
+ var hr=!sel&&!furn&&infoOpenU&&find(infoOpenU);if(hr)h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+hr.x+' '+hr.y+'V'+(hr.y+hr.d)+'H'+(hr.x+hr.w)+'V'+hr.y+'Z" fill="#24231f" fill-opacity="0.2" fill-rule="evenodd" pointer-events="none"/><rect x="'+hr.x+'" y="'+hr.y+'" width="'+hr.w+'" height="'+hr.d+'" fill="var(--accent)" fill-opacity="0.08" stroke="var(--accent)" stroke-width="'+(2.5/scale).toFixed(3)+'" pointer-events="none"/>';
  var gds=(drag&&drag.gd)||(draft&&draft.gd);if(gds&&gds.length)gds.forEach(function(g){var sw=(1.5/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3);h+=g.x!=null?'<line x1="'+g.x+'" y1="0" x2="'+g.x+'" y2="'+S.lot.d+'" stroke="#e0457b" stroke-width="'+sw+'" stroke-dasharray="'+da+'" pointer-events="none"/>':'<line x1="0" y1="'+g.y+'" x2="'+S.lot.w+'" y2="'+g.y+'" stroke="#e0457b" stroke-width="'+sw+'" stroke-dasharray="'+da+'" pointer-events="none"/>'});
  if(si&&!isRoom(si))h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+si.x+' '+si.y+'V'+(si.y+si.d)+'H'+(si.x+si.w)+'V'+si.y+'Z" fill="#24231f" fill-opacity="0.2" fill-rule="evenodd" pointer-events="none"/>';
  var fr=furn&&find(furn),dimO=0.38;if(!fr&&si&&isRoom(si)){fr=si;dimO=0.2}if(fr)h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+fr.x+' '+fr.y+'V'+(fr.y+fr.d)+'H'+(fr.x+fr.w)+'V'+fr.y+'Z" fill="#24231f" fill-opacity="'+dimO+'" fill-rule="evenodd" pointer-events="none"/>';
@@ -611,7 +612,7 @@ function roomPowerCard(r){var o=roomPower2(r),ap=o.est?'≈ ':'';
  h+='<div class="irow"><span>Breaker slots</span><b>'+o.slots+'</b></div>';
  if(o.est)h+='<div class="iwarn">⚠ '+o.est+' value'+(o.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
-var infoOpen={};
+var infoOpenU=null;
 /* whole-warehouse power rollup */
 function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,items:0,c240:0,c120:0,slots:0},per=[];
  rooms.forEach(function(r){var o=roomPower2(r);if(!o.items)return;tot.w+=o.w;tot.max=Math.max(tot.max,o.max);tot.est+=o.est;tot.items+=o.items;tot.slots+=o.slots;o.circ.forEach(function(c){if(c.V>=208)tot.c240+=c.n;else tot.c120+=c.n});per.push({u:r.u,name:r.name,w:o.w,slots:o.slots,o:o})});
@@ -626,12 +627,12 @@ function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,i
  h+='<div class="irow"><span>Breaker slots</span><b>'+tot.slots+'</b></div>';
  per.sort(function(a,b){return b.w-a.w});
  h+='<div class="isub">By room</div>';
- per.forEach(function(p,i){var pct=tot.w?p.w/tot.w*100:0,op=!!infoOpen[p.u];h+='<div class="iroom'+(op?' open':'')+'" data-u="'+p.u+'"><div class="ic1"><span class="ict">'+escH(p.name)+(i===0&&per.length>1?' <em>biggest</em>':'')+'</span><b>'+fmtW(p.w)+'</b></div><div class="ibar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="ic2 islt"><span>'+p.slots+' breaker slot'+(p.slots===1?'':'s')+'</span><svg class="ichev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>';
+ per.forEach(function(p,i){var pct=tot.w?p.w/tot.w*100:0,op=infoOpenU===p.u;h+='<div class="iroom'+(op?' open':'')+'" data-u="'+p.u+'"><div class="ic1"><span class="ict">'+escH(p.name)+(i===0&&per.length>1?' <em>biggest</em>':'')+'</span><b>'+fmtW(p.w)+'</b></div><div class="ibar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="ic2 islt"><span>'+p.slots+' breaker slot'+(p.slots===1?'':'s')+'</span><svg class="ichev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>';
   if(op){h+='<div class="ibrk">';p.o.circ.forEach(function(c){var sl=c.n*(c.V>=208?2:1);h+='<div class="icirc"><div class="ic1"><span class="ict">'+c.V+'V · '+c.A+'A <em>'+c.kind+'</em></span><b>×'+c.n+'</b></div><div class="ic2">'+escH(c.note)+'</div><div class="ic3">'+sl+' slot'+(sl===1?'':'s')+(c.V>=208?' · 2-pole':' · 1-pole')+'</div></div>'});h+='</div>'}
   h+='</div>'});
  if(tot.est)h+='<div class="iwarn">⚠ '+tot.est+' value'+(tot.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
-document.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('#info-b .iroom[data-u]');if(!r)return;var u=r.dataset.u;infoOpen[u]=!infoOpen[u];renderInfo()});
+document.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('#info-b .iroom[data-u]');if(!r)return;var u=r.dataset.u;infoOpenU=infoOpenU===u?null:u;render()});
 function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
