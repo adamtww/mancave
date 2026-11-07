@@ -201,7 +201,7 @@ body.testsite .testpill{display:inline-block}
 .lttl .testpill{margin-left:10px;font-size:11px}
 .testbar{display:none}
 body.testsite .mid>.hist{position:relative!important}
-.testmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#d62828;font-size:15px;font-weight:900;letter-spacing:.14em;line-height:1;white-space:nowrap;pointer-events:auto;cursor:default}
+.testmark{flex:1 1 auto;min-width:0;overflow:hidden;text-align:center;padding:0 12px;color:#d62828;font-size:15px;font-weight:900;letter-spacing:.14em;line-height:1;white-space:nowrap;pointer-events:auto;cursor:default}
 body.testsite .cloud .testpill{display:none}
 .cloud{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
 .lychip{display:flex;align-items:center;gap:8px;max-width:340px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px 8px 14px;font-size:14px;color:#2b2a27;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -1013,7 +1013,7 @@ artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventList
 var TEST_SITE=/^test\./.test(location.hostname);
 var API=TEST_SITE?'https://mancave-api-test.adamtww.workers.dev':'https://mancave-api.adamtww.workers.dev';
 if(TEST_SITE){document.body.classList.add('testsite');
- var tb=document.createElement('div');tb.className='testmark';tb.title='Test site: saves go to the test database, not your real layouts';tb.textContent='TEST VERSION';var hh=document.getElementById('hist');if(hh)hh.appendChild(tb);
+ var tb=document.createElement('div');tb.className='testmark';tb.title='Test site: saves go to the test database, not your real layouts';tb.textContent='TEST VERSION';var hh=document.getElementById('hist'),cl=document.getElementById('cloud');if(hh)hh.insertBefore(tb,cl||null);
  document.title='🧪 TEST — '+document.title;
  var fi=document.createElement('link');fi.rel='icon';fi.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#d62828"/><text x="32" y="45" font-family="Arial,sans-serif" font-size="38" font-weight="900" fill="#fff" text-anchor="middle">T</text></svg>');document.head.appendChild(fi);
  setTimeout(function(){if(typeof applyView==='function')applyView()},0)}try{if(localStorage.getItem('cave-api'))API=localStorage.getItem('cave-api')}catch(_){}
