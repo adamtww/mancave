@@ -218,7 +218,11 @@ body.furn .info{display:none!important}
 .info .iroom>.ic1 .ict em{font-style:normal;font-size:11px;font-weight:600;color:#9a6a12;background:#fdf6e6;border-radius:6px;padding:1px 6px;margin-left:6px}
 .info .ibar{height:5px;background:#f0ede6;border-radius:3px;margin:6px 0 3px;overflow:hidden}
 .info .ibar i{display:block;height:100%;background:var(--accent);opacity:.7;border-radius:3px}
-.info .iwarn{margin-top:14px;font-size:12.5px;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:8px;padding:8px 10px}
+.info .itags{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+.info .itag{font-size:12px;color:#55524b;background:#f3f1ec;border:1px solid #e9e5dc;border-radius:999px;padding:3px 10px}
+.info .iroomtag{color:#3b5fa8;background:#eef3fd;border-color:#d9e4fa}
+.info .inote{margin-top:14px;font-size:13px;color:#4b4840;background:#f8f7f3;border:1px solid #efece5;border-radius:8px;padding:9px 11px;line-height:1.45}
+.info .iwarn{line-height:1.45;margin-top:14px;font-size:12.5px;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:8px;padding:8px 10px}
 .fpanel{position:absolute;left:16px;top:10px;bottom:16px;width:clamp(240px,28%,400px);display:none;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:6;overflow:hidden;animation:fpIn .22s ease-out}
 body.furn .fpanel{display:flex}
 @keyframes fpIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
@@ -633,10 +637,32 @@ function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,i
  if(tot.est)h+='<div class="iwarn">⚠ '+tot.est+' value'+(tot.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
 document.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('#info-b .iroom[data-u]');if(!r)return;var u=r.dataset.u;infoOpenU=infoOpenU===u?null:u;render()});
+/* object card: what it is, where it sits, and what it needs */
+function objCard(it){var c=cat(it),r=roomOf(it),ap=c&&c.est?'≈ ':'',dirs=['down','left','up','right'],h='';
+ h+='<div class="itags">'+(c?'<span class="itag">'+escH(c.c)+'</span>':'')+(r?'<span class="itag iroomtag">in '+escH(r.name)+'</span>':'')+'</div>';
+ h+='<div class="isec">Details</div>';
+ h+='<div class="irow"><span>Size</span><b>'+ap+fmtN(it.w)+' × '+fmtN(it.d)+' ft</b></div>';
+ h+='<div class="irow"><span>Footprint</span><b>'+ap+fmtSf(it.w*it.d)+'</b></div>';
+ if(c&&!c.z)h+='<div class="irow"><span>Clearance</span><b>'+(c.cl?fmtN(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>';
+ if(c&&c.cl)h+='<div class="irow"><span>Floor space with clearance</span><b>'+ap+fmtSf(c.cf?it.w*it.d+((it.rot||0)%2?c.cl*it.d:it.w*c.cl):(it.w+2*c.cl)*(it.d+2*c.cl))+'</b></div>';
+ h+='<div class="irow"><span>Front faces</span><b>'+dirs[(it.rot||0)%4]+'</b></div>';
+ if(r)h+='<div class="irow"><span>Position in room</span><b>'+fmtN(it.x-r.x)+' ft, '+fmtN(it.y-r.y)+' ft</b></div>';
+ h+='<div class="isec">Power</div>';
+ if(c&&c.p){var V=c.p[0],W=c.p[1],A=c.p[2],dd=c.p[3];
+  h+='<div class="irow"><span>Voltage</span><b>'+V+'V</b></div>';
+  h+='<div class="irow"><span>Wattage</span><b>'+ap+fmtW(W)+'</b></div>';
+  h+='<div class="irow"><span>Current draw</span><b>'+ap+(Math.round(W/V*10)/10)+' A</b></div>';
+  h+='<div class="icirc"><div class="ic1"><span class="ict">'+V+'V · '+A+'A <em>'+(dd?'dedicated':'shared')+'</em></span></div><div class="ic2">'+(dd?'Needs its own circuit · '+(V>=208?'2 breaker slots (2-pole)':'1 breaker slot'):'Plugs into a shared '+V+'V outlet circuit with other small items')+'</div></div>'}
+ else h+='<div class="in2">No power needed.</div>';
+ if(c&&c.no)h+='<div class="inote">'+escH(c.no)+'</div>';
+ (c&&c.a||[]).forEach(function(k){if(ALERTS[k])h+='<div class="iwarn"><b>'+escH(ALERTS[k][0])+'.</b> '+escH(ALERTS[k][1])+'</div>'});
+ if(c&&c.est&&!(c.a||[]).length)h+='<div class="iwarn">⚠ Size and power are estimates (≈)</div>';
+ return h}
+function fmtN(n){return (Math.round(n*10)/10).toLocaleString('en-US')}
 function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
- h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):'<div class="in2">Object details coming next.</div>'}
+ h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):objCard(it)}
 function renderStatus(){histUI();renderInfo();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
