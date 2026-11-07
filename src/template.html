@@ -341,7 +341,7 @@ function render(){
   h+=(ART(it.r)?(it.u===sel?label(it,{pill:1,color:'#fff',weight:600,cap:1.0}):'<title>'+esc(it.name)+'</title>'):label(it))+'</g>'});
  var si=sel&&find(sel);
  var fr=furn&&find(furn);if(fr)h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+fr.x+' '+fr.y+'V'+(fr.y+fr.d)+'H'+(fr.x+fr.w)+'V'+fr.y+'Z" fill="#24231f" fill-opacity="0.38" fill-rule="evenodd" pointer-events="none"/>';
- if(si&&si.u!==furn){if(isRoom(si)&&si.sz){var dl=7/scale,gp=5/scale;h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" pointer-events="none"/><rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></rect>'}
+ if(si&&si.u!==furn){if(true){var dl=7/scale,gp=5/scale;h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" pointer-events="none"/><rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></rect>'}
   else h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2/scale)+'" pointer-events="none"/>'}
  if(si&&isRoom(si)&&!si.lk){
   var hpx=TOUCH?14:8,hs=hpx/scale,hit=(TOUCH?34:12)/scale,small=Math.min(si.w,si.d)*scale<(TOUCH?90:48);
