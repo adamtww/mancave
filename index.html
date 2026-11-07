@@ -213,7 +213,7 @@ body.testsite .cloud .testpill{display:none}
 .lychip svg{flex:none;color:#8a857a}
 .lyst{font-size:12.5px;color:var(--muted);white-space:nowrap}
 .lyst.dirty{color:#b26b00;font-weight:600}
-.lyst.err{color:#b3412f;font-weight:600}
+.lyst.err{color:#b3412f;font-weight:600;cursor:pointer}
 .hb.savebtn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 .hb.savebtn:disabled{background:#fff;color:#3d3b36;border-color:var(--line);font-weight:500}
 .uwrap{position:relative}
@@ -1198,16 +1198,16 @@ artUI();applyMode();renderCats();render();setTimeout(fit,30);window.addEventList
 var TEST_SITE=/^test\./.test(location.hostname);
 var API=TEST_SITE?'https://mancave-api-test.adamtww.workers.dev':'https://mancave-api.adamtww.workers.dev';
 if(TEST_SITE){document.body.classList.add('testsite');
- var tb=document.createElement('div');tb.className='testmark';tb.title='Test site: saves go to the test database, not your real layouts';tb.textContent='TEST VERSION';var hh=document.getElementById('hist'),cl=document.getElementById('cloud');if(hh)hh.insertBefore(tb,cl||null);
+ (function(){var tm=document.createElement('div');tm.className='testmark';tm.title='Test site: saves go to the test database, not your real layouts';tm.textContent='TEST VERSION';var hh=document.getElementById('hist'),cc=document.getElementById('cloud');if(hh)hh.insertBefore(tm,cc||null)})();
  document.title='🧪 TEST — '+document.title;
- var fi=document.createElement('link');fi.rel='icon';fi.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#d62828"/><text x="32" y="45" font-family="Arial,sans-serif" font-size="38" font-weight="900" fill="#fff" text-anchor="middle">T</text></svg>');document.head.appendChild(fi);
+ (function(){var fi=document.createElement('link');fi.rel='icon';fi.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#d62828"/><text x="32" y="45" font-family="Arial,sans-serif" font-size="38" font-weight="900" fill="#fff" text-anchor="middle">T</text></svg>');document.head.appendChild(fi);})();
  setTimeout(function(){if(typeof applyView==='function')applyView()},0)}try{if(localStorage.getItem('cave-api'))API=localStorage.getItem('cave-api')}catch(_){}
 var me=null,tok=null,cur=null,savedJSON=null,cloudBusy=false,lyCache=[];
 try{tok=localStorage.getItem('cave-token')}catch(_){}
 function api(m,p,b){
  return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b!==undefined?JSON.stringify(b):undefined})
   .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(r.status===401&&p!=='/api/login'){signedOut(j.error);throw new Error(j.error||'Please sign in')}if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})},
-   function(){throw new Error("Can't reach the server — check your connection")})}
+   function(){var e=new Error("Can't reach the server — check your connection");e.offline=true;throw e})}
 /* test site only: read-only access to the LIVE layouts. Only GET requests (and signing in) are allowed — nothing can be written to live from here. */
 var LIVE_API='https://mancave-api.adamtww.workers.dev',liveTok=null;try{liveTok=localStorage.getItem('cave-live-token')}catch(_){}try{if(localStorage.getItem('cave-live-api'))LIVE_API=localStorage.getItem('cave-live-api')}catch(_){}
 function liveGet(p){if(!TEST_SITE)return Promise.reject(new Error('Not available'));return fetch(LIVE_API+p,{method:'GET',headers:liveTok?{authorization:'Bearer '+liveTok}:{}}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(r.status===401){liveTok=null;try{localStorage.removeItem('cave-live-token')}catch(_){}}if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})},function(){throw new Error("Can't reach the live server")})}
@@ -1225,7 +1225,7 @@ function isDirty(){return !!cur&&savedJSON!==null&&packKey()!==savedJSON}
 function cloudUI(){var n=$('#ly-name');if(!n)return;
  n.textContent=cur?cur.name:(me?'No layout open':'Not signed in');
  $('#ly-tag').textContent=cur&&!cur.mine?(cur.owner+"'s · view only"):'';
- var d=isDirty(),st=$('#ly-st'),off=!!tok&&!me;st.className='lyst'+(off?' err':d?' dirty':'');st.textContent=off?'Offline':cloudBusy?'Saving…':(d?'Unsaved changes':(cur?'Saved':''));
+ var d=isDirty(),st=$('#ly-st'),off=!!tok&&!me;st.className='lyst'+(off?' err':d?' dirty':'');st.textContent=off?(bootErr==='offline'?'Offline · tap to retry':'Connecting…'):cloudBusy?'Saving…':(d?'Unsaved changes':(cur?'Saved':''));
  var sb=$('#ly-save');sb.disabled=!me||cloudBusy||(!d&&!!cur&&cur.mine);$('#ly-save-l').textContent=cur&&!cur.mine?'Save as my copy':'Save';
  $('#u-name').textContent=me?me.username:'—';document.body.classList.toggle('isadmin',!!(me&&me.admin));
  if(cur){S.name=cur.name;try{localStorage.setItem('cave-cur',String(cur.id))}catch(_){}}}
@@ -1237,7 +1237,13 @@ $('#login-f').onsubmit=function(e){e.preventDefault();var u=$('#li-u').value.tri
  b.disabled=true;b.textContent='Signing in…';$('#li-err').textContent='';
  if(TEST_SITE&&!liveTok)liveLogin(u,p).catch(function(){});api('POST','/api/login',{username:u,password:p}).then(function(j){tok=j.token;me=j.user;try{localStorage.setItem('cave-token',tok)}catch(_){}$('#li-p').value='';$('#login').classList.remove('show');cloudUI();return openInitial()})
   .catch(function(err){$('#li-err').textContent=err.message}).then(function(){b.disabled=false;b.textContent='Sign in'})};
-function cloudBoot(){if(!tok){showLogin();return}api('GET','/api/me').then(function(j){me=j.user;cloudUI();return openInitial()}).catch(function(err){if(tok){flash('Offline — working from this browser for now');cloudUI()}})}
+var bootRetry=null,bootErr='';
+function cloudBoot(){if(!tok){showLogin();return}clearTimeout(bootRetry);
+ api('GET','/api/me').then(function(j){me=j.user;bootErr='';cloudUI();return openInitial().catch(function(err){bootErr='';flash("Couldn't open your layout: "+err.message);console.error(err)})})
+ .catch(function(err){if(!tok)return;if(err.offline){bootErr='offline';cloudUI();flash('Offline — working from this browser for now');bootRetry=setTimeout(cloudBoot,15000)}else{flash(err.message);console.error(err)}})}
+window.addEventListener('online',function(){if(tok&&!me)cloudBoot()});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&tok&&!me)cloudBoot()});
+$('#ly-st').addEventListener('click',function(){if(tok&&!me){$('#ly-st').textContent='Reconnecting…';cloudBoot()}});
 /* first open after signing in: last layout, else your newest, else move this browser's plan into your account */
 function openInitial(){var localData=packData(),localKey=JSON.stringify({lot:localData.lot,items:localData.items}),last=null;try{last=+(localStorage.getItem('cave-cur')||0)}catch(_){}
  return api('GET','/api/layouts').then(function(j){lyCache=j.layouts;var pick=lyCache.find(function(l){return l.id===last}),mine=lyCache.filter(function(l){return l.owner_id===me.id});
@@ -1250,15 +1256,15 @@ function openInitial(){var localData=packData(),localKey=JSON.stringify({lot:loc
   if(lyCache.length)return openLayout(lyCache[0].id).then(function(){flash('Showing '+lyCache[0].owner+"'s layout — Save to make your own copy")});
   return createLayout('My Warehouse',{lot:{w:100,d:100},items:[],defs:{}},null,'Welcome! Your layouts are saved to your account.')})}
 function openLayout(id,o){o=o||{};return api('GET','/api/layouts/'+id).then(function(j){var l=j.layout,key=JSON.stringify({lot:l.data.lot,items:l.data.items});
-  applyData(l.data,l.name);setCur(l,key);
-  if(o.restoreLocal&&o.restoreLocal!==key&&o.localData){applyData(o.localData,l.name);cloudUI();flash('Restored your unsaved changes')}
+  applyData(l.data,l.name);setCur(l,packKey());
+  if(o.restoreLocal&&o.restoreLocal!==savedJSON&&o.localData){applyData(o.localData,l.name);cloudUI();flash('Restored your unsaved changes')}
   closeModal();render()})}
 function createLayout(name,data,basedOn,msg){cloudBusy=true;cloudUI();return api('POST','/api/layouts',{name:name,data:data,based_on:basedOn||undefined}).then(function(j){cloudBusy=false;
-  S.name=j.layout.name;setCur(j.layout,JSON.stringify({lot:data.lot,items:data.items}));render();flash(msg||'Saved');return j.layout}).catch(function(e){cloudBusy=false;cloudUI();flash(e.message);throw e})}
+  S.name=j.layout.name;setCur(j.layout,packKey());render();flash(msg||'Saved');return j.layout}).catch(function(e){cloudBusy=false;cloudUI();flash(e.message);throw e})}
 function saveLayout(){if(!me||cloudBusy)return;if(sizingRoom()){nudgeConfirm&&nudgeConfirm();return}var data=packData(),key=JSON.stringify({lot:data.lot,items:data.items});
  if(!cur)return createLayout('My Warehouse',data);
  if(!cur.mine)return createLayout(cur.name.replace(/ \([^)]*'s copy\)$/,'')+' ('+me.username+"'s copy)",data,cur.id,'Saved as your own copy');
- cloudBusy=true;cloudUI();return api('PUT','/api/layouts/'+cur.id,{name:cur.name,data:data}).then(function(){cloudBusy=false;savedJSON=key;cloudUI();flash('Saved')})
+ cloudBusy=true;cloudUI();return api('PUT','/api/layouts/'+cur.id,{name:cur.name,data:data}).then(function(){cloudBusy=false;savedJSON=packKey();cloudUI();flash('Saved')})
   .catch(function(e){cloudBusy=false;cloudUI();flash(e.message)})}
 $('#ly-save').onclick=function(e){e.stopPropagation();saveLayout()};
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveLayout()}});
