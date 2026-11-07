@@ -17,10 +17,10 @@ button,input{font:inherit;color:inherit}
 .lot{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
 .lot input{width:52px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:#fff}
 .grow{flex:1}
-.mid{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr;min-height:0}
-.mid>.hist{position:static!important;grid-column:1;grid-row:1;padding:10px 12px;background:var(--paper);border-bottom:1px solid var(--line);z-index:auto}
+.mid{display:grid;grid-template-columns:1fr;grid-template-rows:auto 1fr;min-height:0}
+.mid>.hist{position:static!important;grid-column:1/-1;grid-row:1;padding:10px 12px;background:var(--paper);border-bottom:1px solid var(--line);z-index:auto}
 .mid>.stage{grid-column:1;grid-row:2}
-.mid>.info{grid-column:2;grid-row:1/3}
+.mid>.info{position:absolute;grid-column:auto;grid-row:auto}
 /* the object list only lives in the Add Objects panel now */
 /* top toolbar retired for now */
 .app>.top{display:none!important}
@@ -58,7 +58,6 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .pi span:last-child{color:var(--muted);white-space:nowrap;font-size:11.5px}
 .stage{position:relative;overflow:hidden;min-height:0;touch-action:none}
 #svg{position:absolute;inset:0;width:100%;height:100%}
-body:not(.furn) #svg{box-shadow:1px 1px 0 var(--line)}
 .stage.build{cursor:crosshair}
 svg{display:block;user-select:none;touch-action:none}
 .status{display:flex;gap:18px;align-items:center;padding:0 14px;background:var(--paper);border-top:1px solid var(--line);color:var(--muted);font-size:12px}
@@ -191,6 +190,10 @@ body.furn .info{display:none!important}
 .info .ih{padding:16px 18px 12px;font-size:17px;font-weight:700;color:#2b2a27;border-bottom:1px solid var(--line)}
 .info .ib{flex:1;overflow:auto;padding:14px 18px}
 .info .in2{font-size:13px;color:var(--muted)}
+/* Info: floating rounded card beside the canvas window */
+.mid>.info{width:clamp(260px,24vw,380px);bottom:16px;background:#fff;border:1px solid var(--line);border-left:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(40,36,28,.10),0 2px 6px rgba(40,36,28,.05);z-index:4}
+.mid>.info .ih{padding:16px 20px 12px}
+.mid>.info .ib{padding:14px 20px}
 .fpanel{position:absolute;left:16px;top:10px;bottom:16px;width:clamp(240px,28%,400px);display:none;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:6;overflow:hidden;animation:fpIn .22s ease-out}
 body.furn .fpanel{display:flex}
 @keyframes fpIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
@@ -646,7 +649,8 @@ var CAM_M=3;
 var CAM_TOP=6;
 /* the canvas window: fixed to the size the lot has when fully zoomed out (Add Objects uses the whole stage) */
 var CAN_ML=16;
-function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};SW=Math.max(1,SW-CAN_ML);var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
+var INFO_GAP=24;
+function viewDims(){var SW=stage.clientWidth||1,SH=stage.clientHeight||1;if(furn)return {w:SW,h:SH};var inf=$('#info'),iw=inf?inf.offsetWidth:0;SW=Math.max(1,SW-CAN_ML-(iw?iw+INFO_GAP+16:0));var M=CAM_M,s0=Math.min(SW/(S.lot.w+2*M),(SH-CAM_TOP)/(S.lot.d+2*M));return {w:Math.max(1,Math.floor((S.lot.w+2*M)*s0)),h:Math.max(1,Math.floor((S.lot.d+2*M)*s0+CAM_TOP))}}
 function minScale(){var v=viewDims(),W=v.w,H=v.h-CAM_TOP;return Math.min(W/(S.lot.w+2*CAM_M),H/(S.lot.d+2*CAM_M))}
 var camFree=false;
 function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.max(scale,minScale());var vw=W/scale,vh=H/scale,M=CAM_M,L=S.lot;
@@ -747,7 +751,7 @@ function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd
 $('#im-ins').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&it.r&&BY[it.r])showDetails(it.r)};
 $('#im-rot').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))rotateObj(it)};
 $('#im-del').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))remove(it.u)};
-function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';svg.style.left=furn?'0px':CAN_ML+'px';clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';svg.style.left=furn?'0px':CAN_ML+'px';var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+CAN_ML+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2)+'px'}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
 function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
