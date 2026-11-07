@@ -208,8 +208,14 @@ body.furn .info{display:none!important}
 .info .isvc{margin:10px 0 4px;padding:10px 12px;background:#eef3fd;border:1px solid #d9e4fa;border-radius:10px}
 .info .isvc>span{font-size:13.5px;color:#3b5fa8}
 .info .isvc>b{float:right;font-size:16px;color:#1f4fbf;font-variant-numeric:tabular-nums}
-.info .iroom{padding:8px 0;border-bottom:1px solid #f0ede6}
-.info .iroom .ict em{font-style:normal;font-size:11px;font-weight:600;color:#9a6a12;background:#fdf6e6;border-radius:6px;padding:1px 6px;margin-left:6px}
+.info .iroom{padding:8px 0;border-bottom:1px solid #f0ede6;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.info .iroom:hover>.ic1 .ict{color:var(--accent)}
+.info .islt{display:flex;justify-content:space-between;align-items:center}
+.info .ichev{color:#aaa59a;transition:transform .18s}
+.info .iroom.open .ichev{transform:rotate(180deg);color:var(--accent)}
+.info .ibrk{margin-top:8px}
+.info .ic3{font-size:11.5px;color:#3b5fa8;margin-top:3px;font-variant-numeric:tabular-nums}
+.info .iroom>.ic1 .ict em{font-style:normal;font-size:11px;font-weight:600;color:#9a6a12;background:#fdf6e6;border-radius:6px;padding:1px 6px;margin-left:6px}
 .info .ibar{height:5px;background:#f0ede6;border-radius:3px;margin:6px 0 3px;overflow:hidden}
 .info .ibar i{display:block;height:100%;background:var(--accent);opacity:.7;border-radius:3px}
 .info .iwarn{margin-top:14px;font-size:12.5px;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:8px;padding:8px 10px}
@@ -423,9 +429,10 @@ function roomPowerCard(r){var o=roomPower2(r),ap=o.est?'≈ ':'';
  h+='<div class="irow"><span>Breaker slots</span><b>'+o.slots+'</b></div>';
  if(o.est)h+='<div class="iwarn">⚠ '+o.est+' value'+(o.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
+var infoOpen={};
 /* whole-warehouse power rollup */
 function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,items:0,c240:0,c120:0,slots:0},per=[];
- rooms.forEach(function(r){var o=roomPower2(r);if(!o.items)return;tot.w+=o.w;tot.max=Math.max(tot.max,o.max);tot.est+=o.est;tot.items+=o.items;tot.slots+=o.slots;o.circ.forEach(function(c){if(c.V>=208)tot.c240+=c.n;else tot.c120+=c.n});per.push({name:r.name,w:o.w,slots:o.slots})});
+ rooms.forEach(function(r){var o=roomPower2(r);if(!o.items)return;tot.w+=o.w;tot.max=Math.max(tot.max,o.max);tot.est+=o.est;tot.items+=o.items;tot.slots+=o.slots;o.circ.forEach(function(c){if(c.V>=208)tot.c240+=c.n;else tot.c120+=c.n});per.push({u:r.u,name:r.name,w:o.w,slots:o.slots,o:o})});
  var h='<div class="isec">Power</div>';
  if(!tot.items)return h+'<div class="in2">No powered objects placed yet. Select a room and use Add Objects to start planning power.</div>';
  var ap=tot.est?'≈ ':'',peak=tot.max+(tot.w-tot.max)*0.5,amps=peak/240,need=amps*1.25,svc=[100,125,150,200,225,400,600,800,1200].find(function(a){return a>=need})||Math.ceil(need/100)*100;
@@ -437,9 +444,12 @@ function sitePowerCard(){var rooms=S.items.filter(isRoom),tot={w:0,max:0,est:0,i
  h+='<div class="irow"><span>Breaker slots</span><b>'+tot.slots+'</b></div>';
  per.sort(function(a,b){return b.w-a.w});
  h+='<div class="isub">By room</div>';
- per.forEach(function(p,i){var pct=tot.w?p.w/tot.w*100:0;h+='<div class="iroom"><div class="ic1"><span class="ict">'+escH(p.name)+(i===0&&per.length>1?' <em>biggest</em>':'')+'</span><b>'+fmtW(p.w)+'</b></div><div class="ibar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="ic2">'+p.slots+' breaker slot'+(p.slots===1?'':'s')+'</div></div>'});
+ per.forEach(function(p,i){var pct=tot.w?p.w/tot.w*100:0,op=!!infoOpen[p.u];h+='<div class="iroom'+(op?' open':'')+'" data-u="'+p.u+'"><div class="ic1"><span class="ict">'+escH(p.name)+(i===0&&per.length>1?' <em>biggest</em>':'')+'</span><b>'+fmtW(p.w)+'</b></div><div class="ibar"><i style="width:'+pct.toFixed(1)+'%"></i></div><div class="ic2 islt"><span>'+p.slots+' breaker slot'+(p.slots===1?'':'s')+'</span><svg class="ichev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></div>';
+  if(op){h+='<div class="ibrk">';p.o.circ.forEach(function(c){var sl=c.n*(c.V>=208?2:1);h+='<div class="icirc"><div class="ic1"><span class="ict">'+c.V+'V · '+c.A+'A <em>'+c.kind+'</em></span><b>×'+c.n+'</b></div><div class="ic2">'+escH(c.note)+'</div><div class="ic3">'+sl+' slot'+(sl===1?'':'s')+(c.V>=208?' · 2-pole':' · 1-pole')+'</div></div>'});h+='</div>'}
+  h+='</div>'});
  if(tot.est)h+='<div class="iwarn">⚠ '+tot.est+' value'+(tot.est>1?'s are':' is')+' estimated (≈)</div>';
  return h}
+document.addEventListener('click',function(e){var r=e.target.closest&&e.target.closest('#info-b .iroom[data-u]');if(!r)return;var u=r.dataset.u;infoOpen[u]=!infoOpen[u];renderInfo()});
 function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
