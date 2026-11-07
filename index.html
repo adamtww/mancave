@@ -197,6 +197,15 @@ body.furn .info{display:none!important}
 .info .irow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid #f0ede6;font-size:14px}
 .info .irow span{color:var(--muted)}
 .info .irow b{color:#2b2a27;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.info .isec{margin:22px 0 4px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a857a}
+.info .isub{margin:14px 0 6px;font-size:13px;font-weight:600;color:#55524b}
+.info .ihint{font-style:normal;font-size:12px;color:#aaa59a}
+.info .icirc{padding:8px 10px;margin:0 0 6px;background:#f8f7f3;border:1px solid #efece5;border-radius:10px}
+.info .ic1{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+.info .ict{color:#2b2a27;font-weight:600;font-variant-numeric:tabular-nums}
+.info .ict em{font-style:normal;font-weight:500;color:#8a857a;margin-left:4px}
+.info .ic2{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.info .iwarn{margin-top:14px;font-size:12.5px;color:#9a6a12;background:#fdf6e6;border:1px solid #f3e4bd;border-radius:8px;padding:8px 10px}
 .fpanel{position:absolute;left:16px;top:10px;bottom:16px;width:clamp(240px,28%,400px);display:none;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);z-index:6;overflow:hidden;animation:fpIn .22s ease-out}
 body.furn .fpanel{display:flex}
 @keyframes fpIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
@@ -570,10 +579,29 @@ function render(){
 function handles(it){var x=it.x,y=it.y,w=it.w,d=it.d;return [{h:'nw',x:x,y:y,c:'nwse-resize'},{h:'n',x:x+w/2,y:y,c:'ns-resize'},{h:'ne',x:x+w,y:y,c:'nesw-resize'},{h:'e',x:x+w,y:y+d/2,c:'ew-resize'},{h:'se',x:x+w,y:y+d,c:'nwse-resize'},{h:'s',x:x+w/2,y:y+d,c:'ns-resize'},{h:'sw',x:x,y:y+d,c:'nesw-resize'},{h:'w',x:x,y:y+d/2,c:'ew-resize'}]}
 function histUI(){var u=$('#undo'),r=$('#redo'),lk=!!sizingRoom();if(u)u.disabled=lk||!undoS.length;if(r)r.disabled=lk||!redoS.length}
 function fmtSf(n){return Math.round(n).toLocaleString('en-US')+' sq ft'}
+function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+' kW':Math.round(w)+' W'}
+function escH(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+/* power planning for one room, from each object's catalog power data: p=[volts, watts, breaker amps, dedicated?] */
+function roomPower2(r){var o={items:0,w:0,max:0,est:0,ded:{},sh:{}};contents(r).forEach(function(i){var c=cat(i);if(!c||!c.p)return;var V=c.p[0],W=c.p[1],A=c.p[2];o.items++;o.w+=W;o.max=Math.max(o.max,W);if(c.est)o.est++;
+  if(c.p[3]){var k=V+'|'+A;(o.ded[k]=o.ded[k]||{V:V,A:A,names:[]}).names.push(i.name)}else{(o.sh[V]=o.sh[V]||{V:V,w:0,n:0});o.sh[V].w+=W;o.sh[V].n++}});
+ o.peak=o.items?o.max+(o.w-o.max)*0.5:0;o.circ=[];o.slots=0;
+ Object.keys(o.ded).map(function(k){return o.ded[k]}).sort(function(a,b){return b.V-a.V||b.A-a.A}).forEach(function(d){o.circ.push({V:d.V,A:d.A,kind:'dedicated',n:d.names.length,note:d.names.join(', ')});o.slots+=d.names.length*(d.V>=208?2:1)});
+ Object.keys(o.sh).map(function(k){return o.sh[k]}).forEach(function(g){var cap=g.V*20*0.8,n=Math.max(1,Math.ceil(g.w/cap));o.circ.push({V:g.V,A:20,kind:'shared',n:n,note:g.n+' item'+(g.n>1?'s':'')+' · '+fmtW(g.w)});o.slots+=n*(g.V>=208?2:1)});
+ return o}
+function roomPowerCard(r){var o=roomPower2(r),ap=o.est?'≈ ':'';
+ var h='<div class="isec">Power</div>';
+ if(!o.items)return h+'<div class="in2">No powered objects in this room yet — use Add Objects to place some.</div>';
+ h+='<div class="irow"><span>Connected load</span><b>'+ap+fmtW(o.w)+'</b></div>';
+ h+='<div class="irow"><span>Likely peak <i class="ihint">(not all at once)</i></span><b>≈ '+fmtW(o.peak)+'</b></div>';
+ h+='<div class="isub">Circuits needed</div>';
+ o.circ.forEach(function(c){h+='<div class="icirc"><div class="ic1"><span class="ict">'+c.V+'V · '+c.A+'A <em>'+c.kind+'</em></span><b>×'+c.n+'</b></div><div class="ic2">'+escH(c.note)+'</div></div>'});
+ h+='<div class="irow"><span>Breaker slots</span><b>'+o.slots+'</b></div>';
+ if(o.est)h+='<div class="iwarn">⚠ '+o.est+' value'+(o.est>1?'s are':' is')+' estimated (≈)</div>';
+ return h}
 function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+r.w*r.d},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>';return}
- h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>':'<div class="in2">Object details coming next.</div>'}
+ h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(it.w*it.d)+'</b></div>'+roomPowerCard(it):'<div class="in2">Object details coming next.</div>'}
 function renderStatus(){histUI();renderInfo();var rooms=S.items.filter(isRoom),ra=0,kw=0,n=0;rooms.forEach(function(r){ra+=r.w*r.d});
  S.items.forEach(function(i){var c=cat(i);if(!isRoom(i))n++;if(c&&c.p)kw+=c.p[1]});
  $('#status').innerHTML='<span>Lot <b>'+S.lot.w+' × '+S.lot.d+'</b> · '+fmt(S.lot.w*S.lot.d)+' sf</span><span>Rooms <b>'+rooms.length+'</b> · '+fmt(ra)+' sf</span><span>Equipment <b>'+n+'</b></span><span>Load <b>'+(kw/1000).toFixed(1)+' kW</b></span>'}
