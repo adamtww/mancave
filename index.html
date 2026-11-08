@@ -1097,8 +1097,8 @@ $('#cm-sw').addEventListener('click',function(e){var b=e.target.closest('.sw1');
 function finishSizing(it){if(!it)return;warnU=null;snapshot();if(it.ph){var rs=S.items.filter(isRoom),n=rs.indexOf(it)+1,names={};rs.forEach(function(r){names[r.name]=1});while(names['Room '+n])n++;it.name='Room '+n;it.ph=false}it.sz=false;it.ed=false;delete it.wasLk;it.lk=true;editBase=null;commit()}
 $('#cm-ok').onclick=function(e){e.stopPropagation();finishSizing(sel&&find(sel))};
 $('#em-room').onclick=function(e){e.stopPropagation();var a=emAt,rr=emRect;hideEmenu();if(a&&viewMode==='rooms'){var f=rr||fitRoomAt(a.x,a.y);if(f)addRoomFit(f);else flash('No open space there');return}if(a)addRoomAt(a.x,a.y)};
-document.addEventListener('pointerdown',function(e){if(emAt&&!e.target.closest('#emenu')&&!(emRect&&e.target.closest('.ehd,.ebody')))hideEmenu()},true);
-stage.addEventListener('wheel',function(){if(emAt)hideEmenu()},{passive:true});
+document.addEventListener('pointerdown',function(e){if(emAt&&!emRect&&!e.target.closest('#emenu'))hideEmenu()},true);
+stage.addEventListener('wheel',function(){if(emAt&&!emRect)hideEmenu()},{passive:true});
 function placeRMenu(){var it0=sel&&find(sel),sizing=!!(it0&&isRoom(it0)&&it0.sz),other=$(sizing?'#rmenu':'#cmenu');if(other){other.className='rmenu';other.dataset.u=''}
  var m=$(sizing?'#cmenu':'#rmenu');if(!m)return;var it=it0;if(sizing){$('#cm-lbl').textContent=it.ed?'Done':'Confirm';renderSwatches(it)}if(!it||!isRoom(it)||drag||draft){m.className='rmenu';m.dataset.u='';return}
  var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
@@ -1116,7 +1116,7 @@ function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd
  if(r&&!fitInto(rect,r)){flash('Not enough room to turn it here');return}snapshot();it.x=rect.x;it.y=rect.y;it.w=nw;it.d=nd;it.rot=((it.rot||0)+1)%4;commit()}
 $('#im-rot').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))rotateObj(it)};
 $('#im-del').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))remove(it.u)};
-function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';var lb=$('#lib'),lbw=lb&&!furn?lb.offsetWidth:0,svgL=furn?0:CAN_ML+(lbw?lbw+INFO_GAP:0);svg.style.left=svgL+'px';var ov=barOverlap();svg.style.top=(furn?0:UNDO_H+ov)+'px';var ub=$('#undobar');if(ub){ub.style.left=svgL+'px';ub.style.top=(6+ov)+'px';}var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+svgL+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2+ov)+'px';if(lb){lb.style.left=(stage.offsetLeft+CAN_ML)+'px';lb.style.top=inf.style.top;var rp=$('#rpane');if(rp){rp.style.left=lb.style.left;rp.style.top=lb.style.top}}}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale))}
+function applyView(){var v=viewDims(),W=v.w,H=v.h;svg.style.width=W+'px';svg.style.height=H+'px';var lb=$('#lib'),lbw=lb&&!furn?lb.offsetWidth:0,svgL=furn?0:CAN_ML+(lbw?lbw+INFO_GAP:0);svg.style.left=svgL+'px';var ov=barOverlap();svg.style.top=(furn?0:UNDO_H+ov)+'px';var ub=$('#undobar');if(ub){ub.style.left=svgL+'px';ub.style.top=(6+ov)+'px';}var inf=$('#info');if(inf&&!furn){inf.style.left=(stage.offsetLeft+svgL+W+INFO_GAP)+'px';inf.style.top=(stage.offsetTop+CAM_TOP+2+ov)+'px';if(lb){lb.style.left=(stage.offsetLeft+CAN_ML)+'px';lb.style.top=inf.style.top;var rp=$('#rpane');if(rp){rp.style.left=lb.style.left;rp.style.top=lb.style.top}}}clampCam();setTimeout(placeRMenu,0);svg.setAttribute('viewBox',(cam.cx-W/2/scale)+' '+(cam.cy-H/2/scale)+' '+(W/scale)+' '+(H/scale));if(emRect&&!emDrag&&emAt)placeEmenu()}
 function queueView(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;applyView()})}
 var settleT=0;function settle(){clearTimeout(settleT);settleT=setTimeout(render,120)}
 function clampScale(v){return Math.max(minScale(),Math.min(40,v))}
@@ -1144,7 +1144,7 @@ function endPtr(e){if(e.pointerType==='touch'){touches.delete(e.pointerId);
   if(suppress){if(!touches.size)suppress=false;return}}
  if(pan&&e.pointerId===pan.pid&&pan.fo){var tp=!pan.moved;pan=null;if(tp)nudgeFurn();return}
  if(pan&&e.pointerId===pan.pid&&!pan.moved&&sizingRoom()){pan=null;nudgeConfirm();return}
- if(pan&&e.pointerId===pan.pid){var wasTap=!pan.moved,su=pan.selU,had=sel,cx=pan.sx,cy=pan.sy;pan=null;if(wasTap){sel=su||null;if(!su&&!had)showEmenu(cx,cy)}render();return}
+ if(pan&&e.pointerId===pan.pid){var wasTap=!pan.moved,su=pan.selU,had=sel,cx=pan.sx,cy=pan.sy;pan=null;if(wasTap){if(emRect){hideEmenu();sel=su||null}else{sel=su||null;if(!su&&!had)showEmenu(cx,cy)}}render();return}
  up(e)}
 svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
 document.addEventListener('gesturestart',function(e){e.preventDefault()});
@@ -1164,7 +1164,7 @@ function setDrawer(open){document.body.classList.toggle('nodrawer',!open);try{lo
 $('#dcol').onclick=function(){setDrawer(false)};$('#dexp').onclick=function(){setDrawer(true)};
 /* Rooms / Objects toggle (no function yet) */
 var viewMode='rooms';
-function applyMode2(anim){var szr=typeof sizingRoom==='function'&&sizingRoom();if(szr&&!szr.ed&&anim)finishSizing(szr);var rooms=viewMode==='rooms',lb=$('#lib'),rp=$('#rpane');if(!anim)document.body.classList.add('noanim');
+function applyMode2(anim){if(typeof emAt!=='undefined'&&emAt)hideEmenu();var szr=typeof sizingRoom==='function'&&sizingRoom();if(szr&&!szr.ed&&anim)finishSizing(szr);var rooms=viewMode==='rooms',lb=$('#lib'),rp=$('#rpane');if(!anim)document.body.classList.add('noanim');
  var inc=rooms?rp:lb,out=rooms?lb:rp;out.classList.add('away');out.classList.remove('in');if(anim){inc.classList.add('in','pre');void inc.offsetWidth;inc.classList.remove('away');void inc.offsetWidth;inc.classList.remove('pre')}else{inc.classList.add('in');inc.classList.remove('away')}
  document.body.classList.toggle('mode-rooms',rooms);document.body.classList.toggle('mode-objects',viewMode==='objects');document.body.classList.toggle('mode-summary',viewMode==='summary');
  if(rooms&&!furn&&sel){var si=find(sel);if(si&&!isRoom(si)){sel=null;render()}}
