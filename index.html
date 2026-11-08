@@ -536,7 +536,7 @@ body.touch .lcard{touch-action:pan-y}
 @keyframes thud{0%{transform:scale(1.16)}30%{transform:scale(.92,.95)}45%{transform:translate(3%,0) scale(1.03)}57%{transform:translate(-3%,0)}69%{transform:translate(2%,0)}80%{transform:translate(-1%,0)}100%{transform:none}}
 
 /* Boxes / Drawings: a slim vertical switch to the right of the mode switch */
-.vtog{position:relative;display:flex;flex-direction:column;gap:1px;margin-left:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.06);align-self:flex-end}
+.vtog{cursor:pointer;position:relative;display:flex;flex-direction:column;gap:1px;margin-left:6px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px;box-shadow:0 2px 8px rgba(0,0,0,.06);align-self:flex-end}
 .vtog button{width:30px;height:18px;border:0;border-radius:10px;background:none;color:#8a857a;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;transition:background .18s,color .18s}
 .vtog button svg{width:15px;height:15px}
 .vtog button.on{background:#eef3fd;color:var(--accent);box-shadow:inset 0 0 0 1px #cfdcf8}
@@ -1451,7 +1451,7 @@ $('#t-room').onclick=function(){setTool(tool==='room'?'sel':'room')};
 $('#t-clr').onclick=function(){showClr=!showClr;this.classList.toggle('on',showClr);render()};
 
 function artUI(){Array.prototype.forEach.call(document.querySelectorAll('#vtog button'),function(b){var on=(b.dataset.a==='on')===showArt;b.classList.toggle('on',on);b.setAttribute('aria-checked',on)});Array.prototype.forEach.call(document.querySelectorAll('#t-art button'),function(b){b.classList.toggle('on',(b.dataset.a==='on')===showArt)})}
-$('#vtog').onclick=function(e){var b=e.target.closest('button');if(!b)return;showArt=b.dataset.a==='on';try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
+$('#vtog').onclick=function(e){/* any press on the pill flips between boxes and drawings */showArt=!showArt;try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
 $('#t-art').onclick=function(e){var b=e.target.closest('button');if(!b)return;showArt=b.dataset.a==='on';try{localStorage.setItem('cave-art',showArt?'on':'off')}catch(x){}artUI();render();if(detR)showDetails(detR)};
 function setDrawer(open){document.body.classList.toggle('nodrawer',!open);try{localStorage.setItem('cave-drawer',open?'open':'closed')}catch(e){}setTimeout(function(){applyView();render()},200)}
 $('#dcol').onclick=function(){setDrawer(false)};$('#dexp').onclick=function(){setDrawer(true)};
