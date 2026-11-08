@@ -329,6 +329,14 @@ body.xpon #svg{cursor:crosshair}
 .rpane .rpg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .rpane .rpg.rpg2{grid-template-columns:repeat(2,1fr)}.rpane .rpg.rpg2 .rpt{aspect-ratio:1.55;flex-direction:row;gap:10px;font-size:13.5px}
 .emenu #em-room.dis{opacity:.45}
+.rpane .lh{justify-content:center!important;text-align:center;padding-left:20px!important;padding-right:20px!important}.rpane .lh .lt{flex:1;text-align:center}
+.rpane .rpes{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:22px}
+.rpane .rpes-hero{width:120px;height:90px;margin-bottom:16px}
+.rpane .rpes h4{margin:0 0 6px;font-size:17px;font-weight:700;color:var(--ink,#24221e)}
+.rpane .rpes p{margin:0;font-size:13.5px;color:#8a857a;line-height:1.5;max-width:230px}
+.rpane .rpes-c{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:100%}
+.rpane .rpes-k{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;font-size:14px;color:#3a372f}
+.rpane .rpes-k svg{flex:none}.rpane .rpes-k b{font-weight:700}
 .rpane .rphint{margin:14px 2px 0;font-size:12.5px;line-height:1.45;color:#8a857a}.rpane .rphint b{color:#5a564e;font-weight:600}
 .rpane .rpg.rpg1{grid-template-columns:repeat(3,1fr)}
 .rpane .rpt{position:relative;aspect-ratio:1;border:1px solid var(--line);background:#fbfaf7;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:inherit;font-size:12.5px;font-weight:600;color:#4a463e;cursor:pointer;padding:0;overflow:hidden}
@@ -1406,7 +1414,7 @@ var rpPicking=false;
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
  if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
  if(rpPicking&&!force)return;
- if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpempty">Tap a room on the canvas to select it.</div>';b.dataset.u='';return}
+ if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpes"><svg class="rpes-hero" viewBox="0 0 120 90" aria-hidden="true"><rect x="6" y="10" width="62" height="50" rx="4" fill="#eef3fd" stroke="#2f6fed" stroke-width="2"/><rect x="68" y="10" width="44" height="50" rx="4" fill="#fff" stroke="#c9c5bb" stroke-width="2" stroke-dasharray="5 4"/><path d="M90 28v14M83 35h14" stroke="#3f8a4f" stroke-width="2.5" stroke-linecap="round"/><path d="M40 52l14 6-6 2-2 6z" fill="#24221e"/></svg><h4>No room selected</h4><p>Tap a room to change it, or create a new one.</p><div class="rpes-c"><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 6-5 2-2 5z"/></svg><span><b>Tap a room</b> to edit it</span></div><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f8a4f" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span><b>Tap empty space</b> to add a room</span></div></div></div>';b.dataset.u='';return}
  var key=it.u+'|'+it.name+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'')+'|'+(it.ph?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;
  var head='<h3>'+esc(it.name)+'</h3>';
  var nameBar='<label class="rpnm"><span class="rpdot" style="background:'+(it.col||'#faf9f6')+'"></span><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Name this room" value="'+esc(it.ph?'':it.name)+'"><span class="rppen">'+RPI.pen+'</span></label>';
