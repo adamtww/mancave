@@ -1128,9 +1128,17 @@ function shDraw(u){var r=find(u);if(!r)return '';var set=shCells(r),runs=shRuns(
   var fs=Math.max(1,Math.min(2.2,14/scale)),bx=roomBox(r);h+=xpLabel(bx,d.info.why,fs,'#6b675e')}
  if(d&&d.push&&d.push.moves)Object.keys(d.push.moves).forEach(function(u){var o=find(u);if(o&&!(d.info&&d.info.why))h+='<rect x="'+o.x+'" y="'+o.y+'" width="'+o.w+'" height="'+o.d+'" rx="0.25" fill="rgba(242,166,90,.35)" stroke="#d97f1e" stroke-width="'+(2/scale)+'" pointer-events="none"/>'});
  var hit=(TOUCH?34:14)/scale,bl=(TOUCH?24:18)/scale,bt=(TOUCH?8:6)/scale,cs=(TOUCH?13:9)/scale,minLen=(TOUCH?44:30)/scale;
- runs.forEach(function(q,i){var len=(q.b-q.a)/2;if(len<minLen)return;var mx,my,horiz=q.o==='h';if(horiz){mx=(q.a+q.b)/4;my=q.at/2}else{mx=q.at/2;my=(q.a+q.b)/4}
+ /* extra bars on the open stretches of a partly-blocked wall: shows where that wall can still grow (e.g. into a notch) */
+ var blk=shBlocked(r),N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),extra=[];
+ runs.forEach(function(q,i){var s2=-q.in,row=s2>0?q.at:q.at-1,st=null,segs=[],X;
+  for(X=q.a;X<=q.b;X++){var free=false;if(X<q.b){var cx=q.o==='h'?X:row,cy=q.o==='h'?row:X;free=cx>=0&&cy>=0&&cx<N&&cy<M&&!blk(cx,cy)}
+   if(free&&st===null)st=X;if(!free&&st!==null){segs.push([st,X]);st=null}}
+  if(segs.length===1&&segs[0][0]===q.a&&segs[0][1]===q.b)return;
+  segs.forEach(function(g){if((g[1]-g[0])/2<minLen*0.6)return;extra.push({o:q.o,at:q.at,a:g[0],b:g[1],in:q.in,k:'s'+i+':'+g[0]+':'+g[1]})})});
+ runs.concat(extra).forEach(function(q,i){var len=(q.b-q.a)/2;if(len<minLen&&!q.k)return;var mx,my,horiz=q.o==='h';if(horiz){mx=(q.a+q.b)/4;my=q.at/2}else{mx=q.at/2;my=(q.a+q.b)/4}
+  if(q.k){var main=runs[+q.k.slice(1).split(':')[0]],mm=(main.a+main.b)/4,me=(q.a+q.b)/4;if((main.b-main.a)/2>=minLen&&Math.abs(mm-me)<bl*1.6)return}
   var w=horiz?bl:bt,hh=horiz?bt:bl,cur=horiz?'ns-resize':'ew-resize',hw=horiz?Math.min(hit*1.6,len*0.6):hit,hhh=horiz?hit:Math.min(hit*1.6,len*0.6);
-  h+='<rect class="shd" data-k="w'+i+'" x="'+(mx-hw/2)+'" y="'+(my-hhh/2)+'" width="'+hw+'" height="'+hhh+'" fill="transparent" style="cursor:'+cur+'"/>';
+  h+='<rect class="shd" data-k="'+(q.k||'w'+i)+'" x="'+(mx-hw/2)+'" y="'+(my-hhh/2)+'" width="'+hw+'" height="'+hhh+'" fill="transparent" style="cursor:'+cur+'"/>';
   h+='<rect x="'+(mx-w/2)+'" y="'+(my-hh/2)+'" width="'+w+'" height="'+hh+'" rx="'+(Math.min(w,hh)/2)+'" fill="#fff" stroke="var(--accent)" stroke-width="'+sw+'" pointer-events="none"/>'});
  shCorners(runs).forEach(function(c,i){var x=c.X/2,y=c.Y/2;
   h+='<rect class="shd" data-k="c'+i+'" x="'+(x-hit/2)+'" y="'+(y-hit/2)+'" width="'+hit+'" height="'+hit+'" fill="transparent" style="cursor:move"/>';
@@ -1139,7 +1147,7 @@ function shDraw(u){var r=find(u);if(!r)return '';var set=shCells(r),runs=shRuns(
 stage.addEventListener('pointerdown',function(e){if(!shOn()||!e.target.closest)return;var t=e.target.closest('.shd');if(!t){return}
  if(shSD){return}shU=sel;e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
  var r=find(shU),set=shCells(r),runs=shRuns(set),k=t.dataset.k,sd={pid:e.pointerId,set0:set,runs:runs,blk:shBlocked(r),room0:shGetRoom(r)};
- if(k[0]==='w'){sd.kind='w';sd.run=runs[+k.slice(1)]}else{sd.kind='c';sd.c=shCorners(runs)[+k.slice(1)]}
+ if(k[0]==='w'){sd.kind='w';sd.run=runs[+k.slice(1)]}else if(k[0]==='s'){var pa=k.slice(1).split(':'),base=runs[+pa[0]];sd.kind='w';sd.run={o:base.o,at:base.at,a:+pa[1],b:+pa[2],in:base.in}}else{sd.kind='c';sd.c=shCorners(runs)[+k.slice(1)]}
  shOrig={};S.items.forEach(function(o){if(!isRoom(o))shOrig[o.u]=[o.x,o.y]});shSD=sd},true);
 window.addEventListener('pointermove',function(e){if(!shSD||shSD.pid!==e.pointerId)return;e.preventDefault();shTrack(pt(e))},{passive:false});
 function shEnd(e,cancel){if(!shSD||shSD.pid!==e.pointerId)return;var d=shSD,r=find(shU);shSD=null;
