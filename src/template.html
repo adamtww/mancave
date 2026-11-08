@@ -920,75 +920,44 @@ function applyMode2(anim){var rooms=viewMode==='rooms',lb=$('#lib'),rp=$('#rpane
  if(!anim){void lb.offsetWidth;requestAnimationFrame(function(){document.body.classList.remove('noanim')})}}
 applyMode2(false);
 
-/* ---------- Expand Room: draw from a wall, out into open space, and back to the wall ---------- */
+/* ---------- Expand Room: drag from inside the room out into open space; the box between start and finger is added ---------- */
 var xp=null;
-function xpGrid(room){var N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),own=new Int32Array(N*M),rooms=S.items.filter(isRoom),ri=rooms.indexOf(room)+1;
- rooms.forEach(function(r,i){roomParts(r).forEach(function(p){var x0=Math.max(0,Math.round(p.x*2)),y0=Math.max(0,Math.round(p.y*2)),x1=Math.min(N,Math.round((p.x+p.w)*2)),y1=Math.min(M,Math.round((p.y+p.d)*2));for(var y=y0;y<y1;y++)for(var x=x0;x<x1;x++)own[y*N+x]=i+1})});
- var xs={},ys={},k;for(k=0;k<=S.lot.w;k++)xs[k*2]=1;for(k=0;k<=S.lot.d;k++)ys[k*2]=1;xs[N]=1;ys[M]=1;
- rooms.forEach(function(r){roomParts(r).forEach(function(p){xs[Math.round(p.x*2)]=1;xs[Math.round((p.x+p.w)*2)]=1;ys[Math.round(p.y*2)]=1;ys[Math.round((p.y+p.d)*2)]=1})});
- function srt(o){return Object.keys(o).map(Number).filter(function(v){return v>=0}).sort(function(a,b){return a-b})}
- return {N:N,M:M,own:own,ri:ri,sx:srt(xs).filter(function(v){return v<=N}),sy:srt(ys).filter(function(v){return v<=M}),
-  at:function(X,Y){return X<0||Y<0||X>=N||Y>=M?0:own[Y*N+X]}}}
-/* reachability from outside the lot (with a one-cell ring around it), blocked by this room and by barrier edges */
-function xpFlood(G,bar){var W=G.N+2,H=G.M+2,seen=new Uint8Array(W*H),st=[0];seen[0]=1;
- function ok(X,Y){return X>=-1&&Y>=-1&&X<=G.N&&Y<=G.M&&G.at(X,Y)!==G.ri}
- while(st.length){var i=st.pop(),X=i%W-1,Y=(i/W|0)-1;
-  [[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var nX=X+d[0],nY=Y+d[1];if(!ok(nX,nY))return;var j=(nY+1)*W+nX+1;if(seen[j])return;
-   if(bar){var key=d[1]?'h'+nX+','+Math.max(Y,nY):'v'+Math.max(X,nX)+','+nY;if(bar[key])return}seen[j]=1;st.push(j)})}
- return seen}
-function xpNext(list,c,dir){var i;if(dir>0){for(i=0;i<list.length;i++)if(list[i]>c)return list[i]}else{for(i=list.length-1;i>=0;i--)if(list[i]<c)return list[i]}return null}
-/* a straight piece of line (half-foot units) may run along walls but not through any room */
-function xpSegOK(G,a,b){var i;if(a.Y===b.Y){var x0=Math.min(a.X,b.X),x1=Math.max(a.X,b.X);if(a.Y<0||a.Y>G.M)return false;for(i=x0;i<x1;i++)if(G.at(i,a.Y-1)&&G.at(i,a.Y))return false}
- else{var y0=Math.min(a.Y,b.Y),y1=Math.max(a.Y,b.Y);if(a.X<0||a.X>G.N)return false;for(i=y0;i<y1;i++)if(G.at(a.X-1,i)&&G.at(a.X,i))return false}return true}
-function xpOnWall(G,v){return G.at(v.X-1,v.Y-1)===G.ri||G.at(v.X,v.Y-1)===G.ri||G.at(v.X-1,v.Y)===G.ri||G.at(v.X,v.Y)===G.ri}
-function xpStart(r,p){var T=(TOUCH?26:12)/scale,R=roomRuns(r),best=null,bd=1e9,G=xp.G;
- function cand(X,Y){var v={X:X,Y:Y},dd=Math.hypot(X/2-p.x,Y/2-p.y)+((X%2||Y%2)?0.35:0);if(Math.hypot(X/2-p.x,Y/2-p.y)>T+0.5)return;if(dd<bd){bd=dd;best=v}}
- R.h.forEach(function(q){if(Math.abs(q[0]/2-p.y)>T)return;var c=cl(Math.round(p.x*2),q[1],q[2]);[c-1,c,c+1,Math.round(p.x)*2].forEach(function(X){if(X>=q[1]&&X<=q[2])cand(X,q[0])})});
- R.v.forEach(function(q){if(Math.abs(q[0]/2-p.x)>T)return;var c=cl(Math.round(p.y*2),q[1],q[2]);[c-1,c,c+1,Math.round(p.y)*2].forEach(function(Y){if(Y>=q[1]&&Y<=q[2])cand(q[0],Y)})});
- if(best&&(best.X<0||best.Y<0||best.X>G.N||best.Y>G.M))best=null;return best}
-function xpKey(v){return v.X+','+v.Y}
-function xpMove(p){var path=xp.path,G=xp.G,gx=cl(Math.round(p.x),0,S.lot.w)*2,gy=cl(Math.round(p.y),0,S.lot.d)*2;
- for(var guard=0;guard<600;guard++){var cur=path[path.length-1];if(cur.X===gx&&cur.Y===gy)break;
-  var dX=gx-cur.X,dY=gy-cur.Y,axes=[];if(xp.ax==='x'&&dX)axes.push('x');if(xp.ax==='y'&&dY)axes.push('y');
-  if(Math.abs(dX)>=Math.abs(dY)){if(dX&&axes.indexOf('x')<0)axes.push('x');if(dY&&axes.indexOf('y')<0)axes.push('y')}else{if(dY&&axes.indexOf('y')<0)axes.push('y');if(dX&&axes.indexOf('x')<0)axes.push('x')}
-  var moved=false;
-  for(var k=0;k<axes.length&&!moved;k++){var ax=axes[k],nv;
-   if(ax==='x'){var nx=xpNext(G.sx,cur.X,dX>0?1:-1);if(nx===null)continue;nv={X:nx,Y:cur.Y}}else{var ny=xpNext(G.sy,cur.Y,dY>0?1:-1);if(ny===null)continue;nv={X:cur.X,Y:ny}}
-   var prev=path[path.length-2];
-   if(prev&&prev.X===nv.X&&prev.Y===nv.Y){delete xp.seen[xpKey(cur)];path.pop();var pp=path[path.length-2];xp.ax=pp?(pp.Y===prev.Y?'x':'y'):null;moved=true;break}
-   if(xp.seen[xpKey(nv)]||!xpSegOK(G,cur,nv))continue;
-   path.push(nv);xp.seen[xpKey(nv)]=1;xp.ax=ax;moved=true;
-   if(path.length>=3&&xpOnWall(G,nv)&&xpClose())return}
-  if(!moved)break}
- render()}
-function xpClose(){var G=xp.G,bar={},path=xp.path,i,j;
- for(i=1;i<path.length;i++){var a=path[i-1],b=path[i];if(a.Y===b.Y){for(j=Math.min(a.X,b.X);j<Math.max(a.X,b.X);j++)bar['h'+j+','+a.Y]=1}else{for(j=Math.min(a.Y,b.Y);j<Math.max(a.Y,b.Y);j++)bar['v'+a.X+','+j]=1}}
- var now=xpFlood(G,bar),W=G.N+2,cells=[],other=false;
- for(var Y=0;Y<G.M;Y++)for(var X=0;X<G.N;X++){var idx=(Y+1)*W+X+1;if(xp.base[idx]&&!now[idx]&&G.at(X,Y)!==G.ri){cells.push([X,Y]);if(G.at(X,Y))other=true}}
- if(!cells.length)return false;
- var r=find(xp.u);
- if(other){flash('That loop goes around another room — try again');xp.path=null;xp.pid=null;render();return true}
- /* cells -> rectangles: merge runs per row, then stack identical runs */
- var rowRuns={};cells.sort(function(p,q){return p[1]-q[1]||p[0]-q[0]});
+/* cells (half-foot units) -> rectangles: merge runs per row, then stack identical runs */
+function cellsToRects(cells){var rowRuns={};cells.sort(function(p,q){return p[1]-q[1]||p[0]-q[0]});
  cells.forEach(function(c){var rr=rowRuns[c[1]]||(rowRuns[c[1]]=[]),l=rr[rr.length-1];if(l&&l[1]===c[0])l[1]++;else rr.push([c[0],c[0]+1])});
  var open={},rects=[];Object.keys(rowRuns).map(Number).sort(function(a,b){return a-b}).forEach(function(Y){var nx={};rowRuns[Y].forEach(function(q){var k=q[0]+'_'+q[1],o=open[k];if(o&&o.y1===Y){o.y1=Y+1;nx[k]=o}else{o={x0:q[0],x1:q[1],y0:Y,y1:Y+1};rects.push(o);nx[k]=o}});open=nx});
- snapshot();var add=0;r.ex=r.ex||[];
- rects.forEach(function(q){var w=(q.x1-q.x0)/2,d=(q.y1-q.y0)/2;add+=w*d;r.ex.push({x:q.x0/2-r.x,y:q.y0/2-r.y,w:w,d:d})});
- var bx=roomBox(r);if(Math.abs(roomArea(r)-bx.w*bx.d)<1e-6){var ox=r.x,oy=r.y;r.x=bx.x;r.y=bx.y;r.w=bx.w;r.d=bx.d;delete r.ex}
- var nm=r.name;xp=null;commit();flash('Added '+fmt(add)+' sq ft to '+nm);return true}
-function xpDraw(){if(!xp||!xp.path||!xp.path.length)return '';var pts=xp.path.map(function(v){return v.X/2+','+v.Y/2}).join(' '),a=xp.path[0],z=xp.path[xp.path.length-1],sw=(4/scale).toFixed(3),rr=(6/scale).toFixed(3);
- return '<polyline points="'+pts+'" fill="none" stroke="#fff" stroke-width="'+(7/scale).toFixed(3)+'" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/><polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="'+sw+'" stroke-linejoin="round" stroke-linecap="round" pointer-events="none"/><circle cx="'+a.X/2+'" cy="'+a.Y/2+'" r="'+rr+'" fill="#fff" stroke="var(--accent)" stroke-width="'+(2/scale).toFixed(3)+'" pointer-events="none"/><circle cx="'+z.X/2+'" cy="'+z.Y/2+'" r="'+rr+'" fill="var(--accent)" pointer-events="none"/>'}
-function xpBegin(){var r=sel&&find(sel);if(!r||!isRoom(r))return;xp={u:r.u,path:null,pid:null};renderRoomsPane(true);render()}
+ return rects.map(function(q){return {x:q.x0/2,y:q.y0/2,w:(q.x1-q.x0)/2,d:(q.y1-q.y0)/2}})}
+/* the part of box b that lies outside room r, as rectangles */
+function xpNewParts(r,b){var cells=[],X0=Math.round(b.x*2),Y0=Math.round(b.y*2),X1=Math.round((b.x+b.w)*2),Y1=Math.round((b.y+b.d)*2);
+ for(var Y=Y0;Y<Y1;Y++)for(var X=X0;X<X1;X++)if(!inParts(r,(X+0.5)/2,(Y+0.5)/2,1))cells.push([X,Y]);return cellsToRects(cells)}
+function xpApply(){var r=find(xp.u),b=xp.box;xp.box=null;if(!r||!b||b.w<=0||b.d<=0){render();return}
+ var parts=xpNewParts(r,b);if(!parts.length){render();flash('Drag out past the wall to add space');return}
+ xp=null;snapshot();var add=0;r.ex=r.ex||[];parts.forEach(function(q){add+=q.w*q.d;r.ex.push({x:q.x-r.x,y:q.y-r.y,w:q.w,d:q.d})});
+ var bx=roomBox(r);if(Math.abs(roomArea(r)-bx.w*bx.d)<1e-6){r.x=bx.x;r.y=bx.y;r.w=bx.w;r.d=bx.d;delete r.ex}
+ commit();flash('Added '+fmt(add)+' sq ft to '+r.name)}
+function xpDraw(){if(!xp||!xp.box)return '';var b=xp.box,r=find(xp.u);if(!r||b.w<=0||b.d<=0)return '';var parts=xpNewParts(r,b),add=parts.reduce(function(a,q){return a+q.w*q.d},0),sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),h='';
+ h+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(1/scale).toFixed(3)+'" stroke-dasharray="'+da+'" opacity=".5" pointer-events="none"/>';
+ parts.forEach(function(q){h+='<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="rgba(47,111,237,.16)" stroke="none" pointer-events="none"/>'});
+ if(parts.length){
+  h+='<path d="'+outlineD({kind:'room',x:parts[0].x,y:parts[0].y,w:parts[0].w,d:parts[0].d,ex:parts.slice(1).map(function(q){return {x:q.x-parts[0].x,y:q.y-parts[0].y,w:q.w,d:q.d}})})+'" fill="none" stroke="var(--accent)" stroke-width="'+sw+'" stroke-dasharray="'+da+'" stroke-linecap="square" pointer-events="none"/>'}
+ var fs=Math.max(1,Math.min(2.2,14/scale)),cx=b.x+b.w/2,cy=b.y+b.d/2,t=b.w+' × '+b.d+' ft'+(add?'  ·  +'+fmt(add)+' sq ft':'');
+ h+='<text x="'+cx+'" y="'+(b.y-fs*0.6)+'" font-size="'+fs.toFixed(2)+'" font-weight="700" fill="var(--accent)" text-anchor="middle" stroke="#fff" stroke-width="'+(fs*0.25).toFixed(2)+'" paint-order="stroke" pointer-events="none">'+t+'</text>';
+ return h}
+function xpBegin(){var r=sel&&find(sel);if(!r||!isRoom(r))return;xp={u:r.u,box:null,pid:null};renderRoomsPane(true);render()}
 function xpEnd(){if(!xp)return;xp=null;renderRoomsPane(true);render()}
+function xpTrack(p){var r=find(xp.u);if(!r)return;var x=cl(Math.round(p.x),0,S.lot.w),y=cl(Math.round(p.y),0,S.lot.d);
+ var sx=snapEdges([p.x],xp.L.xs),sy=snapEdges([p.y],xp.L.ys);if(sx)x=sx.c;if(sy)y=sy.c;
+ var rr=resizeRect({x:xp.x0,y:xp.y0,w:0,d:0},(x>=xp.x0?'e':'w')+(y>=xp.y0?'s':'n'),x,y,xp.obs,0);xp.box={x:rr.x,y:rr.y,w:rr.w,d:rr.d};render()}
 stage.addEventListener('pointerdown',function(e){if(!xp)return;
- if(xp.pid!=null){if(e.pointerId!==xp.pid){xp.path=null;xp.pid=null;render()}return}
- if(!e.isPrimary||!e.target.closest||!e.target.closest('#svg'))return;var r=find(xp.u);if(!r)return;
- xp.G=xpGrid(r);var v=xpStart(r,pt(e));if(!v)return;
+ if(xp.pid!=null){if(e.pointerId!==xp.pid){xp.box=null;xp.pid=null;render()}return}
+ if(!e.isPrimary||!e.target.closest||!e.target.closest('#svg'))return;var r=find(xp.u);if(!r)return;var p=pt(e);
+ var T=(TOUCH?14:6)/scale,inR=inParts(r,p.x,p.y)||roomParts(r).some(function(q){return p.x>=q.x-T&&p.x<=q.x+q.w+T&&p.y>=q.y-T&&p.y<=q.y+q.d+T});if(!inR)return;
  e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
- xp.base=xpFlood(xp.G,null);xp.path=[v];xp.seen={};xp.seen[xpKey(v)]=1;xp.ax=null;xp.pid=e.pointerId;render()},true);
-window.addEventListener('pointermove',function(e){if(!xp||xp.pid!==e.pointerId||!xp.path)return;e.preventDefault();xpMove(pt(e))},{passive:false});
-function xpLift(e){if(!xp||xp.pid!==e.pointerId)return;var had=xp.path&&xp.path.length>1;xp.path=null;xp.pid=null;render();if(had)flash('Not closed — start again from a wall of the room')}
-window.addEventListener('pointerup',xpLift);window.addEventListener('pointercancel',xpLift);
+ var bx=roomBox(r),x0=cl(Math.round(p.x),Math.ceil(bx.x),Math.floor(bx.x+bx.w)),y0=cl(Math.round(p.y),Math.ceil(bx.y),Math.floor(bx.y+bx.d));
+ xp.x0=x0;xp.y0=y0;xp.obs=roomObs(r);xp.L=roomLines(r);xp.box=null;xp.pid=e.pointerId;render()},true);
+window.addEventListener('pointermove',function(e){if(!xp||xp.pid!==e.pointerId)return;e.preventDefault();xpTrack(pt(e))},{passive:false});
+window.addEventListener('pointerup',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xpApply()});
+window.addEventListener('pointercancel',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xp.box=null;render()});
 document.addEventListener('keydown',function(e){if(xp&&e.key==='Escape'){e.preventDefault();xpEnd()}});
 /* Rooms pane: controls for the selected room (the floating room menu is off in Rooms mode) */
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
@@ -996,7 +965,7 @@ function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(s
  if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpempty">Tap a room on the canvas to select it.</div>';b.dataset.u='';return}
  var key=it.u+'|'+it.name+'|'+roomArea(it)+'|'+it.w+'|'+it.d+'|'+(xp?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;var bx=roomBox(it);
  var head='<h3>'+esc(it.name)+'</h3><div class="rpsel">'+(it.ex?'Shaped room · '+bx.w+' × '+bx.d+' ft overall':it.w+' × '+it.d+' ft')+' · '+fmt(roomArea(it))+' sq ft</div>';
- if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Put your finger on a wall of <b>'+esc(it.name)+'</b>, drag out into open space, and come back to the wall. The space you outline is added as soon as the loop closes.</p><p class="rpx2">Lift early and the line is cleared — start again from a wall.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
+ if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside <b>'+esc(it.name)+'</b> (a corner or near a wall works best) and drag out into open space. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to add the part of the box outside the room. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
  b.innerHTML=head+'<div class="fbtns rpbtns"><button class="fb pri" id="rp-xp">Expand Room</button><button class="fb red" id="rp-del">Remove room</button></div>';
  $('#rp-xp').onclick=xpBegin;
