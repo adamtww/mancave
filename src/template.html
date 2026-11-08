@@ -583,6 +583,7 @@ function render(){
  for(x=0;x<=W;x+=10)h+='<text x="'+x+'" y="-1" font-size="1.1" fill="#a8a397" text-anchor="middle">'+x+'</text>';
  for(y=10;y<=D;y+=10)h+='<text x="-1" y="'+(y+0.4)+'" font-size="1.1" fill="#a8a397" text-anchor="end">'+y+'</text>';
  var rooms=S.items.filter(isRoom),items=S.items.filter(function(i){return !isRoom(i)});
+ h+=plusHints();
  var lateL='',labelsTop=viewMode==='rooms'&&!furn;
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o'+(it.u===popU?' popin':'')+'" data-u="'+it.u+'">'+(it.ex?shapedBody(it,b):(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="'+Math.min(0.225,3/scale).toFixed(3)+'"/>');
@@ -879,6 +880,13 @@ function emAskDiscard(go,thenAfterAdd){modal('Add this room?','<div class="mform
  $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;closeModal();
   if(k.dataset.k==='yes')go();
   else if(k.dataset.k==='add'){var rr=emRect;hideEmenu();if(rr)addRoomFit(rr);if(thenAfterAdd)thenAfterAdd()}}}
+/* Rooms mode: a faint green + in every empty 10-ft square shows where a tap adds a room */
+function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='';
+ S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});if(emRect)ob=ob.concat(roomParts(emRect));
+ for(var x=0;x+10<=L.w+1e-6;x+=10)for(var y=0;y+10<=L.d+1e-6;y+=10){
+  if(ob.some(function(o){return x<o.x+o.w-EPS&&x+10>o.x+EPS&&y<o.y+o.d-EPS&&y+10>o.y+EPS}))continue;var cx=x+5,cy=y+5;
+  h+='M'+(cx-a)+' '+cy+'H'+(cx+a)+'M'+cx+' '+(cy-a)+'V'+(cy+a)}
+ return h?'<path class="plh" d="'+h+'" stroke="#3f8a4f" stroke-width="'+sw+'" stroke-linecap="round" fill="none" opacity="0.28" pointer-events="none"/>':''}
 function addRoomFit(r){snapshot();var rs=S.items.filter(isRoom),n=rs.length+1,names={};rs.forEach(function(q){names[q.name]=1});while(names['Room '+n])n++;
  var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:r.x,y:r.y,w:r.w,d:r.d,cl:0,lk:true};if(r.ex&&r.ex.length)it.ex=JSON.parse(JSON.stringify(r.ex));S.items.push(it);sel=it.u;popU=it.u;commit();setTimeout(function(){if(popU===it.u){popU=null}},450)}
 function addRoomAt(px,py){var W=15,D=15,L=S.lot;W=Math.min(W,L.w);D=Math.min(D,L.d);var obs=S.items.filter(isRoom),best=null;
@@ -1252,7 +1260,7 @@ function rpBind(it){var u=it.u,inp=$('#rp-nm');
  ci.onblur=function(){if(rpPicking&&!snap)rpPicking=false};
  $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
-$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()},function(){b.click()});return}viewMode=b.dataset.m;applyMode2(true);var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
+$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()},function(){b.click()});return}viewMode=b.dataset.m;applyMode2(true);render();var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
 $('#zi').onclick=function(){zoomCenter(1.25)};$('#zo').onclick=function(){zoomCenter(0.8)};$('#zf').onclick=function(){if(furn)fitRoom(true);else fit()};
