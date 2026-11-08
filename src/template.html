@@ -514,6 +514,8 @@ body.touch .lcard{touch-action:pan-y}
 .cardchip .hbox.art svg{width:100%;height:100%;display:block}
 .cardchip .hbox.art.bad{background:rgba(214,69,69,.12);outline:2px solid var(--bad);outline-offset:1px;border-radius:4px}
 .cardchip.drop .hbox.art{filter:drop-shadow(0 1px 1px rgba(40,36,28,.2))}
+.lcard,.lcard *{-webkit-user-drag:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lcard *{touch-action:pan-y}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1366,10 +1368,14 @@ $('#cats').addEventListener('pointerdown',function(e){var b=e.target.closest('.p
 $('#lib-b').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(b)startDrag(e,b.dataset.r)});
 $('#det').addEventListener('pointerdown',function(e){var t=e.target.closest('.tile');if(t)startDrag(e,t.dataset.r)});
 $('#det').addEventListener('touchstart',function(e){if(e.target.closest('.tile'))e.preventDefault()},{passive:false});
-document.addEventListener('contextmenu',function(e){if(e.target.closest('.tile,.pi'))e.preventDefault()});
+document.addEventListener('contextmenu',function(e){if(e.target.closest('.tile,.pi,.lcard'))e.preventDefault()});
+$('#lib-b').addEventListener('dragstart',function(e){if(e.target.closest&&e.target.closest('.lcard'))e.preventDefault()});
 window.addEventListener('pointermove',function(e){if(!cdrag||e.pointerId!==cdrag.pid)return;
  if(!cdrag.on){var dist=Math.hypot(e.clientX-cdrag.sx,e.clientY-cdrag.sy);
-  if(cdrag.hold){if(dist>8){clearTimeout(cdrag.timer);cdrag=null}return}
+  if(cdrag.hold){var adx=Math.abs(e.clientX-cdrag.sx),ady=Math.abs(e.clientY-cdrag.sy);
+   /* library cards: a sideways swipe (toward the canvas) picks the card up straight away; an up/down swipe scrolls the list */
+   if(cdrag.src&&cdrag.src.classList.contains('lcard')&&adx>7&&adx>ady*1.15){clearTimeout(cdrag.timer);liftOff()}
+   else{if(dist>8){clearTimeout(cdrag.timer);cdrag=null}return}}
   if(dist<5)return;liftOff()}
  cdrag.lx=e.clientX;cdrag.ly=e.clientY;moveGhost(e)});
 function moveGhost(e){var over=overStage(e);
