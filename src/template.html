@@ -304,6 +304,8 @@ body.noanim .mid>.lib{transition:none!important}
 /* Rooms mode: objects are faded and can't be touched (taps fall through to the room) */
 #svg .ob{transition:opacity .25s}
 body.mode-rooms:not(.furn) #svg .ob{opacity:.5;pointer-events:none}
+body.mode-rooms #rm-edit,body.mode-rooms #rm-add{display:none!important}
+body.mode-rooms #rm-del{margin-top:0!important}
 @media (prefers-reduced-motion:reduce){.mid>.lib,.mid>.lib.away{transition:opacity .15s!important;transform:none!important}}
 .lib .lh{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 12px 20px;border-bottom:1px solid var(--line)}
 .lib .lt{font-size:17px;font-weight:700;color:#2b2a27;white-space:nowrap}
