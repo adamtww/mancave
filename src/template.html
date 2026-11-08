@@ -971,6 +971,10 @@ function endPtr(e){if(e.pointerType==='touch'){touches.delete(e.pointerId);
  up(e)}
 svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
 document.addEventListener('gesturestart',function(e){e.preventDefault()});
+/* tapping empty space outside the canvas (not the Rooms/Library panel or any control) deselects */
+document.addEventListener('click',function(e){if(!sel||furn||drag||emDrag||shSD)return;var t=e.target;if(!t||!t.closest)return;
+ if(t.closest('#svg,#rpane,#lib,button,input,select,textarea,label,a,[role=button],[role=radio],.rmenu,#mdl,#login,#umenu,#rename,#cdlg,#insp,.iroom,.chev,#fpanel,#fbar,.toast,.flash'))return;
+ var it=find(sel);if(it&&isRoom(it)&&it.sz)return;sel=null;render()});
 document.addEventListener('selectstart',function(e){var t=e.target&&e.target.nodeType===1?e.target:e.target&&e.target.parentElement;if(t&&t.closest&&t.closest('input,textarea,[contenteditable="true"]'))return;e.preventDefault()});
 stage.addEventListener('contextmenu',function(e){if(!(e.target.closest&&e.target.closest('input,textarea')))e.preventDefault()});
 /* trackpad pinch / ctrl+wheel zoom on desktop */
