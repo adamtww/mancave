@@ -1056,6 +1056,9 @@ function emSnap(r){if(!emRule(r))return r;var ob=[];S.items.forEach(function(q){
  function free(x,y){if(x<0||y<0||x+r.w>L.w+1e-6||y+r.d>L.d+1e-6)return false;return !ob.some(function(o){return x<o.x+o.w-EPS&&x+r.w>o.x+EPS&&y<o.y+o.d-EPS&&y+r.d>o.y+EPS})}
  var best=null,bd=1e9;for(var dx=-15;dx<=15;dx++)for(var dy=-15;dy<=15;dy++){var d=Math.hypot(dx,dy);if(d>=bd||d>15)continue;var x=r.x+dx,y=r.y+dy;if(!free(x,y))continue;var t={kind:'room',x:x,y:y,w:r.w,d:r.d};if(!emRule(t)){best=t;bd=d}}
  return best||r}
+/* leaving the Add Room preview without adding it asks first */
+function emAskDiscard(go){modal('Discard this room?','<div class="mform"><div class="mmsg">The room you\'re placing hasn\'t been added yet.</div><div class="mfb"><button class="mbtn" data-k="no">Keep editing</button><button class="mbtn red" data-k="yes">Discard</button></div></div>',true);
+ $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;closeModal();if(k.dataset.k==='yes')go()}}
 function addRoomFit(r){snapshot();var rs=S.items.filter(isRoom),n=rs.length+1,names={};rs.forEach(function(q){names[q.name]=1});while(names['Room '+n])n++;
  var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:r.x,y:r.y,w:r.w,d:r.d,cl:0,lk:true};if(r.ex&&r.ex.length)it.ex=JSON.parse(JSON.stringify(r.ex));S.items.push(it);sel=it.u;popU=it.u;commit();setTimeout(function(){if(popU===it.u){popU=null}},450)}
 function addRoomAt(px,py){var W=15,D=15,L=S.lot;W=Math.min(W,L.w);D=Math.min(D,L.d);var obs=S.items.filter(isRoom),best=null;
@@ -1180,7 +1183,7 @@ function endPtr(e){if(e.pointerType==='touch'){touches.delete(e.pointerId);
   if(suppress){if(!touches.size)suppress=false;return}}
  if(pan&&e.pointerId===pan.pid&&pan.fo){var tp=!pan.moved;pan=null;if(tp)nudgeFurn();return}
  if(pan&&e.pointerId===pan.pid&&!pan.moved&&sizingRoom()){pan=null;nudgeConfirm();return}
- if(pan&&e.pointerId===pan.pid){var wasTap=!pan.moved,su=pan.selU,had=sel,cx=pan.sx,cy=pan.sy;pan=null;if(wasTap){if(emRect){hideEmenu();sel=su||null}else{sel=su||null;if(!su&&!had)showEmenu(cx,cy)}}render();return}
+ if(pan&&e.pointerId===pan.pid){var wasTap=!pan.moved,su=pan.selU,had=sel,cx=pan.sx,cy=pan.sy;pan=null;if(wasTap){if(emRect){emAskDiscard(function(){hideEmenu();sel=su||null;render()});return}else{sel=su||null;if(!su&&!had)showEmenu(cx,cy)}}render();return}
  up(e)}
 svg.addEventListener('pointerup',endPtr);svg.addEventListener('pointercancel',endPtr);
 document.addEventListener('gesturestart',function(e){e.preventDefault()});
@@ -1429,7 +1432,7 @@ function rpBind(it){var u=it.u,inp=$('#rp-nm');
  ci.onblur=function(){if(rpPicking&&!snap)rpPicking=false};
  $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
-$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;viewMode=b.dataset.m;applyMode2(true);var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
+$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()});return}viewMode=b.dataset.m;applyMode2(true);var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
 $('#zi').onclick=function(){zoomCenter(1.25)};$('#zo').onclick=function(){zoomCenter(0.8)};$('#zf').onclick=function(){if(furn)fitRoom(true);else fit()};
