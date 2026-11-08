@@ -30,7 +30,7 @@ async def main():
             A="(()=>{var it=JSON.parse(localStorage.getItem('cave-build')).items;var r=it.find(i=>i.u==='r1');var o=it.find(i=>i.u==='o1');return [r.w*r.d+(r.ex||[]).reduce((s,e)=>s+e.w*e.d,0),r.x,r.y,r.w,r.d,JSON.stringify(r.ex||null),[o.x,o.y]]})()"
             if touch: await pg.touchscreen.tap(*(await P(25,30)))
             else: await pg.mouse.click(*(await P(25,30)))
-            await pg.wait_for_timeout(300);await pg.click('#rp-xs');await pg.wait_for_timeout(200)
+            await pg.wait_for_timeout(300)
             nh=await pg.evaluate("document.querySelectorAll('#svg .shd').length")
             print("handles:",nh,"start:",await pg.evaluate(A))
             await drag((40,30),(46,30));print(" east wall +6:",await pg.evaluate(A))

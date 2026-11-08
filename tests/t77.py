@@ -20,12 +20,12 @@ async def main():
             await pg.mouse.up();await pg.wait_for_timeout(250)
         def A(u):return "(()=>{var r=JSON.parse(localStorage.getItem('cave-build')).items.find(i=>i.u==='%s');return r.w*r.d+(r.ex||[]).reduce((s,e)=>s+e.w*e.d,0)})()"%u
         H="Array.from(document.querySelectorAll('#svg .shd')).map(e=>{var x=+e.getAttribute('x')+ +e.getAttribute('width')/2,y=+e.getAttribute('y')+ +e.getAttribute('height')/2;return e.dataset.k+'@'+Math.round(x*2)/2+','+Math.round(y*2)/2}).join(' ')"
-        await pg.mouse.click(*(await P(25,25)));await pg.wait_for_timeout(300);await pg.click('#rp-xs');await pg.wait_for_timeout(200)
+        await pg.mouse.click(*(await P(25,25)));await pg.wait_for_timeout(300)
         print("L handles:",await pg.evaluate(H))
         await drag((45,30),(45,25));print("step top wall up 5 (from 30 to 25): area",await pg.evaluate(A('r1')),"expect 500+50=550")
         await drag((50,32.5),(55,32.5));print("step east wall +5: area",await pg.evaluate(A('r1')),"expect 550+75=625")
         await pg.screenshot(path="shape_L.png")
-        await pg.click('#rp-xc');await pg.mouse.click(*(await P(65,40)));await pg.wait_for_timeout(300);await pg.click('#rp-xs');await pg.wait_for_timeout(200)
+        await pg.mouse.click(*(await P(65,40)));await pg.wait_for_timeout(300)
         print("hole room handles:",await pg.evaluate(H))
         await drag((74,28),(74,24));print("hole top wall up 4:",await pg.evaluate(A('r5')),"expect",30*25-8*6-8*4)
         await pg.screenshot(path="shape_hole.png")

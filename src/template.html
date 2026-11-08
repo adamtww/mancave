@@ -328,6 +328,7 @@ body.xpon #svg{cursor:crosshair}
 .rpane .rppen{width:18px;height:18px;color:#9a958a;flex:none}.rpane .rppen svg{width:18px;height:18px;display:block}
 .rpane .rpg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .rpane .rpg.rpg2{grid-template-columns:repeat(2,1fr)}.rpane .rpg.rpg2 .rpt{aspect-ratio:1.55;flex-direction:row;gap:10px;font-size:13.5px}
+.rpane .rphint{margin:14px 2px 0;font-size:12.5px;line-height:1.45;color:#8a857a}.rpane .rphint b{color:#5a564e;font-weight:600}
 .rpane .rpg.rpg1{grid-template-columns:repeat(3,1fr)}
 .rpane .rpt{position:relative;aspect-ratio:1;border:1px solid var(--line);background:#fbfaf7;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:inherit;font-size:12.5px;font-weight:600;color:#4a463e;cursor:pointer;padding:0;overflow:hidden}
 .rpane .rpt svg{width:26px;height:26px}
@@ -1018,7 +1019,7 @@ function xpApply(){var r=find(xp.u),b=xp.box;xp.box=null;if(!r||!b||b.w<=0||b.d<
  xp=null;snapshot();var add=0;r.ex=r.ex||[];parts.forEach(function(q){add+=q.w*q.d;r.ex.push({x:q.x-r.x,y:q.y-r.y,w:q.w,d:q.d})});
  var bx=roomBox(r);if(Math.abs(roomArea(r)-bx.w*bx.d)<1e-6){r.x=bx.x;r.y=bx.y;r.w=bx.w;r.d=bx.d;delete r.ex}
  commit();flash('Added '+fmt(add)+' sq ft to '+r.name)}
-function xpDraw(){if(xp&&xp.mode==='shape')return shDraw();if(!xp||!xp.box)return '';var b=xp.box,r=find(xp.u);if(!r||b.w<=0||b.d<=0)return '';if(xp.mode==='cut')return xpCutDraw(r,b);var parts=xpNewParts(r,b),ok=xpConnected(r,parts),add=parts.reduce(function(a,q){return a+q.w*q.d},0),sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),h='';
+function xpDraw(){if(!xp&&shOn())return shDraw(sel);if(!xp||!xp.box)return '';var b=xp.box,r=find(xp.u);if(!r||b.w<=0||b.d<=0)return '';if(xp.mode==='cut')return xpCutDraw(r,b);var parts=xpNewParts(r,b),ok=xpConnected(r,parts),add=parts.reduce(function(a,q){return a+q.w*q.d},0),sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),h='';
  h+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(1/scale).toFixed(3)+'" stroke-dasharray="'+da+'" opacity=".5" pointer-events="none"/>';
  parts.forEach(function(q){h+='<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="'+(ok?'rgba(47,111,237,.16)':'rgba(120,115,105,.16)')+'" stroke="none" pointer-events="none"/>'});
  if(parts.length){
@@ -1075,6 +1076,10 @@ function xpCutDraw(r,b){var info=xp.info||xpCutInfo(r,b),sw=(2/scale).toFixed(3)
  var nm=info.push?Object.keys(info.push.moves).length:0;if(!bad&&nm)t+='  ·  moves '+nm;
  h+=xpLabel(b,t,fs,bad?'#6b675e':'var(--bad)');return h}
 
+var shSD=null,shU=null,shOrig=null;
+/* Shape handles are always on for the selected room in Rooms mode (not while Expand/Reduce is active) */
+function shOn(){if(xp||viewMode!=='rooms'||furn||!sel)return false;var r=find(sel);return !!(r&&isRoom(r)&&!r.sz)}
+function shRestore(){if(!shOrig)return;S.items.forEach(function(o){var q=shOrig[o.u];if(q){o.x=q[0];o.y=q[1]}})}
 /* ---------- Shape: push/pull a room's walls and corners (works for any grid shape) ---------- */
 function shCells(r){var c=roomCells(r),set={};for(var Y=c.Y0;Y<c.Y0+c.H;Y++)for(var X=c.X0;X<c.X0+c.W;X++)if(c.in(X,Y))set[X+','+Y]=1;return set}
 function shList(set){return Object.keys(set).map(function(k){var a=k.split(',');return [+a[0],+a[1]]})}
@@ -1100,13 +1105,13 @@ function shMoveWall(set,run,to,blocked,N,M){var out={},k;for(k in set)out[k]=1;v
  return {set:out,at:run.at-s*n}}
 function shBlocked(r){var occ={};S.items.forEach(function(o){if(!isRoom(o)||o===r)return;var c=roomCells(o);for(var Y=c.Y0;Y<c.Y0+c.H;Y++)for(var X=c.X0;X<c.X0+c.W;X++)if(c.in(X,Y))occ[X+','+Y]=1});return function(x,y){return !!occ[x+','+y]}}
 function shSame(a,b){return a.o===b.o&&a.at===b.at&&a.in===b.in}
-function shCompute(p){var d=xp.sd,N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),tx=cl(Math.round(p.x),0,S.lot.w)*2,ty=cl(Math.round(p.y),0,S.lot.d)*2,res;
+function shCompute(p){var d=shSD,N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),tx=cl(Math.round(p.x),0,S.lot.w)*2,ty=cl(Math.round(p.y),0,S.lot.d)*2,res;
  if(d.kind==='w')res=shMoveWall(d.set0,d.run,d.run.o==='h'?ty:tx,d.blk,N,M).set;
  else{var hr=d.runs[d.c.h],vr=d.runs[d.c.v],m1=shMoveWall(d.set0,hr,ty,d.blk,N,M);res=m1.set;
   var rs=shRuns(res),cand=null;for(var i=0;i<rs.length;i++){var q=rs[i];if(q.o==='v'&&q.at===vr.at&&q.in===vr.in&&(q.a===m1.at||q.b===m1.at)){cand=q;break}}
   if(cand)res=shMoveWall(res,cand,tx,d.blk,N,M).set}
  return res}
-function shTrack(p){var d=xp.sd,r=find(xp.u);xpRestore();shSetRoom(r,d.room0);var next=shCompute(p),cut=[],k;
+function shTrack(p){var d=shSD,r=find(shU);shRestore();shSetRoom(r,d.room0);var next=shCompute(p),cut=[],k;
  for(k in d.set0)if(!next[k]){var a=k.split(',');cut.push([+a[0],+a[1]])}
  var keep=shList(next),info={n:cut.length/4,keep:keep,parts:cut.length?cellsToRects(cut.slice()):[],why:''};
  if(!keep.length)info.why="Can't shrink the room away";
@@ -1118,7 +1123,7 @@ function shTrack(p){var d=xp.sd,r=find(xp.u);xpRestore();shSetRoom(r,d.room0);va
  render()}
 function shGetRoom(r){return {x:r.x,y:r.y,w:r.w,d:r.d,ex:r.ex?JSON.parse(JSON.stringify(r.ex)):null}}
 function shSetRoom(r,o){r.x=o.x;r.y=o.y;r.w=o.w;r.d=o.d;if(o.ex)r.ex=JSON.parse(JSON.stringify(o.ex));else delete r.ex}
-function shDraw(){var r=find(xp.u);if(!r)return '';var set=shCells(r),runs=shRuns(set),h='',d=xp.sd,sw=(1.5/scale);
+function shDraw(u){var r=find(u);if(!r)return '';var set=shCells(r),runs=shRuns(set),h='',d=shSD,sw=(1.5/scale);
  if(d&&d.info&&d.info.why&&d.next){var tmp={kind:'room',x:0,y:0,w:0,d:0},kp=shList(d.next);if(kp.length){setRoomCells(tmp,kp);h+='<path d="'+outlineD(tmp)+'" fill="none" stroke="#8a857a" stroke-width="'+(2/scale)+'" stroke-dasharray="'+(6/scale)+' '+(4/scale)+'" pointer-events="none"/>'}
   var fs=Math.max(1,Math.min(2.2,14/scale)),bx=roomBox(r);h+=xpLabel(bx,d.info.why,fs,'#6b675e')}
  if(d&&d.push&&d.push.moves)Object.keys(d.push.moves).forEach(function(u){var o=find(u);if(o&&!(d.info&&d.info.why))h+='<rect x="'+o.x+'" y="'+o.y+'" width="'+o.w+'" height="'+o.d+'" rx="0.25" fill="rgba(242,166,90,.35)" stroke="#d97f1e" stroke-width="'+(2/scale)+'" pointer-events="none"/>'});
@@ -1131,15 +1136,15 @@ function shDraw(){var r=find(xp.u);if(!r)return '';var set=shCells(r),runs=shRun
   h+='<rect class="shd" data-k="c'+i+'" x="'+(x-hit/2)+'" y="'+(y-hit/2)+'" width="'+hit+'" height="'+hit+'" fill="transparent" style="cursor:move"/>';
   h+='<rect x="'+(x-cs/2)+'" y="'+(y-cs/2)+'" width="'+cs+'" height="'+cs+'" rx="'+(cs*0.25)+'" fill="var(--accent)" stroke="#fff" stroke-width="'+sw+'" pointer-events="none"/>'});
  return h}
-stage.addEventListener('pointerdown',function(e){if(!xp||xp.mode!=='shape'||!e.target.closest)return;var t=e.target.closest('.shd');if(!t){return}
- if(xp.sd){return}e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
- var r=find(xp.u),set=shCells(r),runs=shRuns(set),k=t.dataset.k,sd={pid:e.pointerId,set0:set,runs:runs,blk:shBlocked(r),room0:shGetRoom(r)};
+stage.addEventListener('pointerdown',function(e){if(!shOn()||!e.target.closest)return;var t=e.target.closest('.shd');if(!t){return}
+ if(shSD){return}shU=sel;e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
+ var r=find(shU),set=shCells(r),runs=shRuns(set),k=t.dataset.k,sd={pid:e.pointerId,set0:set,runs:runs,blk:shBlocked(r),room0:shGetRoom(r)};
  if(k[0]==='w'){sd.kind='w';sd.run=runs[+k.slice(1)]}else{sd.kind='c';sd.c=shCorners(runs)[+k.slice(1)]}
- xp.orig={};S.items.forEach(function(o){if(!isRoom(o))xp.orig[o.u]=[o.x,o.y]});xp.sd=sd},true);
-window.addEventListener('pointermove',function(e){if(!xp||!xp.sd||xp.sd.pid!==e.pointerId)return;e.preventDefault();shTrack(pt(e))},{passive:false});
-function shEnd(e,cancel){if(!xp||!xp.sd||xp.sd.pid!==e.pointerId)return;var d=xp.sd,r=find(xp.u);xp.sd=null;
+ shOrig={};S.items.forEach(function(o){if(!isRoom(o))shOrig[o.u]=[o.x,o.y]});shSD=sd},true);
+window.addEventListener('pointermove',function(e){if(!shSD||shSD.pid!==e.pointerId)return;e.preventDefault();shTrack(pt(e))},{passive:false});
+function shEnd(e,cancel){if(!shSD||shSD.pid!==e.pointerId)return;var d=shSD,r=find(shU);shSD=null;
  var ok=!cancel&&d.info&&!d.info.why&&d.next,moves=d.push?d.push.moves:{},keep=d.info?d.info.keep:null,why=d.info&&d.info.why;
- xpRestore();shSetRoom(r,d.room0);
+ shRestore();shSetRoom(r,d.room0);
  if(!ok){render();if(why&&!cancel)flash(why);return}
  if(JSON.stringify(shList(d.next).sort())===JSON.stringify(shList(d.set0).sort())){render();return}
  snapshot();S.items.forEach(function(o){var mv=moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}});setRoomCells(r,keep);commit()}
@@ -1183,8 +1188,8 @@ function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(s
   $('#rp-xc').onclick=xpEnd;return}
  if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside or outside <b>'+esc(it.name)+'</b> and drag. A box stretches from where you started to your finger.</p><p class="rpx2">If the box touches the room, letting go adds the part outside it. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
- b.innerHTML=nameBar+'<div class="rpg rpg2"><button class="rpt pri" id="rp-xp">'+RPI.exp+'Expand</button><button class="rpt" id="rp-xr">'+RPI.red+'Reduce</button><button class="rpt" id="rp-xs">'+RPI.shp+'Shape</button>'+colTile+'</div>'+delBtn;
- rpBind(it);$('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')};$('#rp-xs').onclick=function(){xpBegin('shape')}}
+ b.innerHTML=nameBar+'<div class="rpg"><button class="rpt pri" id="rp-xp">'+RPI.exp+'Expand</button><button class="rpt" id="rp-xr">'+RPI.red+'Reduce</button>'+colTile+'</div>'+delBtn+'<p class="rphint">Drag the <b>bars</b> on the walls or the <b>corner squares</b> to reshape. Drag inside the room to move it.</p>';
+ rpBind(it);$('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')}}
 function rpBind(it){var u=it.u,inp=$('#rp-nm');
  function save(){var r=find(u),v=inp.value.trim();if(!r||!v||(!r.ph&&v===r.name))return;snapshot();r.name=v;r.ph=false;commit()}
  inp.onkeydown=function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();inp.blur()}else if(e.key==='Escape'){var r=find(u);inp.value=r&&!r.ph?r.name:'';inp.blur()}};
