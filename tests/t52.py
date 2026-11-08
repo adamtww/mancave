@@ -6,7 +6,7 @@ class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 srv=S(("127.0.0.1",PORT),functools.partial(Q,directory="/home/claude/mancave"));threading.Thread(target=srv.serve_forever,daemon=True).start()
 plan={"lot":{"w":100,"d":100},"items":[{"u":"r1","kind":"room","name":"Arcade","x":0,"y":0,"w":40,"d":30,"lk":True},{"u":"r2","kind":"room","name":"Shop","x":40,"y":0,"w":35,"d":30,"lk":True},{"u":"r3","kind":"room","name":"Lounge","x":0,"y":30,"w":50,"d":40,"lk":True}],"name":"Warehouse"}
-SZ=[("iPad mini",1133,744),("iPad / iPad Air 11in",1180,820),("iPad Pro 11in",1210,834),("iPad Air 13in",1366,1024),("iPad Pro 13in",1376,1032)]
+SZ=[("iPad mini",1133,744),("iPad 1180x820",1180,820),("iPad 1376x1032",1376,1032)]
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox","--host-resolver-rules=MAP test.example.test 127.0.0.1"])
