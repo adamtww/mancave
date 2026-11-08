@@ -1062,12 +1062,15 @@ function emAskDiscard(go,thenAfterAdd){modal('Add this room?','<div class="mform
  $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;closeModal();
   if(k.dataset.k==='yes')go();
   else if(k.dataset.k==='add'){var rr=emRect;hideEmenu();if(rr)addRoomFit(rr);if(thenAfterAdd)thenAfterAdd()}}}
-/* Rooms mode: a faint green + in every empty 10-ft square shows where a tap adds a room */
-function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='';
+/* Rooms mode: faint green + marks spread evenly over the empty floor (staggered rows, ~1 per 67 sq ft) show where a tap adds a room */
+function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='',sp=8.8,rs=sp*0.866,cl2=2.2;
  S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});if(emRect)ob=ob.concat(roomParts(emRect));
- for(var x=0;x+10<=L.w+1e-6;x+=10)for(var y=0;y+10<=L.d+1e-6;y+=10){
-  if(ob.some(function(o){return x<o.x+o.w-EPS&&x+10>o.x+EPS&&y<o.y+o.d-EPS&&y+10>o.y+EPS}))continue;var cx=x+5,cy=y+5;
-  h+='M'+(cx-a)+' '+cy+'H'+(cx+a)+'M'+cx+' '+(cy-a)+'V'+(cy+a)}
+ var rows=Math.floor((L.d-2*cl2)/rs),y0=(L.d-rows*rs)/2;
+ var colsE=Math.floor((L.w-2*cl2)/sp),xe=(L.w-colsE*sp)/2;
+ for(var j=0;j<=rows;j++){var cy=y0+j*rs,x0=xe+((j%2)?sp/2:0);
+  for(var i=-1;i<=colsE;i++){var cx=x0+i*sp;if(cx<cl2||cx>L.w-cl2)continue;
+   if(ob.some(function(o){return cx>o.x-cl2&&cx<o.x+o.w+cl2&&cy>o.y-cl2&&cy<o.y+o.d+cl2}))continue;
+   h+='M'+(cx-a).toFixed(2)+' '+cy.toFixed(2)+'H'+(cx+a).toFixed(2)+'M'+cx.toFixed(2)+' '+(cy-a).toFixed(2)+'V'+(cy+a).toFixed(2)}}
  return h?'<path class="plh" d="'+h+'" stroke="#3f8a4f" stroke-width="'+sw+'" stroke-linecap="round" fill="none" opacity="0.28" pointer-events="none"/>':''}
 function addRoomFit(r){snapshot();var rs=S.items.filter(isRoom),n=rs.length+1,names={};rs.forEach(function(q){names[q.name]=1});while(names['Room '+n])n++;
  var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:r.x,y:r.y,w:r.w,d:r.d,cl:0,lk:true};if(r.ex&&r.ex.length)it.ex=JSON.parse(JSON.stringify(r.ex));S.items.push(it);sel=it.u;popU=it.u;commit();setTimeout(function(){if(popU===it.u){popU=null}},450)}
