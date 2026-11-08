@@ -35,7 +35,7 @@ async def main():
         print(await pg.evaluate("[document.querySelector('.chip').getAttribute('style'), document.querySelector('.chip .lcard').getAttribute('style'), document.querySelectorAll('.chip .lcard').length]"))
         r=[]
         for k in range(30):
-            r.append(await pg.evaluate("(document.querySelector('.chip.cardchip .lcard')||{style:{}}).style.transform"));await pg.wait_for_timeout(40)
+            r.append(await pg.evaluate("(document.querySelector('.chip.cardchip .hang')||{style:{}}).style.transform"));await pg.wait_for_timeout(40)
         print(await pg.evaluate("[document.querySelectorAll('.chip').length, (document.querySelector('.chip')||{}).className, errs=null]") if False else await pg.evaluate("[document.querySelectorAll('.chip').length, (document.querySelector('.chip')||{}).className]"), errs)
         print([x.replace('rotate(','').split('deg')[0] for x in r][::3])
         await pg.mouse.up();await b.close();return
