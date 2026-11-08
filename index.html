@@ -971,7 +971,9 @@ function moveCore(e){var p=pt(e);
   var nr=limitToKids(resizeRect(o,h,x2,y2,drag.obs,1),h,drag.kb,o);it.x=nr.x;it.y=nr.y;it.w=nr.w;it.d=nr.d;if(drag.gd.length)drag.gd=keepGuides(drag.gd,it);
   render()}}
 function up(e){if(draft){var d=draft;draft=null;if(d.w>=2&&d.d>=2){snapshot();var n=S.items.filter(isRoom).length+1;var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:d.x,y:d.y,w:d.w,d:d.d,cl:0,lk:true};S.items.push(it);sel=it.u;if(!(e&&e.shiftKey)&&!multiDraw)setTool('sel')}commit();return}
- if(drag){var m=drag.mode==='resize'||drag.moved,dit=drag.it,tap=!m&&drag.mode==='move'&&isRoom(dit)&&dit.sz;if(!m)undoS.pop();drag=null;commit();if(tap)showRename(dit)}}
+ if(drag){var m=drag.mode==='resize'||drag.moved,dit=drag.it,tap=!m&&drag.mode==='move'&&isRoom(dit)&&dit.sz;
+  if(m&&isRoom(dit)&&!dit.sz){var aw=attachWhy(dit);if(aw){if(drag.mode==='move'){dit.x=drag.ox;dit.y=drag.oy;drag.kids.forEach(function(k){k.it.x=k.x;k.it.y=k.y})}else{var o=drag.o;dit.x=o.x;dit.y=o.y;dit.w=o.w;dit.d=o.d}undoS.pop();drag=null;render();flash(aw);return}}
+  if(!m)undoS.pop();drag=null;commit();if(tap)showRename(dit)}}
 /* gesture layer: two fingers = pan + pinch zoom; one finger on empty floor = pan */
 var touches=new Map(),gesture=null,pan=null,suppress=false;
 function revertDrag(){if(drag){if(drag.mode==='move'){drag.it.x=drag.ox;drag.it.y=drag.oy;drag.kids.forEach(function(k){k.it.x=k.x;k.it.y=k.y})}else{var o=drag.o;drag.it.x=o.x;drag.it.y=o.y;drag.it.w=o.w;drag.it.d=o.d}undoS.pop();drag=null}draft=null}
@@ -1055,6 +1057,11 @@ window.addEventListener('pointermove',function(e){if(!emDrag||emDrag.pid!==e.poi
 function emDragEnd(e){if(!emDrag||emDrag.pid!==e.pointerId)return;emDrag=null;if(!emRect)return;var m=$('#emenu');placeEmenu();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show'}
 window.addEventListener('pointerup',emDragEnd);window.addEventListener('pointercancel',emDragEnd);
 /* placement rule: the first room must touch the lot edge; every later room must share a wall with an existing room */
+/* Rooms mode: a room must stay attached — to another room, or to the lot edge if it's the only room */
+function attachWhy(r,set){if(viewMode!=='rooms')return '';set=set||shCells(r);var others=S.items.some(function(o){return isRoom(o)&&o!==r}),k;
+ if(!others){var N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2);for(k in set){var a=k.split(','),X=+a[0],Y=+a[1];if(X===0||Y===0||X===N-1||Y===M-1)return ''}return 'The room must touch the edge of the lot'}
+ var blk=shBlocked(r);for(k in set){var b=k.split(','),x=+b[0],y=+b[1];if(blk(x+1,y)||blk(x-1,y)||blk(x,y+1)||blk(x,y-1))return ''}
+ return 'Rooms must stay attached to another room'}
 function emRule(r){var rooms=S.items.filter(isRoom),N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),set=shCells(r),k;
  if(!rooms.length){for(k in set){var a=k.split(','),X=+a[0],Y=+a[1];if(X===0||Y===0||X===N-1||Y===M-1)return ''}return 'First room must touch the edge of the lot'}
  var blk=shBlocked(null);for(k in set){var b=k.split(','),x=+b[0],y=+b[1];if(blk(x+1,y)||blk(x-1,y)||blk(x,y+1)||blk(x,y-1))return ''}
@@ -1266,6 +1273,7 @@ function xpCutInfo(r,b){var c=roomCells(r),cut=[],keep=[],X,Y,X0=Math.round(b.x*
  var set={};keep.forEach(function(k){set[k[0]+','+k[1]]=1});var st=[keep[0]],seen={},n=0;seen[keep[0][0]+','+keep[0][1]]=1;
  while(st.length){var q=st.pop();n++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var k=(q[0]+d[0])+','+(q[1]+d[1]);if(set[k]&&!seen[k]){seen[k]=1;st.push([q[0]+d[0],q[1]+d[1]])}})}
  if(n<keep.length){out.why='That would split the room in two';return out}
+ var kset={};keep.forEach(function(q){kset[q[0]+','+q[1]]=1});var aw=attachWhy(r,kset);if(aw){out.why=aw;return out}
  return out}
 /* objects caught by the cut are pushed to the nearest spot that still fits in the room */
 function xpRestore(){if(!xp||!xp.orig)return;S.items.forEach(function(o){var q=xp.orig[o.u];if(q){o.x=q[0];o.y=q[1]}})}
@@ -1345,6 +1353,7 @@ function shTrack(p){var d=shSD,r=find(shU);shRestore();shSetRoom(r,d.room0);var 
  if(!keep.length)info.why="Can't shrink the room away";
  else{var seen={},st=[keep[0]],cnt=0;seen[keep[0][0]+','+keep[0][1]]=1;while(st.length){var q=st.pop();cnt++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dd){var kk=(q[0]+dd[0])+','+(q[1]+dd[1]);if(next[kk]&&!seen[kk]){seen[kk]=1;st.push([q[0]+dd[0],q[1]+dd[1]])}})}
   if(cnt<keep.length)info.why='That would split the room in two'}
+ if(!info.why){var aw=attachWhy(r,next);if(aw)info.why=aw}
  var push=info.why?{moves:{}}:xpPush(r,info);if(push.why)info.why=push.why;
  d.info=info;d.push=push;d.next=next;
  if(!info.why){setRoomCells(r,keep);S.items.forEach(function(o){var mv=push.moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}})}
