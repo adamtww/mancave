@@ -493,8 +493,8 @@ body.touch .cswatch{max-width:200px}
 .lcard .lnm em{font-style:normal;font-size:9.5px;font-weight:700;color:#1f4fbf;background:#eef3fd;border-radius:4px;padding:0 4px;margin-left:4px;vertical-align:1px}
 .lcard .lbdg{display:flex;gap:4px;margin-top:4px}.lcard .lbdg span{font-size:10.5px;font-weight:600;background:#f3f1ec;color:#6b675e;padding:2px 6px;border-radius:6px;white-space:nowrap}.lcard .lbdg .p{background:#fff4d6;color:#8a6200}
 .lcard.lift{opacity:.35}
-.chip.cardchip{padding:0;border:0;background:none;box-shadow:none;transform:translate(-50%,-50%)}
-.chip.cardchip .lcard{width:100%;height:100%;transform:rotate(-3deg) scale(1.05);border:1.5px solid #2f6fed;box-shadow:0 14px 28px rgba(40,36,28,.22);opacity:1}
+.chip.cardchip{padding:0;border:0;background:none;box-shadow:none;transition:none}
+.chip.cardchip .lcard{width:100%;height:100%;transform:scale(1.05);border:1.5px solid #2f6fed;box-shadow:0 14px 28px rgba(40,36,28,.22);opacity:1}
 body.touch .lcard{touch-action:pan-y}
 </style></head><body>
 <div class="app">
@@ -1657,8 +1657,13 @@ function ghostBad(){if(!ghost)return false;if(ghost.z)return S.items.some(functi
 function overStage(e){var r=stage.getBoundingClientRect(),lb=$('#lib');if(lb&&!furn&&!lb.classList.contains('away')){var q2=lb.getBoundingClientRect();if(e.clientX>=q2.left&&e.clientX<=q2.right&&e.clientY>=q2.top&&e.clientY<=q2.bottom)return false}if(furn){var q=$('#fpanel').getBoundingClientRect();if(e.clientX>=q.left&&e.clientX<=q.right&&e.clientY>=q.top&&e.clientY<=q.bottom)return false}return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
 function blockScroll(ev){ev.preventDefault()}
 function liftOff(){if(!cdrag||cdrag.on)return;cdrag.on=true;document.body.classList.add('dragging');document.addEventListener('touchmove',blockScroll,{passive:false});
- var c=BY[cdrag.r],ch=document.createElement('div');if(cdrag.src&&cdrag.src.classList.contains('lcard')){var rc=cdrag.src.getBoundingClientRect();ch.className='chip cardchip';ch.style.width=rc.width+'px';ch.style.height=rc.height+'px';var cc=cdrag.src.cloneNode(true);cc.style.setProperty('--c',cdrag.src.style.getPropertyValue('--c'));ch.appendChild(cc)}else{ch.className='chip';ch.innerHTML='<b>'+esc(c.n.replace(/ \(\$[^)]*\)/,''))+'</b><span>'+c.w+'×'+c.d+' ft</span>'}document.body.appendChild(ch);cdrag.chip=ch;
+ var c=BY[cdrag.r],ch=document.createElement('div');if(cdrag.src&&cdrag.src.classList.contains('lcard')){var rc=cdrag.src.getBoundingClientRect();ch.className='chip cardchip';ch.style.width=rc.width+'px';ch.style.height=rc.height+'px';var cc=cdrag.src.cloneNode(true);cc.style.setProperty('--c',cdrag.src.style.getPropertyValue('--c'));ch.appendChild(cc);var ox=cl((cdrag.lx||cdrag.sx)-rc.left,8,rc.width-8),oy=cl((cdrag.ly||cdrag.sy)-rc.top,8,rc.height-8);ch.style.transform='translate('+(-ox)+'px,'+(-oy)+'px)';cc.style.transformOrigin=ox+'px '+oy+'px';dangle(ch,cc)}else{ch.className='chip';ch.innerHTML='<b>'+esc(c.n.replace(/ \(\$[^)]*\)/,''))+'</b><span>'+c.w+'×'+c.d+' ft</span>'}document.body.appendChild(ch);cdrag.chip=ch;
  ch.style.left=(cdrag.lx||cdrag.sx)+'px';ch.style.top=(cdrag.ly||cdrag.sy)+'px';if(cdrag.src)cdrag.src.classList.add('lift')}
+/* lifted card swings from the grab point like it's hanging there: a damped pendulum pushed by sideways motion */
+function dangle(ch,cc){var th=0,om=0,lx=null,vx=0,t0=performance.now();
+ function step(t){if(!ch.isConnected)return;var dt=Math.min(0.05,(t-t0)/1000)||0.016;t0=t;var x=parseFloat(ch.style.left)||0;if(lx===null)lx=x;var v=(x-lx)/dt;lx=x;vx+=(v-vx)*Math.min(1,dt*18);
+  var acc=-170*(th-cl(vx*0.035,-38,38))-5.5*om;om+=acc*dt;th+=om*dt;th=cl(th,-55,55);
+  if(ch.style.display!=='none')cc.style.transform='rotate('+th.toFixed(2)+'deg) scale(1.05)';requestAnimationFrame(step)}requestAnimationFrame(step)}
 function startDrag(e,r){if(e.button!==undefined&&e.button!==0)return;
  if(cdrag&&cdrag.on&&e.pointerType==='touch'){return}
  var src=e.target.closest('.pi,.tile,.lcard');cdrag={r:r,sx:e.clientX,sy:e.clientY,on:false,rot:0,chip:null,pid:e.pointerId,touch:e.pointerType==='touch',hold:e.pointerType==='touch'&&!!src&&(src.classList.contains('pi')||src.classList.contains('lcard')),src:src};
