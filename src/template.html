@@ -819,7 +819,7 @@ function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.ma
  cam.cx=vw>=L.w+2*M?-M+vw/2:cl(cam.cx,-M+vw/2,L.w+M-vw/2);var tp=CAM_TOP/scale;cam.cy=vh-tp>=L.d+2*M?-M-tp+vh/2:cl(cam.cy,-M-tp+vh/2,L.d+M-vh/2)}
 /* empty-floor menu */
 var emAt=null;
-function showEmenu(cx,cy){var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
+function showEmenu(cx,cy){if(viewMode==='objects'){hideEmenu();return}var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
  if(w.x<0||w.y<0||w.x>S.lot.w||w.y>S.lot.d||roomAtPoint(w.x,w.y)){hideEmenu();return}
  emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect){emFresh=performance.now();render()}var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
  var cr=svg.getBoundingClientRect(),mw=m.offsetWidth||140,mh=m.offsetHeight||48,L=cr.left-sr.left+8,Rb=Math.min(sr.width,cr.right-sr.left)-8,T=cr.top-sr.top+8,Bb=Math.min(sr.height,cr.bottom-sr.top)-8,lx=cx-sr.left+10,ly=cy-sr.top+10;if(lx+mw>Rb)lx=cx-sr.left-10-mw;if(ly+mh>Bb)ly=cy-sr.top-10-mh;
