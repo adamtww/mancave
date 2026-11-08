@@ -1248,7 +1248,7 @@ function xpCutState(r,b){xpRestore();var info=xpCutInfo(r,b),push=xpPush(r,info)
 function xpCutApply(){var r=find(xp.u),b=xp.box;xp.box=null;if(!r||!b||b.w<=0||b.d<=0){xpRestore();render();return}
  var info=xpCutState(r,b);xpRestore();if(!info.n){render();flash('Drag into the room to cut space away');return}
  if(info.why){render();flash(info.why);return}
- var moved=Object.keys(info.push.moves).length;xp=null;snapshot();
+ var moved=Object.keys(info.push.moves).length;xp.info=null;xp.orig=null;snapshot();
  S.items.forEach(function(o){var mv=info.push.moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}});setRoomCells(r,info.keep);commit();
  flash('Removed '+fmt(info.n)+' sq ft from '+r.name+(moved?' · moved '+moved+' object'+(moved>1?'s':''):''))}
 function xpLabel(b,t,fs,fill){var aw=t.length*fs*0.56,vb=svg.viewBox.baseVal,L=Math.max(0,vb.x),R=Math.min(S.lot.w,vb.x+vb.width),cx=cl(b.x+b.w/2,L+aw/2,Math.max(L+aw/2,R-aw/2)),y=b.y-fs*0.6;if(y-fs<Math.max(0,vb.y))y=b.y+b.d+fs*1.2;
@@ -1354,9 +1354,12 @@ stage.addEventListener('pointerdown',function(e){if(!xp||xp.mode==='shape')retur
  if(xp.mode==='cut'){if(p.x<-1||p.y<-1||p.x>S.lot.w+1||p.y>S.lot.d+1)return}else{if(p.x<-1||p.y<-1||p.x>S.lot.w+1||p.y>S.lot.d+1)return;if(!inParts(r,p.x,p.y)&&S.items.some(function(o){return isRoom(o)&&o!==r&&inParts(o,p.x,p.y,1)}))return}
  e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
  var bx=roomBox(r),x0,y0;if(xp.mode==='cut'){x0=cl(Math.round(p.x),0,S.lot.w);y0=cl(Math.round(p.y),0,S.lot.d)}else{x0=cl(Math.round(p.x),0,S.lot.w);y0=cl(Math.round(p.y),0,S.lot.d)}
- xp.x0=x0;xp.y0=y0;xp.info=null;xp.orig={};S.items.forEach(function(o){if(!isRoom(o))xp.orig[o.u]=[o.x,o.y]});xp.obs=xp.mode==='cut'?[]:roomObs(r);xp.L=xp.mode==='cut'?roomLines(null):roomLines(r);xp.box=null;xp.pid=e.pointerId;xp.lx=e.clientX;xp.ly=e.clientY;render()},true);
+ xp.x0=x0;xp.y0=y0;xp.info=null;xp.orig={};S.items.forEach(function(o){if(!isRoom(o))xp.orig[o.u]=[o.x,o.y]});xp.obs=xp.mode==='cut'?[]:roomObs(r);xp.L=xp.mode==='cut'?roomLines(null):roomLines(r);xp.box=null;xp.pid=e.pointerId;xp.lx=e.clientX;xp.ly=e.clientY;xp.dx=e.clientX;xp.dy=e.clientY;xp.p0=p;render()},true);
 window.addEventListener('pointermove',function(e){if(!xp||xp.pid!==e.pointerId)return;e.preventDefault();xp.lx=e.clientX;xp.ly=e.clientY;xpTrack(pt(e))},{passive:false});
-window.addEventListener('pointerup',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;if(xp.mode==='cut')xpCutApply();else xpApply()});
+window.addEventListener('pointerup',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;
+ if(xp.mode==='cut'){var tap=Math.hypot(e.clientX-xp.dx,e.clientY-xp.dy)<8,r=find(xp.u);
+  /* Carve stays on after each cut; a tap outside the room (no drag) ends it */
+  if(tap&&r&&xp.p0&&!inParts(r,xp.p0.x,xp.p0.y)){xpEnd();return}if(tap){xp.box=null;xpRestore();render();return}xpCutApply()}else xpApply()});
 window.addEventListener('pointercancel',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xp.box=null;xpRestore();render()});
 document.addEventListener('keydown',function(e){if(xp&&e.key==='Escape'){e.preventDefault();xpEnd()}});
 /* Rooms pane: controls for the selected room (the floating room menu is off in Rooms mode) */
@@ -1378,7 +1381,7 @@ function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(s
  if(it.sz&&!it.ed){b.innerHTML=nameBar+'<div class="rpg rpg1">'+colTile+'</div><div class="rpx"><b>New room</b><p>Drag the handles to size it, or drag the room to move it.</p><p class="rpx2">Tap anywhere outside the room when you\'re done.</p></div>'+delBtn;rpBind(it);return}
  if(xp&&xp.mode==='shape'){b.innerHTML=head+'<div class="rpx"><b>Shape</b><p>Drag a <b>wall handle</b> (the bars) to push or pull that wall, or a <b>corner</b> (the squares) to move both walls that meet there.</p><p class="rpx2">Walls stop at other rooms and the lot edge. Objects in the way are pushed aside.</p></div><div class="fbtns"><button class="fb pri" id="rp-xc">Done</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
- if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Carve</b><p>Press anywhere — inside or outside <b>'+esc(it.name)+'</b> — and drag. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to cut away the part of the box that overlaps the room (a box fully inside leaves an opening, like a stairwell). Objects in the way are pushed into the space that\'s left. It won\'t split the room in two.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
+ if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Carve</b><p>Press anywhere — even in another room — and drag across <b>'+esc(it.name)+'</b>. A box stretches from where you started to your finger. Only this room is cut.</p><p class="rpx2">Let go to cut away the part of the box that overlaps the room (a box fully inside leaves an opening, like a stairwell). Objects in the way are pushed into the space that\'s left. It won\'t split the room in two.</p><p class="rpx2">Carve stays on for more cuts — tap outside the room or press Done to finish.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Done</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
  if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside or outside <b>'+esc(it.name)+'</b> and drag. A box stretches from where you started to your finger.</p><p class="rpx2">If the box touches the room, letting go adds the part outside it. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
