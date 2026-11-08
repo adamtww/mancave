@@ -760,9 +760,10 @@ function label(it,o){o=o||{};var side=o.side!=null?o.side:it.d>it.w*(o.tilt||1),
 function render(){
  var W=S.lot.w,D=S.lot.d,h='',bad=conflicts();
  applyView();
+ var rmG=viewMode==='rooms'&&!furn,gm=rmG?'#e6e3db':'#f1efea',gM=rmG?'#d3cfc4':'#e4e1d9',gw=rmG?0.06:0.05,gW=rmG?0.12:0.1;
  h+='<rect x="0" y="0" width="'+W+'" height="'+D+'" fill="#fff" stroke="#cfcbc1" stroke-width="0.15"/>';
- for(var x=1;x<W;x++)h+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+D+'" stroke="'+(x%10?'#f1efea':'#e4e1d9')+'" stroke-width="'+(x%10?0.05:0.1)+'"/>';
- for(var y=1;y<D;y++)h+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="'+(y%10?'#f1efea':'#e4e1d9')+'" stroke-width="'+(y%10?0.05:0.1)+'"/>';
+ for(var x=1;x<W;x++)h+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+D+'" stroke="'+(x%10?gm:gM)+'" stroke-width="'+(x%10?gw:gW)+'"/>';
+ for(var y=1;y<D;y++)h+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="'+(y%10?gm:gM)+'" stroke-width="'+(y%10?gw:gW)+'"/>';
  for(x=0;x<=W;x+=10)h+='<text x="'+x+'" y="-1" font-size="1.1" fill="#a8a397" text-anchor="middle">'+x+'</text>';
  for(y=10;y<=D;y+=10)h+='<text x="-1" y="'+(y+0.4)+'" font-size="1.1" fill="#a8a397" text-anchor="end">'+y+'</text>';
  var rooms=S.items.filter(isRoom),items=S.items.filter(function(i){return !isRoom(i)});
