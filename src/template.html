@@ -1097,9 +1097,9 @@ function shCorners(runs){var out=[];runs.forEach(function(r,i){if(r.o!=='h')retu
 /* move one wall to line `to` (half units); grows into free floor, or shrinks the room behind it */
 function shMoveWall(set,run,to,blocked,N,M){var out={},k;for(k in set)out[k]=1;var d=to-run.at,s=-run.in,got=0;if(!d)return {set:out,at:run.at};
  var outward=(d>0)===(s>0),n=Math.abs(d),i,X,Y,row;
- if(outward){for(i=1;i<=n;i++){row=s>0?run.at+i-1:run.at-i;var ok=true;
-   for(X=run.a;X<run.b;X++){var cx=run.o==='h'?X:row,cy=run.o==='h'?row:X;if(cx<0||cy<0||cx>=N||cy>=M||blocked(cx,cy)){ok=false;break}}
-   if(!ok)break;for(X=run.a;X<run.b;X++)out[run.o==='h'?X+','+row:row+','+X]=1;got=i}
+ if(outward){/* each stretch of the wall advances on its own until it meets another room or the lot edge,
+    so pulling a wall past a neighbour wraps around it (e.g. a hallway beside the next room) */
+  for(X=run.a;X<run.b;X++){for(i=1;i<=n;i++){row=s>0?run.at+i-1:run.at-i;var cx=run.o==='h'?X:row,cy=run.o==='h'?row:X;if(cx<0||cy<0||cx>=N||cy>=M||blocked(cx,cy))break;out[run.o==='h'?X+','+row:row+','+X]=1;if(i>got)got=i}}
   return {set:out,at:run.at+s*got}}
  for(X=run.a;X<run.b;X++){for(i=1;i<=n;i++){row=s>0?run.at-i:run.at+i-1;var key=run.o==='h'?X+','+row:row+','+X;if(!set[key])break;delete out[key]}}
  return {set:out,at:run.at-s*n}}
