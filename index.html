@@ -671,7 +671,7 @@ function snapshot(){undoS.push(JSON.stringify(S));if(undoS.length>150)undoS.shif
 function persist(){try{localStorage.setItem('cave-build',JSON.stringify(S))}catch(e){}}
 function cl(v,a,b){return Math.max(a,Math.min(b,v))}
 function clampIt(it){var L=S.lot;if(isRoom(it)&&it.ex){var bx=roomBox(it);it.x+=cl(bx.x,0,Math.max(0,L.w-bx.w))-bx.x;it.y+=cl(bx.y,0,Math.max(0,L.d-bx.d))-bx.y;return}it.w=Math.min(it.w,L.w);it.d=Math.min(it.d,L.d);it.x=cl(it.x,0,L.w-it.w);it.y=cl(it.y,0,L.d-it.d);
- if(!isRoom(it)){var r=roomOf(it);if(r&&it.w<=r.w+1e-6&&it.d<=r.d+1e-6){it.x=cl(it.x,r.x,r.x+r.w-it.w);it.y=cl(it.y,r.y,r.y+r.d-it.d)}}}
+ if(!isRoom(it)){var r=roomOf(it);if(r&&r.ex){if(!coveredBy(it,r))fitShaped(it,r);return}if(r&&it.w<=r.w+1e-6&&it.d<=r.d+1e-6){it.x=cl(it.x,r.x,r.x+r.w-it.w);it.y=cl(it.y,r.y,r.y+r.d-it.d)}}}
 /* objects live in rooms: membership = room containing the object's center */
 function roomAtPoint(px,py){var rs=S.items.filter(function(r){return isRoom(r)&&(r.ex?inParts(r,px,py):px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.d)});return rs[rs.length-1]||null}
 function roomOf(it){return roomAtPoint(it.x+it.w/2,it.y+it.d/2)}
