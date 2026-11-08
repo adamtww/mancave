@@ -847,7 +847,7 @@ svg.addEventListener('pointerdown',function(e){svg.setPointerCapture(e.pointerId
   if(touches.size>2||suppress)return;
 }
  var og=e.target.closest('.o');if(furn&&tool!=='room'&&!e.target.closest('.hd')&&!inFurn(og)){pan={pid:e.pointerId,lx:e.clientX,ly:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,selU:null,fo:1};return}
- var lockedHit=og&&!e.target.closest('.hd')&&(function(i){return i&&isRoom(i)&&i.lk})(find(og.dataset.u));
+ var lockedHit=og&&!e.target.closest('.hd')&&(function(i){return i&&isRoom(i)&&i.lk&&!(roomLive(i)&&i.u===sel)})(find(og.dataset.u));
  if(tool!=='room'&&((!og&&!e.target.closest('.hd'))||lockedHit)){pan={pid:e.pointerId,lx:e.clientX,ly:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,selU:lockedHit?og.dataset.u:null};return}
  downCore(e)});
 svg.addEventListener('pointermove',function(e){
