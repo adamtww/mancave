@@ -524,6 +524,13 @@ body.touch .lcard{touch-action:pan-y}
 .cardchip.tch .hook{display:block;position:absolute;left:-12px;top:-12px;width:24px;height:24px;box-sizing:border-box;border-radius:50%;border:3px solid #2f6fed;background:rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.25);transform:scale(0);transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
 .cardchip.tch.onc .hook{transform:scale(1)}
 .cardchip.drop .rope,.cardchip.drop .hook,.cardchip.home .rope,.cardchip.home .hook{opacity:0;transition:opacity .1s}
+
+/* landing: dust poof + a little thud wobble on the placed object */
+.poof{position:fixed;z-index:45;pointer-events:none}
+.poof i{position:absolute;border-radius:50%;background:radial-gradient(circle at 38% 38%,#fbfaf7,rgba(196,187,168,.95) 55%,rgba(170,160,140,0) 72%);transform:translate(-50%,-50%) scale(.3);opacity:0;animation:poof .55s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes poof{0%{transform:translate(-50%,-50%) scale(.3);opacity:.95}60%{opacity:.7}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.35);opacity:0}}
+#svg .ob.popin{transform-box:fill-box;transform-origin:center;animation:thud .42s cubic-bezier(.2,.8,.3,1)}
+@keyframes thud{0%{transform:scale(1.16)}30%{transform:scale(.92,.95)}45%{transform:translate(3%,0) scale(1.03)}57%{transform:translate(-3%,0)}69%{transform:translate(2%,0)}80%{transform:translate(-1%,0)}100%{transform:none}}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1403,11 +1410,19 @@ function endCDrag(e,cancel){if(!cdrag)return;if(e&&e.pointerId!==undefined&&e.po
  if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);if(!cancel&&d.src&&d.src.classList.contains('lcard')&&!d.moved){libSel=d.r;libNew=false;renderLib();$('#lib-b').scrollTop=0}return}
  var g=ghost,okDrop=false;if(g){ghost=g;okDrop=!ghostBad()}ghost=null;var ok=!cancel&&g&&e&&overStage(e)&&okDrop;
  if(keepChip){if(ok)heldDrop(d,g);else heldReturn(d)}
- if(ok){if(!keepChip){place(g.r,g.x,g.y,g.rot);sel=null;render()}}else{if(!cancel&&g&&g.noRoom)flash(g.tooBig?'Too big for this room, even turned sideways':'Objects have to go inside a room');render()}}
+ if(ok){if(!keepChip){var u0=place(g.r,g.x,g.y,g.rot);sel=null;popU=u0;render();poof(g);setTimeout(function(){if(popU===u0){popU=null}},500)}}else{if(!cancel&&g&&g.noRoom)flash(g.tooBig?'Too big for this room, even turned sideways':'Objects have to go inside a room');render()}}
 /* drop: the held box swings level and slides into the preview spot, then the object lands with a bounce */
+/* landing: a ring of dust puffs bursts out from the footprint (plus a tiny buzz where the device supports it) */
+function poof(g){try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}var m=svg.getScreenCTM(),a=svg.createSVGPoint(),b=svg.createSVGPoint();a.x=g.x;a.y=g.y;b.x=g.x+g.w;b.y=g.y+g.d;a=a.matrixTransform(m);b=b.matrixTransform(m);
+ var w=b.x-a.x,h=b.y-a.y,box=document.createElement('div');box.className='poof';box.style.left=a.x+'px';box.style.top=a.y+'px';box.style.width=w+'px';box.style.height=h+'px';
+ var n=Math.max(10,Math.min(22,Math.round((w+h)/9))),sz=Math.max(12,Math.min(24,Math.min(w,h)*0.5));
+ for(var i=0;i<n;i++){var t=i/n,px,py,nx,ny;if(t<.25){px=t*4*w;py=0;nx=0;ny=-1}else if(t<.5){px=w;py=(t-.25)*4*h;nx=1;ny=0}else if(t<.75){px=w-(t-.5)*4*w;py=h;nx=0;ny=1}else{px=0;py=h-(t-.75)*4*h;nx=-1;ny=0}
+  var p=document.createElement('i'),s2=sz*(0.7+Math.random()*0.6),dist=sz*(0.9+Math.random()*0.9);p.style.left=px+'px';p.style.top=py+'px';p.style.width=s2+'px';p.style.height=s2+'px';
+  p.style.setProperty('--dx',((nx||(Math.random()-.5)*.6)*dist)+'px');p.style.setProperty('--dy',((ny||(Math.random()-.5)*.6)*dist)+'px');p.style.animationDelay=(Math.random()*40)+'ms';box.appendChild(p)}
+ document.body.appendChild(box);setTimeout(function(){box.remove()},700)}
 function heldDrop(d,g){var ch=d.chip,hg=ch.firstChild,hb=d.card.hb,m=svg.getScreenCTM(),P=svg.createSVGPoint();P.x=g.x;P.y=g.y;P=P.matrixTransform(m);var cx=parseFloat(ch.style.left),cy=parseFloat(ch.style.top);
  ch.classList.add('drop');ch.dataset.done='1';hg.style.transform='rotate(0deg)';hb.style.left=(P.x-cx)+'px';hb.style.top=(P.y-cy)+'px';
- setTimeout(function(){ch.remove();if(d.src)d.src.classList.remove('lift');var u=place(g.r,g.x,g.y,g.rot);sel=null;popU=u;render();setTimeout(function(){if(popU===u){popU=null}},450)},140)}
+ setTimeout(function(){ch.remove();if(d.src)d.src.classList.remove('lift');var u=place(g.r,g.x,g.y,g.rot);sel=null;popU=u;render();poof(g);setTimeout(function(){if(popU===u){popU=null}},450)},140)}
 /* can't place: turn back into the card and float home to its slot */
 function heldReturn(d){var ch=d.chip,cd=d.card,src=d.src,r=src&&src.isConnected?src.getBoundingClientRect():cd.rc;ch.classList.remove('onc');ch.classList.add('home');ch.dataset.done='1';ch.firstChild.style.transform='rotate(0deg)';
  ch.style.left=(r.left+cd.ox)+'px';ch.style.top=(r.top+cd.oy)+'px';setTimeout(function(){ch.remove();if(src)src.classList.remove('lift')},300)}
