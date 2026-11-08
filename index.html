@@ -1063,14 +1063,26 @@ function emAskDiscard(go,thenAfterAdd){modal('Add this room?','<div class="mform
   if(k.dataset.k==='yes')go();
   else if(k.dataset.k==='add'){var rr=emRect;hideEmenu();if(rr)addRoomFit(rr);if(thenAfterAdd)thenAfterAdd()}}}
 /* Rooms mode: faint green + marks spread evenly over the empty floor (staggered rows, ~1 per 67 sq ft) show where a tap adds a room */
-function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='',sp=7.2,rs=sp*0.866,cl2=2.2;
- S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});if(emRect)ob=ob.concat(roomParts(emRect));
- var rows=Math.floor((L.d-2*cl2)/rs),y0=(L.d-rows*rs)/2;
- var colsE=Math.floor((L.w-2*cl2)/sp),xe=(L.w-colsE*sp)/2;
+var plhCache={k:'',pts:[]};
+function plusPts(ob,L){var k=L.w+','+L.d+'|'+ob.map(function(o){return o.x+','+o.y+','+o.w+','+o.d}).join(';');if(plhCache.k===k)return plhCache.pts;
+ var sp=7.2,rs=sp*0.866,cl2=2.2,cl3=1.5,md=sp*0.95,pts=[];
+ function dist(x,y){var m=Math.min(x,y,L.w-x,L.d-y);for(var q=0;q<ob.length;q++){var o=ob[q],dx=Math.max(o.x-x,0,x-o.x-o.w),dy=Math.max(o.y-y,0,y-o.y-o.d);if(dx===0&&dy===0)return -1;var dd=Math.sqrt(dx*dx+dy*dy);if(dd<m)m=dd}return m}
+ var rows=Math.floor((L.d-2*cl2)/rs),y0=(L.d-rows*rs)/2,colsE=Math.floor((L.w-2*cl2)/sp),xe=(L.w-colsE*sp)/2;
  for(var j=0;j<=rows;j++){var cy=y0+j*rs,x0=xe+((j%2)?sp/2:0);
   for(var i=-1;i<=colsE;i++){var cx=x0+i*sp;if(cx<cl2||cx>L.w-cl2)continue;
-   if(ob.some(function(o){return cx>o.x-cl2&&cx<o.x+o.w+cl2&&cy>o.y-cl2&&cy<o.y+o.d+cl2}))continue;
-   h+='M'+(cx-a).toFixed(2)+' '+cy.toFixed(2)+'H'+(cx+a).toFixed(2)+'M'+cx.toFixed(2)+' '+(cy-a).toFixed(2)+'V'+(cy+a).toFixed(2)}}
+   if(ob.some(function(o){return cx>o.x-cl2&&cx<o.x+o.w+cl2&&cy>o.y-cl2&&cy<o.y+o.d+cl2}))continue;pts.push([cx,cy])}}
+ // gap fill: narrow strips/pockets the lattice misses get hints centred in the gap
+ var G=2,cand=[];for(var y=cl3;y<=L.d-cl3+1e-6;y+=1/G)for(var x=cl3;x<=L.w-cl3+1e-6;x+=1/G){var d=dist(x,y);if(d>=cl3)cand.push([x,y,d])}
+ cand.sort(function(a,b){return b[2]-a[2]||a[1]-b[1]||a[0]-b[0]});
+ var C=md,grid={};function key(x,y){return Math.floor(x/C)+','+Math.floor(y/C)}
+ function add(p){var kk=key(p[0],p[1]);(grid[kk]=grid[kk]||[]).push(p)}
+ function near(x,y){var gx=Math.floor(x/C),gy=Math.floor(y/C);for(var a2=-1;a2<=1;a2++)for(var b2=-1;b2<=1;b2++){var c=grid[(gx+a2)+','+(gy+b2)];if(c)for(var t=0;t<c.length;t++){var ex=c[t][0]-x,ey=c[t][1]-y;if(ex*ex+ey*ey<md*md)return true}}return false}
+ pts.forEach(add);
+ cand.forEach(function(c){if(!near(c[0],c[1])){var p=[c[0],c[1]];pts.push(p);add(p)}});
+ plhCache={k:k,pts:pts};return pts}
+function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='';
+ S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});if(emRect)ob=ob.concat(roomParts(emRect));
+ plusPts(ob,L).forEach(function(p){var cx=p[0],cy=p[1];h+='M'+(cx-a).toFixed(2)+' '+cy.toFixed(2)+'H'+(cx+a).toFixed(2)+'M'+cx.toFixed(2)+' '+(cy-a).toFixed(2)+'V'+(cy+a).toFixed(2)});
  return h?'<path class="plh" d="'+h+'" stroke="#3f8a4f" stroke-width="'+sw+'" stroke-linecap="round" fill="none" opacity="0.28" pointer-events="none"/>':''}
 function addRoomFit(r){snapshot();var rs=S.items.filter(isRoom),n=rs.length+1,names={};rs.forEach(function(q){names[q.name]=1});while(names['Room '+n])n++;
  var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:r.x,y:r.y,w:r.w,d:r.d,cl:0,lk:true};if(r.ex&&r.ex.length)it.ex=JSON.parse(JSON.stringify(r.ex));S.items.push(it);sel=it.u;popU=it.u;commit();setTimeout(function(){if(popU===it.u){popU=null}},450)}
