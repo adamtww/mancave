@@ -516,6 +516,14 @@ body.touch .lcard{touch-action:pan-y}
 .cardchip.drop .hbox.art{filter:drop-shadow(0 1px 1px rgba(40,36,28,.2))}
 .lcard,.lcard *{-webkit-user-drag:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .lcard *{touch-action:pan-y}
+
+/* touch: the held object hangs on a string from a hook under the finger, so the swing stays in view */
+.cardchip .rope,.cardchip .hook{display:none}
+.cardchip.tch .rope{display:block;position:absolute;left:-1px;top:9px;width:2px;height:63px;background:#6b675e;border-radius:1px;transform-origin:50% 0;transform:scaleY(0);transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+.cardchip.tch.onc .rope{transform:scaleY(1)}
+.cardchip.tch .hook{display:block;position:absolute;left:-12px;top:-12px;width:24px;height:24px;box-sizing:border-box;border-radius:50%;border:3px solid #2f6fed;background:rgba(255,255,255,.85);box-shadow:0 2px 6px rgba(0,0,0,.25);transform:scale(0);transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.cardchip.tch.onc .hook{transform:scale(1)}
+.cardchip.drop .rope,.cardchip.drop .hook,.cardchip.home .rope,.cardchip.home .hook{opacity:0;transition:opacity .1s}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1351,12 +1359,12 @@ function overStage(e){var r=stage.getBoundingClientRect(),lb=$('#lib');if(lb&&!f
 function blockScroll(ev){ev.preventDefault()}
 function liftOff(){if(!cdrag||cdrag.on)return;cdrag.on=true;document.body.classList.add('dragging');document.addEventListener('touchmove',blockScroll,{passive:false});
  var c=BY[cdrag.r],ch=document.createElement('div');if(cdrag.src&&cdrag.src.classList.contains('lcard')){var rc=cdrag.src.getBoundingClientRect();ch.className='chip cardchip';ch.style.width=rc.width+'px';ch.style.height=rc.height+'px';var cc=cdrag.src.cloneNode(true);cc.classList.remove('lift');cc.style.setProperty('--c',cdrag.src.style.getPropertyValue('--c'));var ox=cl((cdrag.lx||cdrag.sx)-rc.left,8,rc.width-8),oy=cl((cdrag.ly||cdrag.sy)-rc.top,8,rc.height-8);ch.style.width='0';ch.style.height='0';
-  var hg=document.createElement('div');hg.className='hang';cc.style.cssText+=';position:absolute;left:'+(-ox)+'px;top:'+(-oy)+'px;width:'+rc.width+'px;height:'+rc.height+'px;transform-origin:'+ox+'px '+oy+'px';var hb=document.createElement('div');hb.className='hbox';hb.innerHTML='<span></span>';hg.appendChild(cc);hg.appendChild(hb);ch.appendChild(hg);cdrag.card={ox:ox,oy:oy,rc:rc,hb:hb};dangle(ch,hg)}else{ch.className='chip';ch.innerHTML='<b>'+esc(c.n.replace(/ \(\$[^)]*\)/,''))+'</b><span>'+c.w+'×'+c.d+' ft</span>'}document.body.appendChild(ch);cdrag.chip=ch;
+  var hg=document.createElement('div');hg.className='hang';cc.style.cssText+=';position:absolute;left:'+(-ox)+'px;top:'+(-oy)+'px;width:'+rc.width+'px;height:'+rc.height+'px;transform-origin:'+ox+'px '+oy+'px';var hb=document.createElement('div');hb.className='hbox';hb.innerHTML='<span></span>';hg.appendChild(cc);if(cdrag.touch){ch.classList.add('tch');ch.dataset.k='70';var rp=document.createElement('div');rp.className='rope';hg.appendChild(rp)}hg.appendChild(hb);ch.appendChild(hg);if(cdrag.touch){var hk=document.createElement('div');hk.className='hook';ch.appendChild(hk)}cdrag.card={ox:ox,oy:oy,rc:rc,hb:hb};dangle(ch,hg)}else{ch.className='chip';ch.innerHTML='<b>'+esc(c.n.replace(/ \(\$[^)]*\)/,''))+'</b><span>'+c.w+'×'+c.d+' ft</span>'}document.body.appendChild(ch);cdrag.chip=ch;
  ch.style.left=(cdrag.lx||cdrag.sx)+'px';ch.style.top=(cdrag.ly||cdrag.sy)+'px';if(cdrag.src)cdrag.src.classList.add('lift')}
 /* lifted card swings from the grab point like it's hanging there: a damped pendulum pushed by sideways motion */
 function dangle(ch,cc){var th=0,om=0,lx=null,vx=0,t0=performance.now();
  function step(t){if(!ch.isConnected||ch.dataset.done)return;var dt=Math.min(0.05,(t-t0)/1000)||0.016;t0=t;var x=parseFloat(ch.style.left)||0;if(lx===null)lx=x;var v=(x-lx)/dt;lx=x;vx+=(v-vx)*Math.min(1,dt*18);
-  var acc=-170*(th-cl(vx*0.035,-38,38))-5.5*om;om+=acc*dt;th+=om*dt;th=cl(th,-55,55);
+  var K=+(ch.dataset.k||170),acc=-K*(th-cl(vx*0.035,-38,38))-(K<170?3.6:5.5)*om;om+=acc*dt;th+=om*dt;th=cl(th,-55,55);
   if(ch.style.display!=='none')cc.style.transform='rotate('+th.toFixed(2)+'deg)';requestAnimationFrame(step)}requestAnimationFrame(step)}
 function startDrag(e,r){if(e.button!==undefined&&e.button!==0)return;
  if(cdrag&&cdrag.on&&e.pointerType==='touch'){return}
@@ -1380,13 +1388,14 @@ window.addEventListener('pointermove',function(e){if(!cdrag||e.pointerId!==cdrag
  cdrag.lx=e.clientX;cdrag.ly=e.clientY;moveGhost(e)});
 function moveGhost(e){var over=overStage(e);
  if(cdrag.card){cdrag.chip.style.display='block';cdrag.chip.style.left=e.clientX+'px';cdrag.chip.style.top=e.clientY+'px'}
- if(over){if(!ghost||ghost.r!==cdrag.r||ghost.rot!==cdrag.rot)ghost=mkGhost(cdrag.r,cdrag.rot);var p=pt(e);cdrag.wx=p.x;cdrag.wy=p.y;if(cdrag.card){/* landing preview sits up-left of the finger so it's never covered */var k=svg.getScreenCTM().a;cdrag.wx=p.x-ghost.w/2-16/k;cdrag.wy=p.y-ghost.d/2-16/k}fitGhost();if(cdrag.card)heldSync(true);else cdrag.chip.style.display='none'}
+ if(over){if(!ghost||ghost.r!==cdrag.r||ghost.rot!==cdrag.rot)ghost=mkGhost(cdrag.r,cdrag.rot);var p=pt(e);cdrag.wx=p.x;cdrag.wy=p.y;if(cdrag.card){/* landing preview sits up-left of the finger so it's never covered */var k=svg.getScreenCTM().a;var gap=(cdrag.touch?30:16)/k;cdrag.wx=p.x-ghost.w/2-gap;cdrag.wy=p.y-ghost.d/2-gap}fitGhost();if(cdrag.card)heldSync(true);else cdrag.chip.style.display='none'}
  else if(cdrag.card){ghost=null;heldSync(false)}
  else{ghost=null;cdrag.chip.style.display='block';cdrag.chip.style.left=e.clientX+'px';cdrag.chip.style.top=e.clientY+'px'}
  render()}
 /* the held box: canvas-style box + label at true size, hanging off the pointer while the snapped preview sits on the floor */
+var ROPE=72;
 function heldSync(on){var cd=cdrag.card;if(!cd)return;cdrag.chip.classList.toggle('onc',!!on);if(!on||!ghost)return;var k=svg.getScreenCTM().a,hb=cd.hb,k2=Math.min(2.2,Math.max(1,26/Math.min(ghost.w*k,ghost.d*k))),w=ghost.w*k*k2,d=ghost.d*k*k2,bad=ghostBad();
- hb.style.width=w+'px';hb.style.height=d+'px';if(!cdrag.chip.classList.contains('drop')){hb.style.left=(-w/2)+'px';hb.style.top='10px'}hb.style.borderRadius=Math.max(3,0.25*k)+'px';hb.classList.toggle('bad',bad);var key=ghost.r+':'+ghost.rot;if(hb.dataset.k!==key){hb.dataset.k=key;var c=BY[ghost.r],f=ICONS[ghost.r];hb.classList.toggle('art',!!f);
+ hb.style.width=w+'px';hb.style.height=d+'px';if(!cdrag.chip.classList.contains('drop')){hb.style.left=(-w/2)+'px';hb.style.top=(cdrag.touch?ROPE:10)+'px'}hb.style.borderRadius=Math.max(3,0.25*k)+'px';hb.classList.toggle('bad',bad);var key=ghost.r+':'+ghost.rot;if(hb.dataset.k!==key){hb.dataset.k=key;var c=BY[ghost.r],f=ICONS[ghost.r];hb.classList.toggle('art',!!f);
   hb.innerHTML=f?'<svg viewBox="'+(-ghost.w/2)+' '+(-ghost.d/2)+' '+ghost.w+' '+ghost.d+'" preserveAspectRatio="none" style="overflow:visible"><g transform="rotate('+(ghost.rot*90)+')">'+f(c.w,c.d)+'</g></svg>':'<span>'+esc(ghost.name)+'</span>'}var sp=hb.querySelector('span');if(sp)sp.style.fontSize=Math.max(9,Math.min(13,Math.min(w,d)/4))+'px'}
 function endCDrag(e,cancel){if(!cdrag)return;if(e&&e.pointerId!==undefined&&e.pointerId!==cdrag.pid)return;var d=cdrag;cdrag=null;clearTimeout(d.timer);document.removeEventListener('touchmove',blockScroll);document.body.classList.remove('dragging');var keepChip=!!(d.card&&d.on&&!cancel);if(d.chip&&!keepChip)d.chip.remove();if(d.src&&!keepChip)d.src.classList.remove('lift');
  if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);if(!cancel&&d.src&&d.src.classList.contains('lcard')&&!d.moved){libSel=d.r;libNew=false;renderLib();$('#lib-b').scrollTop=0}return}
