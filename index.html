@@ -314,10 +314,26 @@ body.mode-rooms #rmenu,body.mode-rooms #cmenu{display:none!important}
 .rpane .rpx.rpxc .rpx2{color:#9a5a4e}
 .rpane .rpx .rpx2{color:#5a6f99;font-size:12.5px}
 body.xpon #svg{cursor:crosshair}
+.rpane .rpnm{display:flex;align-items:center;gap:10px;padding:0 12px;height:48px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:text}
+.rpane .rpnm:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,237,.15)}
+.rpane .rpdot{width:22px;height:22px;border-radius:7px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+.rpane .rpnm input{flex:1;min-width:0;border:0;outline:none;background:none;font:inherit;font-size:16px;font-weight:700;color:var(--ink,#24221e);padding:0}
+.rpane .rpnm input::placeholder{color:#b3aea3;font-weight:600}
+.rpane .rppen{width:18px;height:18px;color:#9a958a;flex:none}.rpane .rppen svg{width:18px;height:18px;display:block}
+.rpane .rpg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.rpane .rpg.rpg1{grid-template-columns:repeat(3,1fr)}
+.rpane .rpt{position:relative;aspect-ratio:1;border:1px solid var(--line);background:#fbfaf7;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font:inherit;font-size:12.5px;font-weight:600;color:#4a463e;cursor:pointer;padding:0;overflow:hidden}
+.rpane .rpt svg{width:26px;height:26px}
+.rpane .rpt:active{transform:scale(.97)}
+.rpane .rpt.pri{background:#eef3fd;border-color:#cfdcf8;color:var(--accent)}
+.rpane .rpcw{width:26px;height:26px;border-radius:50%;background:conic-gradient(#e07a5f,#f2a65a,#e9c46a,#8ab17d,#2a9d8f,#5b8bd9,#8e7cc3,#d47fa6,#e07a5f);display:flex;align-items:center;justify-content:center}
+.rpane .rpcw i{width:14px;height:14px;border-radius:50%;box-shadow:0 0 0 2px #fff}
+.rpane #rp-ci{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.rpane .rpdel{margin-top:12px;width:100%;height:46px;border-radius:12px;border:1px solid #f3d6d2;background:#fdf3f2;color:var(--bad);font:inherit;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.rpane .rpdel svg{width:17px;height:17px}
+.rpane .rpx{margin-top:12px}
 .rpane .rpf{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px}
 .rpane .rpl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin-top:6px}
-.rpane #rp-nm{font:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
-.rpane #rp-nm:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,237,.15)}
 .rpane .rpsw{margin-top:2px;gap:8px}
 body.touch .rpane .rpsw .swc{width:34px;height:34px}
 .rpane .rpempty{font-size:13.5px;color:var(--muted);line-height:1.5}
@@ -1203,25 +1219,37 @@ window.addEventListener('pointerup',function(e){if(!xp||xp.pid!==e.pointerId)ret
 window.addEventListener('pointercancel',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xp.box=null;xpRestore();render()});
 document.addEventListener('keydown',function(e){if(xp&&e.key==='Escape'){e.preventDefault();xpEnd()}});
 /* Rooms pane: controls for the selected room (the floating room menu is off in Rooms mode) */
+var RPI={exp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5" stroke-dasharray="2.5 2"/><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>',
+ red:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 2.5"/><path d="M8 3v5H3M16 21v-5h5"/><path d="M12 12h8v8h-8z" fill="currentColor" opacity=".18" stroke="none"/></svg>',
+ del:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+ pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>'};
+var rpPicking=false;
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
  if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
+ if(rpPicking&&!force)return;
  if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpempty">Tap a room on the canvas to select it.</div>';b.dataset.u='';return}
- var key=it.u+'|'+it.name+'|'+roomArea(it)+'|'+it.w+'|'+it.d+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'');if(!force&&b.dataset.u===key)return;b.dataset.u=key;var bx=roomBox(it);
- var head='<h3>'+esc(it.name)+'</h3><div class="rpsel">'+(it.ex?'Shaped room · '+bx.w+' × '+bx.d+' ft overall':it.w+' × '+it.d+' ft')+' · '+fmt(roomArea(it))+' sq ft</div>';
- var fields='<div class="rpf"><label class="rpl" for="rp-nm">Name</label><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Room name" value="'+esc(it.ph?'':it.name)+'"><span class="rpl">Color</span><div class="sw rpsw">'+ROOMCOLS.map(function(c){return '<button class="swc'+((it.col||'')===c?' on':'')+'" data-c="'+c+'" title="'+(c||'No color')+'" style="background:'+(c||'#faf9f6')+'">'+(c?'':'∅')+'</button>'}).join('')+'</div></div>';
- if(it.sz&&!it.ed){b.innerHTML=head+fields+'<div class="rpx"><b>New room</b><p>Drag the handles to size it, or drag the room to move it. Tap its name to rename it.</p><p class="rpx2">Tap anywhere outside the room when you\'re done.</p></div><div class="fbtns rpbtns"><button class="fb red" id="rp-del">Remove room</button></div>';$('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)};rpBind(it);return}
+ var key=it.u+'|'+it.name+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'')+'|'+(it.ph?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;
+ var head='<h3>'+esc(it.name)+'</h3>';
+ var nameBar='<label class="rpnm"><span class="rpdot" style="background:'+(it.col||'#faf9f6')+'"></span><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Name this room" value="'+esc(it.ph?'':it.name)+'"><span class="rppen">'+RPI.pen+'</span></label>';
+ var colTile='<label class="rpt" id="rp-col"><span class="rpcw"><i style="background:'+(it.col||'#faf9f6')+'"></i></span>Color<input type="color" id="rp-ci" value="'+(it.col||'#8d8a83')+'"></label>';
+ var delBtn='<button class="rpdel" id="rp-del">'+RPI.del+'Delete</button>';
+ if(it.sz&&!it.ed){b.innerHTML=nameBar+'<div class="rpg rpg1">'+colTile+'</div><div class="rpx"><b>New room</b><p>Drag the handles to size it, or drag the room to move it.</p><p class="rpx2">Tap anywhere outside the room when you\'re done.</p></div>'+delBtn;rpBind(it);return}
  if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Reduce Room</b><p>Press anywhere — inside or outside <b>'+esc(it.name)+'</b> — and drag. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to cut away the part of the box that overlaps the room (a box fully inside leaves an opening, like a stairwell). Objects in the way are pushed into the space that\'s left. It won\'t split the room in two.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
  if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside <b>'+esc(it.name)+'</b> (a corner or near a wall works best) and drag out into open space. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to add the part of the box outside the room. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
- b.innerHTML=head+fields+'<div class="fbtns rpbtns"><button class="fb pri" id="rp-xp">Expand Room</button><button class="fb" id="rp-xr">Reduce Room</button><button class="fb red" id="rp-del">Remove room</button></div>';
- rpBind(it);$('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')};
- $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
+ b.innerHTML=nameBar+'<div class="rpg"><button class="rpt pri" id="rp-xp">'+RPI.exp+'Expand</button><button class="rpt" id="rp-xr">'+RPI.red+'Reduce</button>'+colTile+'</div>'+delBtn;
+ rpBind(it);$('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')}}
 function rpBind(it){var u=it.u,inp=$('#rp-nm');
  function save(){var r=find(u),v=inp.value.trim();if(!r||!v||(!r.ph&&v===r.name))return;snapshot();r.name=v;r.ph=false;commit()}
  inp.onkeydown=function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();inp.blur()}else if(e.key==='Escape'){var r=find(u);inp.value=r&&!r.ph?r.name:'';inp.blur()}};
  inp.onblur=save;
- $('#rp-b .rpsw').onclick=function(e){var bt=e.target.closest('.swc');if(!bt)return;var r=find(u);if(!r)return;var c=bt.dataset.c||'';if((r.col||'')===c)return;snapshot();r.col=c;commit()}}
+ var ci=$('#rp-ci'),snap=false;
+ ci.onclick=function(){rpPicking=true;snap=false};
+ ci.oninput=function(){var r=find(u);if(!r)return;rpPicking=true;if(!snap){snapshot();snap=true}r.col=ci.value;var d=$('#rp-b .rpdot'),w=$('#rp-col i');if(d)d.style.background=ci.value;if(w)w.style.background=ci.value;render()};
+ ci.onchange=function(){var r=find(u);rpPicking=false;if(!r)return;if(!snap){if((r.col||'')===ci.value)return;snapshot()}r.col=ci.value;snap=false;commit()};
+ ci.onblur=function(){if(rpPicking&&!snap)rpPicking=false};
+ $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
 $('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;viewMode=b.dataset.m;applyMode2(true);var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
