@@ -956,42 +956,66 @@ function xpCutInfo(r,b){var c=roomCells(r),cut=[],keep=[],X,Y,X0=Math.round(b.x*
  var set={};keep.forEach(function(k){set[k[0]+','+k[1]]=1});var st=[keep[0]],seen={},n=0;seen[keep[0][0]+','+keep[0][1]]=1;
  while(st.length){var q=st.pop();n++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var k=(q[0]+d[0])+','+(q[1]+d[1]);if(set[k]&&!seen[k]){seen[k]=1;st.push([q[0]+d[0],q[1]+d[1]])}})}
  if(n<keep.length){out.why='That would split the room in two';return out}
- var hitObj=contents(r).some(function(o){return out.parts.some(function(q){return hit(o,q)})});if(hitObj)out.why='Move the objects out of the way first';
  return out}
-function xpCutApply(){var r=find(xp.u),b=xp.box;xp.box=null;if(!r||!b||b.w<=0||b.d<=0){render();return}
- var info=xpCutInfo(r,b);if(!info.n){render();flash('Drag into the room to cut space away');return}
+/* objects caught by the cut are pushed to the nearest spot that still fits in the room */
+function xpRestore(){if(!xp||!xp.orig)return;S.items.forEach(function(o){var q=xp.orig[o.u];if(q){o.x=q[0];o.y=q[1]}})}
+function xpPush(r,info){var out={moves:{},why:'',stuck:null};if(!info.n||info.why)return out;
+ var room={kind:'room',x:0,y:0,w:0,d:0};setRoomCells(room,info.keep.slice());
+ var objs=contents(r),cut=info.parts,movers=[],fixed=[];
+ objs.forEach(function(o){(cut.some(function(q){return hit(o,q)})?movers:fixed).push(o)});if(!movers.length)return out;
+ function clash(a,b){var ca=cat(a),cb=cat(b);if((ca&&ca.ov)||(cb&&cb.ov))return false;return hit(a,b)||(showClr&&((b.cl>0&&hit(a,cr(b)))||(a.cl>0&&hit(cr(a),b))))}
+ var bx=roomBox(room),maxD=Math.max(bx.w,bx.d);
+ movers.sort(function(a,b){return b.w*b.d-a.w*a.d});
+ for(var m=0;m<movers.length;m++){var o=movers[m],found=null;
+  for(var d=0;d<=maxD&&!found;d+=0.5){var c=[],k;
+   if(d===0)c.push([0,0]);else for(k=-d;k<=d;k+=0.5){c.push([k,-d],[k,d]);if(k>-d&&k<d)c.push([-d,k],[d,k])}
+   c.sort(function(a,b){return a[0]*a[0]+a[1]*a[1]-b[0]*b[0]-b[1]*b[1]});
+   for(k=0;k<c.length;k++){var t={x:o.x+c[k][0],y:o.y+c[k][1],w:o.w,d:o.d,cl:o.cl,cm:o.cm,rot:o.rot,r:o.r};
+    if(!coveredBy(t,room))continue;if(fixed.some(function(b){return clash(t,b)}))continue;found=t;break}}
+  if(!found){out.why='No room left for '+(o.name||'an object');out.stuck=o.u;return out}
+  out.moves[o.u]=[found.x,found.y];fixed.push(found)}
+ return out}
+function xpCutState(r,b){xpRestore();var info=xpCutInfo(r,b),push=xpPush(r,info);info.push=push;if(push.why&&!info.why)info.why=push.why;
+ if(!info.why)S.items.forEach(function(o){var mv=push.moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}});xp.info=info;return info}
+function xpCutApply(){var r=find(xp.u),b=xp.box;xp.box=null;if(!r||!b||b.w<=0||b.d<=0){xpRestore();render();return}
+ var info=xpCutState(r,b);xpRestore();if(!info.n){render();flash('Drag into the room to cut space away');return}
  if(info.why){render();flash(info.why);return}
- xp=null;snapshot();setRoomCells(r,info.keep);commit();flash('Removed '+fmt(info.n)+' sq ft from '+r.name)}
+ var moved=Object.keys(info.push.moves).length;xp=null;snapshot();
+ S.items.forEach(function(o){var mv=info.push.moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}});setRoomCells(r,info.keep);commit();
+ flash('Removed '+fmt(info.n)+' sq ft from '+r.name+(moved?' · moved '+moved+' object'+(moved>1?'s':''):''))}
 function xpLabel(b,t,fs,fill){var aw=t.length*fs*0.56,vb=svg.viewBox.baseVal,L=Math.max(0,vb.x),R=Math.min(S.lot.w,vb.x+vb.width),cx=cl(b.x+b.w/2,L+aw/2,Math.max(L+aw/2,R-aw/2)),y=b.y-fs*0.6;if(y-fs<Math.max(0,vb.y))y=b.y+b.d+fs*1.2;
  return '<text x="'+cx+'" y="'+y+'" font-size="'+fs.toFixed(2)+'" font-weight="700" fill="'+fill+'" text-anchor="middle" stroke="#fff" stroke-width="'+(fs*0.25).toFixed(2)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
-function xpCutDraw(r,b){var info=xpCutInfo(r,b),sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),bad=!!info.why,h='',col=bad?'#8a857a':'var(--bad)';
+function xpCutDraw(r,b){var info=xp.info||xpCutInfo(r,b),sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),bad=!!info.why,h='',col=bad?'#8a857a':'var(--bad)';
  h+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="none" stroke="'+col+'" stroke-width="'+(1/scale).toFixed(3)+'" stroke-dasharray="'+da+'" opacity=".6" pointer-events="none"/>';
  info.parts.forEach(function(q){h+='<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="'+(bad?'rgba(120,115,105,.18)':'rgba(214,69,69,.22)')+'" stroke="'+col+'" stroke-width="'+sw+'" stroke-dasharray="'+da+'" pointer-events="none"/>'});
  var fs=Math.max(1,Math.min(2.2,14/scale)),t=bad?info.why:b.w+' × '+b.d+' ft'+(info.n?'  ·  −'+fmt(info.n)+' sq ft':'');
+ if(info.push){Object.keys(info.push.moves).forEach(function(u){var o=find(u);if(!o||bad)return;h+='<rect x="'+o.x+'" y="'+o.y+'" width="'+o.w+'" height="'+o.d+'" rx="0.25" fill="rgba(242,166,90,.35)" stroke="#d97f1e" stroke-width="'+sw+'" pointer-events="none"/>'});
+  if(info.push.stuck){var so=find(info.push.stuck);if(so)h+='<rect x="'+so.x+'" y="'+so.y+'" width="'+so.w+'" height="'+so.d+'" rx="0.25" fill="rgba(214,69,69,.25)" stroke="var(--bad)" stroke-width="'+sw+'" pointer-events="none"/>'}}
+ var nm=info.push?Object.keys(info.push.moves).length:0;if(!bad&&nm)t+='  ·  moves '+nm;
  h+=xpLabel(b,t,fs,bad?'#6b675e':'var(--bad)');return h}
 function xpBegin(m){var r=sel&&find(sel);if(!r||!isRoom(r))return;xp={u:r.u,box:null,pid:null,mode:m==='cut'?'cut':'add'};renderRoomsPane(true);render()}
-function xpEnd(){if(!xp)return;xp=null;renderRoomsPane(true);render()}
+function xpEnd(){if(!xp)return;xpRestore();xp=null;renderRoomsPane(true);render()}
 function xpTrack(p){var r=find(xp.u);if(!r)return;var x=cl(Math.round(p.x),0,S.lot.w),y=cl(Math.round(p.y),0,S.lot.d);
  var sx=snapEdges([p.x],xp.L.xs),sy=snapEdges([p.y],xp.L.ys);if(sx)x=sx.c;if(sy)y=sy.c;
- var rr=resizeRect({x:xp.x0,y:xp.y0,w:0,d:0},(x>=xp.x0?'e':'w')+(y>=xp.y0?'s':'n'),x,y,xp.obs,0);xp.box={x:rr.x,y:rr.y,w:rr.w,d:rr.d};render()}
+ var rr=resizeRect({x:xp.x0,y:xp.y0,w:0,d:0},(x>=xp.x0?'e':'w')+(y>=xp.y0?'s':'n'),x,y,xp.obs,0);xp.box={x:rr.x,y:rr.y,w:rr.w,d:rr.d};if(xp.mode==='cut')xpCutState(r,xp.box);render()}
 stage.addEventListener('pointerdown',function(e){if(!xp)return;
- if(xp.pid!=null){if(e.pointerId!==xp.pid){xp.box=null;xp.pid=null;render()}return}
+ if(xp.pid!=null){if(e.pointerId!==xp.pid){xp.box=null;xp.pid=null;xpRestore();render()}return}
  if(!e.isPrimary||!e.target.closest||!e.target.closest('#svg'))return;var r=find(xp.u);if(!r)return;var p=pt(e);
  if(xp.mode==='cut'){var Tc=(TOUCH?14:6)/scale;if((inParts(r,p.x-Tc,p.y,1)&&inParts(r,p.x+Tc,p.y,1)&&inParts(r,p.x,p.y-Tc,1)&&inParts(r,p.x,p.y+Tc,1))||p.x<-1||p.y<-1||p.x>S.lot.w+1||p.y>S.lot.d+1)return}else{var T=(TOUCH?14:6)/scale,inR=inParts(r,p.x,p.y)||roomParts(r).some(function(q){return p.x>=q.x-T&&p.x<=q.x+q.w+T&&p.y>=q.y-T&&p.y<=q.y+q.d+T});if(!inR)return}
  e.stopImmediatePropagation();e.preventDefault();try{svg.setPointerCapture(e.pointerId)}catch(_){}
  var bx=roomBox(r),x0,y0;if(xp.mode==='cut'){x0=cl(Math.round(p.x),0,S.lot.w);y0=cl(Math.round(p.y),0,S.lot.d)}else{x0=cl(Math.round(p.x),Math.ceil(bx.x),Math.floor(bx.x+bx.w));y0=cl(Math.round(p.y),Math.ceil(bx.y),Math.floor(bx.y+bx.d))}
- xp.x0=x0;xp.y0=y0;xp.obs=xp.mode==='cut'?[]:roomObs(r);xp.L=xp.mode==='cut'?roomLines(null):roomLines(r);xp.box=null;xp.pid=e.pointerId;render()},true);
+ xp.x0=x0;xp.y0=y0;xp.info=null;xp.orig={};S.items.forEach(function(o){if(!isRoom(o))xp.orig[o.u]=[o.x,o.y]});xp.obs=xp.mode==='cut'?[]:roomObs(r);xp.L=xp.mode==='cut'?roomLines(null):roomLines(r);xp.box=null;xp.pid=e.pointerId;render()},true);
 window.addEventListener('pointermove',function(e){if(!xp||xp.pid!==e.pointerId)return;e.preventDefault();xpTrack(pt(e))},{passive:false});
 window.addEventListener('pointerup',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;if(xp.mode==='cut')xpCutApply();else xpApply()});
-window.addEventListener('pointercancel',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xp.box=null;render()});
+window.addEventListener('pointercancel',function(e){if(!xp||xp.pid!==e.pointerId)return;xp.pid=null;xp.box=null;xpRestore();render()});
 document.addEventListener('keydown',function(e){if(xp&&e.key==='Escape'){e.preventDefault();xpEnd()}});
 /* Rooms pane: controls for the selected room (the floating room menu is off in Rooms mode) */
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
- if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xp=null;force=true}
+ if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
  if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpempty">Tap a room on the canvas to select it.</div>';b.dataset.u='';return}
  var key=it.u+'|'+it.name+'|'+roomArea(it)+'|'+it.w+'|'+it.d+'|'+(xp?xp.mode:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;var bx=roomBox(it);
  var head='<h3>'+esc(it.name)+'</h3><div class="rpsel">'+(it.ex?'Shaped room · '+bx.w+' × '+bx.d+' ft overall':it.w+' × '+it.d+' ft')+' · '+fmt(roomArea(it))+' sq ft</div>';
- if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Reduce Room</b><p>Press outside <b>'+esc(it.name)+'</b> and drag into it. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to cut away the part of the box inside the room. It won\'t cut through objects or split the room in two.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
+ if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Reduce Room</b><p>Press outside <b>'+esc(it.name)+'</b> and drag into it. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to cut away the part of the box inside the room. Objects in the way are pushed into the space that\'s left. It won\'t split the room in two.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
  if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside <b>'+esc(it.name)+'</b> (a corner or near a wall works best) and drag out into open space. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to add the part of the box outside the room. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
