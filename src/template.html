@@ -328,7 +328,6 @@ body.xpon #svg{cursor:crosshair}
 .rpane .rppen{width:18px;height:18px;color:#9a958a;flex:none}.rpane .rppen svg{width:18px;height:18px;display:block}
 .rpane .rpg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .rpane .rpg.rpg2{grid-template-columns:repeat(2,1fr)}.rpane .rpg.rpg2 .rpt{aspect-ratio:1.55;flex-direction:row;gap:10px;font-size:13.5px}
-.emenu #em-room.dis{opacity:.45}
 .rpane .lh{justify-content:center!important;text-align:center;padding-left:20px!important;padding-right:20px!important}.rpane .lh .lt{flex:1;text-align:center}
 .rpane .rpes{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:22px}
 .rpane .rpes-hero{width:120px;height:90px;margin-bottom:16px}
@@ -789,9 +788,7 @@ function moveCore(e){var p=pt(e);
   var nr=limitToKids(resizeRect(o,h,x2,y2,drag.obs,1),h,drag.kb,o);it.x=nr.x;it.y=nr.y;it.w=nr.w;it.d=nr.d;if(drag.gd.length)drag.gd=keepGuides(drag.gd,it);
   render()}}
 function up(e){if(draft){var d=draft;draft=null;if(d.w>=2&&d.d>=2){snapshot();var n=S.items.filter(isRoom).length+1;var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:d.x,y:d.y,w:d.w,d:d.d,cl:0,lk:true};S.items.push(it);sel=it.u;if(!(e&&e.shiftKey)&&!multiDraw)setTool('sel')}commit();return}
- if(drag){var m=drag.mode==='resize'||drag.moved,dit=drag.it,tap=!m&&drag.mode==='move'&&isRoom(dit)&&dit.sz;
-  if(m&&isRoom(dit)&&!dit.sz){var aw=attachWhy(dit);if(aw){if(drag.mode==='move'){dit.x=drag.ox;dit.y=drag.oy;drag.kids.forEach(function(k){k.it.x=k.x;k.it.y=k.y})}else{var o=drag.o;dit.x=o.x;dit.y=o.y;dit.w=o.w;dit.d=o.d}undoS.pop();drag=null;render();flash(aw);return}}
-  if(!m)undoS.pop();drag=null;commit();if(tap)showRename(dit)}}
+ if(drag){var m=drag.mode==='resize'||drag.moved,dit=drag.it,tap=!m&&drag.mode==='move'&&isRoom(dit)&&dit.sz;if(!m)undoS.pop();drag=null;commit();if(tap)showRename(dit)}}
 /* gesture layer: two fingers = pan + pinch zoom; one finger on empty floor = pan */
 var touches=new Map(),gesture=null,pan=null,suppress=false;
 function revertDrag(){if(drag){if(drag.mode==='move'){drag.it.x=drag.ox;drag.it.y=drag.oy;drag.kids.forEach(function(k){k.it.x=k.x;k.it.y=k.y})}else{var o=drag.o;drag.it.x=o.x;drag.it.y=o.y;drag.it.w=o.w;drag.it.d=o.d}undoS.pop();drag=null}draft=null}
@@ -815,7 +812,7 @@ function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.ma
 var emAt=null;
 function showEmenu(cx,cy){var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
  if(w.x<0||w.y<0||w.x>S.lot.w||w.y>S.lot.d||roomAtPoint(w.x,w.y)){hideEmenu();return}
- emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(emRect)emRect=emSnap({kind:'room',x:emRect.x,y:emRect.y,w:emRect.w,d:emRect.d});if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect){emFresh=performance.now();render()}var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
+ emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect){emFresh=performance.now();render()}var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
  var cr=svg.getBoundingClientRect(),mw=m.offsetWidth||140,mh=m.offsetHeight||48,L=cr.left-sr.left+8,Rb=Math.min(sr.width,cr.right-sr.left)-8,T=cr.top-sr.top+8,Bb=Math.min(sr.height,cr.bottom-sr.top)-8,lx=cx-sr.left+10,ly=cy-sr.top+10;if(lx+mw>Rb)lx=cx-sr.left-10-mw;if(ly+mh>Bb)ly=cy-sr.top-10-mh;
  m.style.left=Math.max(L,Math.min(Rb-mw,lx))+'px';m.style.top=Math.max(T,Math.min(Bb-mh,ly))+'px';if(emRect)placeEmenu()}
 function hideEmenu(){var had=!!emRect;emAt=null;emRect=null;var m=$('#emenu');if(m)m.className='rmenu emenu';if(had)render()}
@@ -827,11 +824,10 @@ function fitRoomAt(px,py){var L=S.lot,ob=[];S.items.forEach(function(r){if(isRoo
  for(var w=10;w>=1;w--)for(var d=10;d>=1;d--){if(w*d<bs)continue;
   for(var x=fx-w+1;x<=fx;x++)for(var y=fy-d+1;y<=fy;y++){if(!free(x,y,w,d))continue;var dist=Math.hypot(x+w/2-px,y+d/2-py),sc=w*d-dist*1e-3;if(sc>bs){bs=sc;best={x:x,y:y,w:w,d:d}}}}
  return best}
-function emPreview(){if(!emRect||!emAt)return '';var why=emRule(emRect),eb=$('#em-room');if(eb)eb.classList.toggle('dis',!!why);var r=emRect,dl=7/scale,gp=5/scale,fs=Math.max(1,Math.min(2.2,14/scale)),bx=roomBox(r),h='<g class="empv'+(performance.now()-emFresh<60?' fresh':'')+'">',sw=(1.5/scale);
- h+='<path class="ebody" d="'+holes(r)+'" fill="'+(why?'rgba(120,115,105,.16)':'rgba(47,111,237,.14)')+'" style="cursor:move"/>';
+function emPreview(){if(!emRect||!emAt)return '';var r=emRect,dl=7/scale,gp=5/scale,fs=Math.max(1,Math.min(2.2,14/scale)),bx=roomBox(r),h='<g class="empv'+(performance.now()-emFresh<60?' fresh':'')+'">',sw=(1.5/scale);
+ h+='<path class="ebody" d="'+holes(r)+'" fill="rgba(47,111,237,.14)" style="cursor:move"/>';
  var od=outlineD(r);h+='<path d="'+od+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" stroke-linecap="square" pointer-events="none"/><path d="'+od+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-linecap="square" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></path>';
- if(why)h=h.replace('stroke="var(--accent)" stroke-width="'+(2.5/scale)+'"','stroke="#8a857a" stroke-width="'+(2.5/scale)+'"');
- var lbl=r.ex?fmt(roomArea(r))+' sq ft':r.w+' × '+r.d;if(why)h+=xpLabel(roomBox(r),why,fs,'#6b675e');
+ var lbl=r.ex?fmt(roomArea(r))+' sq ft':r.w+' × '+r.d;
  if(!(bx.w*scale<56||bx.d*scale<28))h+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2)+'" font-size="'+fs.toFixed(2)+'" font-weight="700" fill="var(--accent)" text-anchor="middle" dominant-baseline="central" opacity=".8" pointer-events="none">'+lbl+'</text>';
  /* same wall bars / corner squares as a selected room, so the preview can be shaped before it's added */
  var set=shCells(r),runs=shRuns(set),blk=shBlocked(null),N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),extra=[];
@@ -874,21 +870,6 @@ window.addEventListener('pointermove',function(e){if(!emDrag||emDrag.pid!==e.poi
  render()},{passive:false});
 function emDragEnd(e){if(!emDrag||emDrag.pid!==e.pointerId)return;emDrag=null;if(!emRect)return;var m=$('#emenu');placeEmenu();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show'}
 window.addEventListener('pointerup',emDragEnd);window.addEventListener('pointercancel',emDragEnd);
-/* placement rule: the first room must touch the lot edge; every later room must share a wall with an existing room */
-/* Rooms mode: a room must stay attached — to another room, or to the lot edge if it's the only room */
-function attachWhy(r,set){if(viewMode!=='rooms')return '';set=set||shCells(r);var others=S.items.some(function(o){return isRoom(o)&&o!==r}),k;
- if(!others){var N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2);for(k in set){var a=k.split(','),X=+a[0],Y=+a[1];if(X===0||Y===0||X===N-1||Y===M-1)return ''}return 'The room must touch the edge of the lot'}
- var blk=shBlocked(r);for(k in set){var b=k.split(','),x=+b[0],y=+b[1];if(blk(x+1,y)||blk(x-1,y)||blk(x,y+1)||blk(x,y-1))return ''}
- return 'Rooms must stay attached to another room'}
-function emRule(r){var rooms=S.items.filter(isRoom),N=Math.round(S.lot.w*2),M=Math.round(S.lot.d*2),set=shCells(r),k;
- if(!rooms.length){for(k in set){var a=k.split(','),X=+a[0],Y=+a[1];if(X===0||Y===0||X===N-1||Y===M-1)return ''}return 'First room must touch the edge of the lot'}
- var blk=shBlocked(null);for(k in set){var b=k.split(','),x=+b[0],y=+b[1];if(blk(x+1,y)||blk(x-1,y)||blk(x,y+1)||blk(x,y-1))return ''}
- return 'Must touch another room'}
-/* nudge a fresh preview the shortest distance (up to 15 ft) so it obeys the rule */
-function emSnap(r){if(!emRule(r))return r;var ob=[];S.items.forEach(function(q){if(isRoom(q))ob=ob.concat(roomParts(q))});var L=S.lot;
- function free(x,y){if(x<0||y<0||x+r.w>L.w+1e-6||y+r.d>L.d+1e-6)return false;return !ob.some(function(o){return x<o.x+o.w-EPS&&x+r.w>o.x+EPS&&y<o.y+o.d-EPS&&y+r.d>o.y+EPS})}
- var best=null,bd=1e9;for(var dx=-15;dx<=15;dx++)for(var dy=-15;dy<=15;dy++){var d=Math.hypot(dx,dy);if(d>=bd||d>15)continue;var x=r.x+dx,y=r.y+dy;if(!free(x,y))continue;var t={kind:'room',x:x,y:y,w:r.w,d:r.d};if(!emRule(t)){best=t;bd=d}}
- return best||r}
 /* leaving the Add Room preview without adding it asks first */
 function emAskDiscard(go){modal('Discard this room?','<div class="mform"><div class="mmsg">The room you\'re placing hasn\'t been added yet.</div><div class="mfb"><button class="mbtn" data-k="no">Keep editing</button><button class="mbtn red" data-k="yes">Discard</button></div></div>',true);
  $('#mdl-b').onclick=function(e){var k=e.target.closest('[data-k]');if(!k)return;closeModal();if(k.dataset.k==='yes')go()}}
@@ -968,7 +949,7 @@ function renderSwatches(it){var w=$('#cm-sw');if(!w)return;var h='';ROOMCOLS.for
 $('#cm-sw').addEventListener('click',function(e){var b=e.target.closest('.sw1');if(!b)return;e.stopPropagation();var it=sizingRoom();if(!it)return;snapshot();it.col=b.dataset.c||'';commit()});
 function finishSizing(it){if(!it)return;warnU=null;snapshot();if(it.ph){var rs=S.items.filter(isRoom),n=rs.indexOf(it)+1,names={};rs.forEach(function(r){names[r.name]=1});while(names['Room '+n])n++;it.name='Room '+n;it.ph=false}it.sz=false;it.ed=false;delete it.wasLk;it.lk=true;editBase=null;commit()}
 $('#cm-ok').onclick=function(e){e.stopPropagation();finishSizing(sel&&find(sel))};
-$('#em-room').onclick=function(e){e.stopPropagation();var a=emAt,rr=emRect;if(a&&viewMode==='rooms'&&rr){var why=emRule(rr);if(why){flash(why);var m=$('#emenu');m.classList.remove('shake');void m.offsetWidth;m.classList.add('shake');return}}hideEmenu();if(a&&viewMode==='rooms'){var f=rr||fitRoomAt(a.x,a.y);if(f)addRoomFit(f);else flash('No open space there');return}if(a)addRoomAt(a.x,a.y)};
+$('#em-room').onclick=function(e){e.stopPropagation();var a=emAt,rr=emRect;hideEmenu();if(a&&viewMode==='rooms'){var f=rr||fitRoomAt(a.x,a.y);if(f)addRoomFit(f);else flash('No open space there');return}if(a)addRoomAt(a.x,a.y)};
 document.addEventListener('pointerdown',function(e){if(emAt&&!emRect&&!e.target.closest('#emenu'))hideEmenu()},true);
 stage.addEventListener('wheel',function(){if(emAt&&!emRect)hideEmenu()},{passive:true});
 function placeRMenu(){var it0=sel&&find(sel),sizing=!!(it0&&isRoom(it0)&&it0.sz),other=$(sizing?'#rmenu':'#cmenu');if(other){other.className='rmenu';other.dataset.u=''}
@@ -1091,7 +1072,6 @@ function xpCutInfo(r,b){var c=roomCells(r),cut=[],keep=[],X,Y,X0=Math.round(b.x*
  var set={};keep.forEach(function(k){set[k[0]+','+k[1]]=1});var st=[keep[0]],seen={},n=0;seen[keep[0][0]+','+keep[0][1]]=1;
  while(st.length){var q=st.pop();n++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var k=(q[0]+d[0])+','+(q[1]+d[1]);if(set[k]&&!seen[k]){seen[k]=1;st.push([q[0]+d[0],q[1]+d[1]])}})}
  if(n<keep.length){out.why='That would split the room in two';return out}
- var kset={};keep.forEach(function(q){kset[q[0]+','+q[1]]=1});var aw=attachWhy(r,kset);if(aw){out.why=aw;return out}
  return out}
 /* objects caught by the cut are pushed to the nearest spot that still fits in the room */
 function xpRestore(){if(!xp||!xp.orig)return;S.items.forEach(function(o){var q=xp.orig[o.u];if(q){o.x=q[0];o.y=q[1]}})}
@@ -1171,7 +1151,6 @@ function shTrack(p){var d=shSD,r=find(shU);shRestore();shSetRoom(r,d.room0);var 
  if(!keep.length)info.why="Can't shrink the room away";
  else{var seen={},st=[keep[0]],cnt=0;seen[keep[0][0]+','+keep[0][1]]=1;while(st.length){var q=st.pop();cnt++;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dd){var kk=(q[0]+dd[0])+','+(q[1]+dd[1]);if(next[kk]&&!seen[kk]){seen[kk]=1;st.push([q[0]+dd[0],q[1]+dd[1]])}})}
   if(cnt<keep.length)info.why='That would split the room in two'}
- if(!info.why){var aw=attachWhy(r,next);if(aw)info.why=aw}
  var push=info.why?{moves:{}}:xpPush(r,info);if(push.why)info.why=push.why;
  d.info=info;d.push=push;d.next=next;
  if(!info.why){setRoomCells(r,keep);S.items.forEach(function(o){var mv=push.moves[o.u];if(mv){o.x=mv[0];o.y=mv[1]}})}
