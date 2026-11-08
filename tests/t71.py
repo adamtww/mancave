@@ -25,7 +25,7 @@ async def main():
                     for k in range(1,13):await pg.mouse.move(*(await P(a[0]+(c[0]-a[0])*k/12,a[1]+(c[1]-a[1])*k/12)));await pg.wait_for_timeout(10)
                     await pg.mouse.up()
                 await pg.wait_for_timeout(250)
-            pv="(()=>{var r=document.querySelector('#svg .empv rect');return r?[r.getAttribute('x'),r.getAttribute('y'),r.getAttribute('width'),r.getAttribute('height')].join(','):null})()"
+            pv="(()=>{var r=document.querySelector('#svg .empv .ebody');if(!r)return null;var b=r.getBBox();return [b.x,b.y,b.width,b.height].map(v=>Math.round(v*2)/2).join(',')})()"
             em="document.querySelector('#emenu').className"
             if touch: await pg.touchscreen.tap(*(await P(50,50)))
             else: await pg.mouse.click(*(await P(50,50)))

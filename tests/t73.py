@@ -29,7 +29,7 @@ async def main():
                 if touch: await T("touchEnd")
                 else: await pg.mouse.up()
                 await pg.wait_for_timeout(250);return mid
-            pv="(()=>{var r=document.querySelector('#svg .empv rect');return r?[r.getAttribute('x'),r.getAttribute('y'),r.getAttribute('width'),r.getAttribute('height')].join(','):null})()"
+            pv="(()=>{var r=document.querySelector('#svg .empv .ebody');if(!r)return null;var b=r.getBBox();return [b.x,b.y,b.width,b.height].map(v=>Math.round(v*2)/2).join(',')})()"
             if touch: await pg.touchscreen.tap(*(await P(50,50)))
             else: await pg.mouse.click(*(await P(50,50)))
             await pg.wait_for_timeout(300)
