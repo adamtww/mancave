@@ -881,7 +881,7 @@ function emAskDiscard(go,thenAfterAdd){modal('Add this room?','<div class="mform
   if(k.dataset.k==='yes')go();
   else if(k.dataset.k==='add'){var rr=emRect;hideEmenu();if(rr)addRoomFit(rr);if(thenAfterAdd)thenAfterAdd()}}}
 /* Rooms mode: faint green + marks spread evenly over the empty floor (staggered rows, ~1 per 67 sq ft) show where a tap adds a room */
-function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='',sp=8.8,rs=sp*0.866,cl2=2.2;
+function plusHints(){if(viewMode!=='rooms'||furn||xp)return '';var ob=[],L=S.lot,a=5/scale,sw=(2.2/scale).toFixed(3),h='',sp=7.2,rs=sp*0.866,cl2=2.2;
  S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});if(emRect)ob=ob.concat(roomParts(emRect));
  var rows=Math.floor((L.d-2*cl2)/rs),y0=(L.d-rows*rs)/2;
  var colsE=Math.floor((L.w-2*cl2)/sp),xe=(L.w-colsE*sp)/2;
