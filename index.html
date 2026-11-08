@@ -303,7 +303,7 @@ body.furn .lib{display:none!important}
 body.noanim .mid>.lib{transition:none!important}
 #svg .popin{transform-box:fill-box;transform-origin:center;animation:popin .34s cubic-bezier(.2,.9,.3,1.25)}
 @keyframes popin{0%{transform:scale(.82);opacity:.35}100%{transform:scale(1);opacity:1}}
-#svg .empv{animation:empv .18s ease-out}@keyframes empv{from{opacity:0}to{opacity:1}}
+#svg .empv.fresh{animation:empv .18s ease-out}@keyframes empv{from{opacity:0}to{opacity:1}}
 /* Rooms mode: objects are faded and can't be touched (taps fall through to the room) */
 #svg .ob{transition:opacity .25s}
 body.mode-rooms:not(.furn) #svg .ob{opacity:.4;pointer-events:none}
@@ -981,19 +981,19 @@ function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.ma
 var emAt=null;
 function showEmenu(cx,cy){var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
  if(w.x<0||w.y<0||w.x>S.lot.w||w.y>S.lot.d||roomAtPoint(w.x,w.y)){hideEmenu();return}
- emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect)render();var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
+ emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect){emFresh=performance.now();render()}var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
  var cr=svg.getBoundingClientRect(),mw=m.offsetWidth||140,mh=m.offsetHeight||48,L=cr.left-sr.left+8,Rb=Math.min(sr.width,cr.right-sr.left)-8,T=cr.top-sr.top+8,Bb=Math.min(sr.height,cr.bottom-sr.top)-8,lx=cx-sr.left+10,ly=cy-sr.top+10;if(lx+mw>Rb)lx=cx-sr.left-10-mw;if(ly+mh>Bb)ly=cy-sr.top-10-mh;
  m.style.left=Math.max(L,Math.min(Rb-mw,lx))+'px';m.style.top=Math.max(T,Math.min(Bb-mh,ly))+'px';if(emRect)placeEmenu()}
 function hideEmenu(){var had=!!emRect;emAt=null;emRect=null;var m=$('#emenu');if(m)m.className='rmenu emenu';if(had)render()}
 /* Rooms mode: Add Room = up to 10x10 ft centred on the tap, shrunk to the largest rectangle that fits there */
-var emRect=null,popU=null;
+var emRect=null,popU=null,emFresh=0;
 function fitRoomAt(px,py){var L=S.lot,ob=[];S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});
  function free(x,y,w,d){if(x<0||y<0||x+w>L.w+1e-6||y+d>L.d+1e-6)return false;for(var i=0;i<ob.length;i++){var o=ob[i];if(x<o.x+o.w-EPS&&x+w>o.x+EPS&&y<o.y+o.d-EPS&&y+d>o.y+EPS)return false}return true}
  var best=null,bs=-1,fx=Math.floor(px),fy=Math.floor(py);
  for(var w=10;w>=1;w--)for(var d=10;d>=1;d--){if(w*d<bs)continue;
   for(var x=fx-w+1;x<=fx;x++)for(var y=fy-d+1;y<=fy;y++){if(!free(x,y,w,d))continue;var dist=Math.hypot(x+w/2-px,y+d/2-py),sc=w*d-dist*1e-3;if(sc>bs){bs=sc;best={x:x,y:y,w:w,d:d}}}}
  return best}
-function emPreview(){if(!emRect||!emAt)return '';var r=emRect,dl=7/scale,gp=5/scale,fs=Math.max(1,Math.min(2.2,14/scale)),h='<g class="empv">';
+function emPreview(){if(!emRect||!emAt)return '';var r=emRect,dl=7/scale,gp=5/scale,fs=Math.max(1,Math.min(2.2,14/scale)),h='<g class="empv'+(performance.now()-emFresh<60?' fresh':'')+'">';
  h+='<rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="rgba(47,111,237,.14)" pointer-events="none"/>';
  h+='<rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" pointer-events="none"/><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></rect>';
  if(!(r.w*scale<56||r.d*scale<28))h+='<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2)+'" font-size="'+fs.toFixed(2)+'" font-weight="700" fill="var(--accent)" text-anchor="middle" dominant-baseline="central" opacity=".8" pointer-events="none">'+r.w+' × '+r.d+'</text>';
