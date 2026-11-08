@@ -474,7 +474,6 @@ body.touch .sw1{width:30px;height:30px}
 body.touch .cswatch{max-width:200px}
 #cmenu{align-items:flex-start}
 #cmenu.left{align-items:flex-end}
-#svg g.rshad{filter:drop-shadow(0 2px 2.5px rgba(40,30,10,.34)) drop-shadow(0 1px 0.5px rgba(40,30,10,.22))}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -770,7 +769,8 @@ function render(){
  for(x=0;x<=W;x+=10)h+='<text x="'+x+'" y="-1" font-size="1.1" fill="#a8a397" text-anchor="middle">'+x+'</text>';
  for(y=10;y<=D;y+=10)h+='<text x="-1" y="'+(y+0.4)+'" font-size="1.1" fill="#a8a397" text-anchor="end">'+y+'</text>';
  var rooms=S.items.filter(isRoom),items=S.items.filter(function(i){return !isRoom(i)});
- if(viewMode==='rooms'&&!furn){h+='<g class="rshad" pointer-events="none">'+rooms.map(function(r){return roomParts(r).map(function(q){return '<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="#faf9f6"/>'}).join('')}).join('')+'</g>'}
+ if(viewMode==='rooms'&&!furn){var px=1,sh=function(sd,dy,op,r){return '<feGaussianBlur in="SourceAlpha" stdDeviation="'+(sd*px).toFixed(3)+'"/><feOffset dy="'+(dy*px).toFixed(3)+'" result="'+r+'o"/><feFlood flood-color="#281e0a" flood-opacity="'+op+'"/><feComposite in2="'+r+'o" operator="in" result="'+r+'"/>'};
+  h+='<defs><filter id="rsf" filterUnits="userSpaceOnUse" x="-10" y="-10" width="'+(W+20)+'" height="'+(D+20)+'" color-interpolation-filters="sRGB">'+sh(2.5,2,0.34,'s1')+sh(0.5,1,0.22,'s2')+'<feMerge><feMergeNode in="s1"/><feMergeNode in="s2"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g class="rshad" filter="url(#rsf)" pointer-events="none">'+rooms.map(function(r){return roomParts(r).map(function(q){return '<rect x="'+q.x+'" y="'+q.y+'" width="'+q.w+'" height="'+q.d+'" fill="#faf9f6"/>'}).join('')}).join('')+'</g>'}
  var lateL='',labelsTop=viewMode==='rooms'&&!furn;
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
   h+='<g class="o'+(it.u===popU?' popin':'')+(labelsTop?' lift':'')+'" data-u="'+it.u+'">'+(it.ex?shapedBody(it,b):(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="'+Math.min(0.225,3/scale).toFixed(3)+'"/>');
