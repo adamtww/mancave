@@ -314,6 +314,12 @@ body.mode-rooms #rmenu,body.mode-rooms #cmenu{display:none!important}
 .rpane .rpx.rpxc .rpx2{color:#9a5a4e}
 .rpane .rpx .rpx2{color:#5a6f99;font-size:12.5px}
 body.xpon #svg{cursor:crosshair}
+.rpane .rpf{display:flex;flex-direction:column;gap:6px;margin:4px 0 14px}
+.rpane .rpl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a958a;margin-top:6px}
+.rpane #rp-nm{font:inherit;font-size:15px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+.rpane #rp-nm:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,237,.15)}
+.rpane .rpsw{margin-top:2px;gap:8px}
+body.touch .rpane .rpsw .swc{width:34px;height:34px}
 .rpane .rpempty{font-size:13.5px;color:var(--muted);line-height:1.5}
 @media (prefers-reduced-motion:reduce){.mid>.lib,.mid>.lib.away{transition:opacity .15s!important;transform:none!important}}
 .lib .lh{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 12px 20px;border-bottom:1px solid var(--line)}
@@ -1200,16 +1206,22 @@ document.addEventListener('keydown',function(e){if(xp&&e.key==='Escape'){e.preve
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
  if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
  if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpempty">Tap a room on the canvas to select it.</div>';b.dataset.u='';return}
- var key=it.u+'|'+it.name+'|'+roomArea(it)+'|'+it.w+'|'+it.d+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;var bx=roomBox(it);
+ var key=it.u+'|'+it.name+'|'+roomArea(it)+'|'+it.w+'|'+it.d+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'');if(!force&&b.dataset.u===key)return;b.dataset.u=key;var bx=roomBox(it);
  var head='<h3>'+esc(it.name)+'</h3><div class="rpsel">'+(it.ex?'Shaped room · '+bx.w+' × '+bx.d+' ft overall':it.w+' × '+it.d+' ft')+' · '+fmt(roomArea(it))+' sq ft</div>';
- if(it.sz&&!it.ed){b.innerHTML=head+'<div class="rpx"><b>New room</b><p>Drag the handles to size it, or drag the room to move it. Tap its name to rename it.</p><p class="rpx2">Tap anywhere outside the room when you\'re done.</p></div><div class="fbtns rpbtns"><button class="fb red" id="rp-del">Remove room</button></div>';$('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)};return}
+ var fields='<div class="rpf"><label class="rpl" for="rp-nm">Name</label><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Room name" value="'+esc(it.ph?'':it.name)+'"><span class="rpl">Color</span><div class="sw rpsw">'+ROOMCOLS.map(function(c){return '<button class="swc'+((it.col||'')===c?' on':'')+'" data-c="'+c+'" title="'+(c||'No color')+'" style="background:'+(c||'#faf9f6')+'">'+(c?'':'∅')+'</button>'}).join('')+'</div></div>';
+ if(it.sz&&!it.ed){b.innerHTML=head+fields+'<div class="rpx"><b>New room</b><p>Drag the handles to size it, or drag the room to move it. Tap its name to rename it.</p><p class="rpx2">Tap anywhere outside the room when you\'re done.</p></div><div class="fbtns rpbtns"><button class="fb red" id="rp-del">Remove room</button></div>';$('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)};rpBind(it);return}
  if(xp&&xp.mode==='cut'){b.innerHTML=head+'<div class="rpx rpxc"><b>Reduce Room</b><p>Press anywhere — inside or outside <b>'+esc(it.name)+'</b> — and drag. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to cut away the part of the box that overlaps the room (a box fully inside leaves an opening, like a stairwell). Objects in the way are pushed into the space that\'s left. It won\'t split the room in two.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
  if(xp){b.innerHTML=head+'<div class="rpx"><b>Expand Room</b><p>Press inside <b>'+esc(it.name)+'</b> (a corner or near a wall works best) and drag out into open space. A box stretches from where you started to your finger.</p><p class="rpx2">Let go to add the part of the box outside the room. It stops at other rooms and the lot edge.</p></div><div class="fbtns"><button class="fb" id="rp-xc">Cancel</button></div>';
   $('#rp-xc').onclick=xpEnd;return}
- b.innerHTML=head+'<div class="fbtns rpbtns"><button class="fb pri" id="rp-xp">Expand Room</button><button class="fb" id="rp-xr">Reduce Room</button><button class="fb red" id="rp-del">Remove room</button></div>';
- $('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')};
+ b.innerHTML=head+fields+'<div class="fbtns rpbtns"><button class="fb pri" id="rp-xp">Expand Room</button><button class="fb" id="rp-xr">Reduce Room</button><button class="fb red" id="rp-del">Remove room</button></div>';
+ rpBind(it);$('#rp-xp').onclick=function(){xpBegin('add')};$('#rp-xr').onclick=function(){xpBegin('cut')};
  $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
+function rpBind(it){var u=it.u,inp=$('#rp-nm');
+ function save(){var r=find(u),v=inp.value.trim();if(!r||!v||(!r.ph&&v===r.name))return;snapshot();r.name=v;r.ph=false;commit()}
+ inp.onkeydown=function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();inp.blur()}else if(e.key==='Escape'){var r=find(u);inp.value=r&&!r.ph?r.name:'';inp.blur()}};
+ inp.onblur=save;
+ $('#rp-b .rpsw').onclick=function(e){var bt=e.target.closest('.swc');if(!bt)return;var r=find(u);if(!r)return;var c=bt.dataset.c||'';if((r.col||'')===c)return;snapshot();r.col=c;commit()}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
 $('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;viewMode=b.dataset.m;applyMode2(true);var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
