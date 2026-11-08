@@ -502,8 +502,8 @@ body.touch .lcard{touch-action:pan-y}
 .cardchip .hang{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
 .cardchip .lcard{transition:transform .2s cubic-bezier(.3,1.5,.5,1),opacity .16s}
 .cardchip.onc .lcard{transform:scale(.6,.12)!important;opacity:0}
-.cardchip .hbox{position:absolute;left:14px;top:12px;box-sizing:border-box;background:#e8e5de;border:1.5px solid #9d988c;box-shadow:0 14px 24px rgba(40,36,28,.24),0 2px 5px rgba(40,36,28,.14);display:flex;align-items:center;justify-content:center;text-align:center;color:#3d3b36;font-weight:600;line-height:1.1;padding:2px;overflow:hidden;
- opacity:0;transform:scale(.35,1.5);transform-origin:0 0;transition:opacity .1s,transform .34s cubic-bezier(.34,1.9,.5,1),width .12s,height .12s}
+.cardchip .hbox{position:absolute;left:0;top:10px;box-sizing:border-box;background:#e8e5de;border:1.5px solid #9d988c;box-shadow:0 14px 24px rgba(40,36,28,.24),0 2px 5px rgba(40,36,28,.14);display:flex;align-items:center;justify-content:center;text-align:center;color:#3d3b36;font-weight:600;line-height:1.1;padding:2px;overflow:hidden;
+ opacity:0;transform:scale(.35,1.5);transform-origin:50% 0;transition:opacity .1s,transform .34s cubic-bezier(.34,1.9,.5,1),width .12s,height .12s}
 .cardchip .hbox span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .cardchip.onc .hbox{opacity:.95;transform:scale(1);transition-delay:.06s,.06s,0s,0s}
 .cardchip .hbox.bad{border-color:var(--bad);background:#f6e3df}
@@ -1708,13 +1708,13 @@ window.addEventListener('pointermove',function(e){if(!cdrag||e.pointerId!==cdrag
  cdrag.lx=e.clientX;cdrag.ly=e.clientY;moveGhost(e)});
 function moveGhost(e){var over=overStage(e);
  if(cdrag.card){cdrag.chip.style.display='block';cdrag.chip.style.left=e.clientX+'px';cdrag.chip.style.top=e.clientY+'px'}
- if(over){if(!ghost||ghost.r!==cdrag.r||ghost.rot!==cdrag.rot)ghost=mkGhost(cdrag.r,cdrag.rot);var p=pt(e);cdrag.wx=p.x;cdrag.wy=p.y;fitGhost();if(cdrag.card)heldSync(true);else cdrag.chip.style.display='none'}
+ if(over){if(!ghost||ghost.r!==cdrag.r||ghost.rot!==cdrag.rot)ghost=mkGhost(cdrag.r,cdrag.rot);var p=pt(e);cdrag.wx=p.x;cdrag.wy=p.y;if(cdrag.card){/* landing preview sits up-left of the finger so it's never covered */var k=svg.getScreenCTM().a;cdrag.wx=p.x-ghost.w/2-16/k;cdrag.wy=p.y-ghost.d/2-16/k}fitGhost();if(cdrag.card)heldSync(true);else cdrag.chip.style.display='none'}
  else if(cdrag.card){ghost=null;heldSync(false)}
  else{ghost=null;cdrag.chip.style.display='block';cdrag.chip.style.left=e.clientX+'px';cdrag.chip.style.top=e.clientY+'px'}
  render()}
 /* the held box: canvas-style box + label at true size, hanging off the pointer while the snapped preview sits on the floor */
 function heldSync(on){var cd=cdrag.card;if(!cd)return;cdrag.chip.classList.toggle('onc',!!on);if(!on||!ghost)return;var k=svg.getScreenCTM().a,hb=cd.hb,k2=Math.min(2.2,Math.max(1,26/Math.min(ghost.w*k,ghost.d*k))),w=ghost.w*k*k2,d=ghost.d*k*k2,bad=ghostBad();
- hb.style.width=w+'px';hb.style.height=d+'px';hb.style.borderRadius=Math.max(3,0.25*k)+'px';hb.classList.toggle('bad',bad);var key=ghost.r+':'+ghost.rot;if(hb.dataset.k!==key){hb.dataset.k=key;var c=BY[ghost.r],f=ICONS[ghost.r];hb.classList.toggle('art',!!f);
+ hb.style.width=w+'px';hb.style.height=d+'px';if(!cdrag.chip.classList.contains('drop')){hb.style.left=(-w/2)+'px';hb.style.top='10px'}hb.style.borderRadius=Math.max(3,0.25*k)+'px';hb.classList.toggle('bad',bad);var key=ghost.r+':'+ghost.rot;if(hb.dataset.k!==key){hb.dataset.k=key;var c=BY[ghost.r],f=ICONS[ghost.r];hb.classList.toggle('art',!!f);
   hb.innerHTML=f?'<svg viewBox="'+(-ghost.w/2)+' '+(-ghost.d/2)+' '+ghost.w+' '+ghost.d+'" preserveAspectRatio="none" style="overflow:visible"><g transform="rotate('+(ghost.rot*90)+')">'+f(c.w,c.d)+'</g></svg>':'<span>'+esc(ghost.name)+'</span>'}var sp=hb.querySelector('span');if(sp)sp.style.fontSize=Math.max(9,Math.min(13,Math.min(w,d)/4))+'px'}
 function endCDrag(e,cancel){if(!cdrag)return;if(e&&e.pointerId!==undefined&&e.pointerId!==cdrag.pid)return;var d=cdrag;cdrag=null;clearTimeout(d.timer);document.removeEventListener('touchmove',blockScroll);document.body.classList.remove('dragging');var keepChip=!!(d.card&&d.on&&!cancel);if(d.chip&&!keepChip)d.chip.remove();if(d.src&&!keepChip)d.src.classList.remove('lift');
  if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);if(!cancel&&d.src&&d.src.classList.contains('lcard')&&!d.moved){libSel=d.r;libNew=false;renderLib();$('#lib-b').scrollTop=0}return}
