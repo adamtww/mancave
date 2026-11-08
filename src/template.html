@@ -301,6 +301,9 @@ body.furn .lib{display:none!important}
 .mid>.lib.away{transform:perspective(1400px) rotateY(90deg);opacity:0;visibility:hidden;pointer-events:none;transition:transform calc(var(--pane-t)/2) cubic-bezier(.6,0,.8,.4),opacity 0s linear calc(var(--pane-t)/2),visibility 0s linear calc(var(--pane-t)/2)}
 .mid>.lib.in.pre{transform:perspective(1400px) rotateY(-90deg);transition:none}
 body.noanim .mid>.lib{transition:none!important}
+#svg .popin{transform-box:fill-box;transform-origin:center;animation:popin .34s cubic-bezier(.2,.9,.3,1.25)}
+@keyframes popin{0%{transform:scale(.82);opacity:.35}100%{transform:scale(1);opacity:1}}
+#svg .empv{animation:empv .18s ease-out}@keyframes empv{from{opacity:0}to{opacity:1}}
 /* Rooms mode: objects are faded and can't be touched (taps fall through to the room) */
 #svg .ob{transition:opacity .25s}
 body.mode-rooms:not(.furn) #svg .ob{opacity:.4;pointer-events:none}
@@ -566,7 +569,7 @@ function render(){
  var rooms=S.items.filter(isRoom),items=S.items.filter(function(i){return !isRoom(i)});
  var lateL='',labelsTop=viewMode==='rooms'&&!furn;
  rooms.forEach(function(it){var s=it.u===sel,b=bad[it.u];
-  h+='<g class="o" data-u="'+it.u+'">'+(it.ex?shapedBody(it,b):(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="'+Math.min(0.225,3/scale).toFixed(3)+'"/>');
+  h+='<g class="o'+(it.u===popU?' popin':'')+'" data-u="'+it.u+'">'+(it.ex?shapedBody(it,b):(it.col?'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="#fff"/>':'')+'<rect x="'+it.x+'" y="'+it.y+'" width="'+it.w+'" height="'+it.d+'" fill="'+(it.col||'#faf9f6')+'" fill-opacity="'+(it.col?0.4:1)+'" stroke="'+(b?'var(--bad)':'#000')+'" stroke-width="'+Math.min(0.225,3/scale).toFixed(3)+'"/>');
   var fs=Math.max(0.7,Math.min(1.2,(it.w-1.6)/Math.max(4,it.name.length)*1.6));
   var pen=it.ed&&it.sz&&!it.ph,sd=it.d>it.w*1.25,lr=!pen?it:sd?{name:it.name,x:it.x,y:it.y+it.d*0.09,w:it.w,d:it.d*0.82}:{name:it.name,x:it.x+it.w*0.09,y:it.y,w:it.w*0.82,d:it.d};
   var lt=label(lr,{cap:Math.min(lr.w,lr.d)*0.8,cw:0.7,lh:1.05,tilt:1.25,side:sd,hf:0.72,color:'#000',op:it.u===furn?0.1:0.3,weight:600});var lbl=pen?lt.replace('<text ','<text data-rl="1" '):lt;if(labelsTop)lateL+=lbl;else h+=lbl;
@@ -598,7 +601,7 @@ function render(){
   if(ghost.cm==='front'){var gf=frontEdge(ghost);h+='<line x1="'+gf[0]+'" y1="'+gf[1]+'" x2="'+gf[2]+'" y2="'+gf[3]+'" stroke="'+(gb?'var(--bad)':'var(--accent)')+'" stroke-width="0.3" pointer-events="none"/>'}
   if(ART(ghost.r))h+='<g opacity=".7">'+iconFor(ghost)+'</g>';h+=label({x:ghost.x,y:ghost.y,w:ghost.w,d:ghost.d,name:ghost.name},ART(ghost.r)?{halo:1,cap:0.9}:null)}
  if(draft)h+='<rect x="'+draft.x+'" y="'+draft.y+'" width="'+draft.w+'" height="'+draft.d+'" fill="rgba(47,111,237,.06)" stroke="var(--accent)" stroke-width="0.35" stroke-dasharray="0.8 0.5"/><text x="'+(draft.x+draft.w/2)+'" y="'+(draft.y+draft.d/2)+'" font-size="1.3" fill="var(--accent)" text-anchor="middle">'+draft.w+' × '+draft.d+'</text>';
- h+=xpDraw();
+ h+=xpDraw()+emPreview();
  svg.innerHTML=h;
  var rl=svg.querySelector('text[data-rl]');if(rl){try{var nc=rl.getNumberOfChars();if(nc){var ex=rl.getExtentOfChar(nc-1),fz=+rl.getAttribute('font-size'),ps=Math.min(Math.max(fz*0.5,14/scale),24/scale),px=ex.x+ex.width+ps*0.3,py=ex.y+ex.height*0.52-ps/2,tf=rl.getAttribute('transform')||'';
   rl.insertAdjacentHTML('afterend','<g transform="'+tf+' translate('+px.toFixed(3)+' '+py.toFixed(3)+') scale('+(ps/24).toFixed(4)+')" pointer-events="none" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></g>')}}catch(_){}}
@@ -796,10 +799,22 @@ function clampCam(){if(camFree)return;var v=viewDims(),W=v.w,H=v.h;scale=Math.ma
 var emAt=null;
 function showEmenu(cx,cy){var p=svg.createSVGPoint();p.x=cx;p.y=cy;var w=p.matrixTransform(svg.getScreenCTM().inverse());
  if(w.x<0||w.y<0||w.x>S.lot.w||w.y>S.lot.d||roomAtPoint(w.x,w.y)){hideEmenu();return}
- emAt={x:w.x,y:w.y};var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
+ emAt={x:w.x,y:w.y};emRect=viewMode==='rooms'?fitRoomAt(w.x,w.y):null;if(viewMode==='rooms'&&!emRect){hideEmenu();return}if(emRect)render();var m=$('#emenu'),sr=stage.getBoundingClientRect();m.className='rmenu emenu';void m.offsetWidth;m.className='rmenu emenu show';
  var cr=svg.getBoundingClientRect(),mw=m.offsetWidth||140,mh=m.offsetHeight||48,L=cr.left-sr.left+8,Rb=Math.min(sr.width,cr.right-sr.left)-8,T=cr.top-sr.top+8,Bb=Math.min(sr.height,cr.bottom-sr.top)-8,lx=cx-sr.left+10,ly=cy-sr.top+10;if(lx+mw>Rb)lx=cx-sr.left-10-mw;if(ly+mh>Bb)ly=cy-sr.top-10-mh;
  m.style.left=Math.max(L,Math.min(Rb-mw,lx))+'px';m.style.top=Math.max(T,Math.min(Bb-mh,ly))+'px'}
-function hideEmenu(){emAt=null;var m=$('#emenu');if(m)m.className='rmenu emenu'}
+function hideEmenu(){var had=!!emRect;emAt=null;emRect=null;var m=$('#emenu');if(m)m.className='rmenu emenu';if(had)render()}
+/* Rooms mode: Add Room = up to 10x10 ft centred on the tap, shrunk to the largest rectangle that fits there */
+var emRect=null,popU=null;
+function fitRoomAt(px,py){var L=S.lot,ob=[];S.items.forEach(function(r){if(isRoom(r))ob=ob.concat(roomParts(r))});
+ function free(x,y,w,d){if(x<0||y<0||x+w>L.w+1e-6||y+d>L.d+1e-6)return false;for(var i=0;i<ob.length;i++){var o=ob[i];if(x<o.x+o.w-EPS&&x+w>o.x+EPS&&y<o.y+o.d-EPS&&y+d>o.y+EPS)return false}return true}
+ var best=null,bs=-1,fx=Math.floor(px),fy=Math.floor(py);
+ for(var w=10;w>=1;w--)for(var d=10;d>=1;d--){if(w*d<bs)continue;
+  for(var x=fx-w+1;x<=fx;x++)for(var y=fy-d+1;y<=fy;y++){if(!free(x,y,w,d))continue;var dist=Math.hypot(x+w/2-px,y+d/2-py),sc=w*d-dist*1e-3;if(sc>bs){bs=sc;best={x:x,y:y,w:w,d:d}}}}
+ return best}
+function emPreview(){if(!emRect||!emAt)return '';var r=emRect,sw=(2/scale).toFixed(3),da=(6/scale).toFixed(3)+' '+(4/scale).toFixed(3),fs=Math.max(1,Math.min(2.2,14/scale));
+ return '<g class="empv" pointer-events="none"><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="rgba(47,111,237,.14)" stroke="var(--accent)" stroke-width="'+sw+'" stroke-dasharray="'+da+'"/>'+(r.w*scale<56||r.d*scale<28?'':'<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2)+'" font-size="'+fs.toFixed(2)+'" font-weight="700" fill="var(--accent)" text-anchor="middle" dominant-baseline="central" opacity=".8">'+r.w+' × '+r.d+'</text>')+'</g>'}
+function addRoomFit(r){snapshot();var rs=S.items.filter(isRoom),n=rs.length+1,names={};rs.forEach(function(q){names[q.name]=1});while(names['Room '+n])n++;
+ var it={u:uid(),r:null,kind:'room',name:'Room '+n,x:r.x,y:r.y,w:r.w,d:r.d,cl:0,lk:true};S.items.push(it);sel=it.u;popU=it.u;commit();setTimeout(function(){if(popU===it.u){popU=null}},450)}
 function addRoomAt(px,py){var W=15,D=15,L=S.lot;W=Math.min(W,L.w);D=Math.min(D,L.d);var obs=S.items.filter(isRoom),best=null;
  function free(x,y){return !obs.some(function(r){return ovR(x,W,r.x,r.w)&&ovR(y,D,r.y,r.d)})}
  for(var tries=0;tries<2&&!best;tries++){for(var x=0;x<=L.w-W+1e-6;x+=1)for(var y=0;y<=L.d-D+1e-6;y+=1){if(!free(x,y))continue;var dd=Math.hypot(x+W/2-px,y+D/2-py);if(!best||dd<best.dd)best={x:x,y:y,dd:dd}}
@@ -874,7 +889,7 @@ function renderSwatches(it){var w=$('#cm-sw');if(!w)return;var h='';ROOMCOLS.for
 $('#cm-sw').addEventListener('click',function(e){var b=e.target.closest('.sw1');if(!b)return;e.stopPropagation();var it=sizingRoom();if(!it)return;snapshot();it.col=b.dataset.c||'';commit()});
 function finishSizing(it){if(!it)return;warnU=null;snapshot();if(it.ph){var rs=S.items.filter(isRoom),n=rs.indexOf(it)+1,names={};rs.forEach(function(r){names[r.name]=1});while(names['Room '+n])n++;it.name='Room '+n;it.ph=false}it.sz=false;it.ed=false;delete it.wasLk;it.lk=true;editBase=null;commit()}
 $('#cm-ok').onclick=function(e){e.stopPropagation();finishSizing(sel&&find(sel))};
-$('#em-room').onclick=function(e){e.stopPropagation();var a=emAt;hideEmenu();if(a)addRoomAt(a.x,a.y)};
+$('#em-room').onclick=function(e){e.stopPropagation();var a=emAt,rr=emRect;hideEmenu();if(a&&viewMode==='rooms'){var f=rr||fitRoomAt(a.x,a.y);if(f)addRoomFit(f);else flash('No open space there');return}if(a)addRoomAt(a.x,a.y)};
 document.addEventListener('pointerdown',function(e){if(emAt&&!e.target.closest('#emenu'))hideEmenu()},true);
 stage.addEventListener('wheel',function(){if(emAt)hideEmenu()},{passive:true});
 function placeRMenu(){var it0=sel&&find(sel),sizing=!!(it0&&isRoom(it0)&&it0.sz),other=$(sizing?'#rmenu':'#cmenu');if(other){other.className='rmenu';other.dataset.u=''}
