@@ -554,7 +554,7 @@ function render(){
  var fr=furn&&find(furn),dimO=0.38;if(!fr&&si&&isRoom(si)){fr=si;dimO=0.2}if(fr)h+='<path d="M-2000 -2000H4000V4000H-2000Z M'+fr.x+' '+fr.y+'V'+(fr.y+fr.d)+'H'+(fr.x+fr.w)+'V'+fr.y+'Z" fill="#24231f" fill-opacity="'+dimO+'" fill-rule="evenodd" pointer-events="none"/>';
  if(si&&si.u!==furn){if(isRoom(si)&&(si.sz||roomLive(si))){var dl=7/scale,gp=5/scale;h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="#fff" stroke-width="'+(2.5/scale)+'" pointer-events="none"/><rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2.5/scale)+'" stroke-dasharray="'+dl+' '+gp+'" pointer-events="none"><animate attributeName="stroke-dashoffset" from="0" to="'+(-(dl+gp))+'" dur="0.6s" repeatCount="indefinite"/></rect>'}
   else h+='<rect x="'+si.x+'" y="'+si.y+'" width="'+si.w+'" height="'+si.d+'" fill="none" stroke="var(--accent)" stroke-width="'+(2/scale)+'" pointer-events="none"/>'}
- if(si&&isRoom(si)&&(!si.lk||roomLive(si))){
+ if(si&&isRoom(si)&&!si.lk){
   var hpx=TOUCH?14:8,hs=hpx/scale,hit=(TOUCH?34:12)/scale,small=Math.min(si.w,si.d)*scale<(TOUCH?90:48);
   handles(si).forEach(function(k){if(small&&k.h.length===1)return;
    h+='<rect class="hd" data-h="'+k.h+'" x="'+(k.x-hit/2)+'" y="'+(k.y-hit/2)+'" width="'+hit+'" height="'+hit+'" fill="transparent" style="cursor:'+k.c+'"/>';
@@ -695,7 +695,7 @@ function roomLines(except){var xs=[0,S.lot.w],ys=[0,S.lot.d];S.items.forEach(fun
 function snapEdges(es,cs){var T=SNAP_PX/scale,b=null;es.forEach(function(e){cs.forEach(function(c){var dd=c-e;if(Math.abs(dd)<T&&(!b||Math.abs(dd)<Math.abs(b.d)))b={d:dd,c:c}})});return b}
 function keepGuides(gd,r){return gd.filter(function(g){return g.x!=null?Math.abs(g.x-r.x)<EPS*4||Math.abs(g.x-r.x-r.w)<EPS*4:Math.abs(g.y-r.y)<EPS*4||Math.abs(g.y-r.y-r.d)<EPS*4})}
 function inRoom(px,py){return S.items.some(function(r){return isRoom(r)&&px>r.x+EPS&&px<r.x+r.w-EPS&&py>r.y+EPS&&py<r.y+r.d-EPS})}
-/* Rooms mode: the selected room shows marching ants and live resize handles */
+/* Rooms mode: the selected room shows marching ants */
 function roomLive(it){return viewMode==='rooms'&&!furn&&!!it&&isRoom(it)}
 function downCore(e){var p=pt(e);
  if(tool==='room'){var bx=cl(snap(p.x),0,S.lot.w),by=cl(snap(p.y),0,S.lot.d);if(inRoom(bx,by))return;draft={x0:bx,y0:by,x:bx,y:by,w:0,d:0,obs:roomObs(null)};return}
