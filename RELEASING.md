@@ -16,6 +16,7 @@ Small tweaks may go straight to `main`. Big features are built on `test` and onl
 Merging `test` into `main` moves **code only** (app, backend, schema, deploy setup).
 
 - Layouts, versions and accounts saved on the test site stay in `mancave-db-test`. They are **never** copied, exported or imported into the live database as part of a merge.
+- The `samples/` folder (sample layouts for the test site's `?sample=` import) is test-only data: leave it out of the merge.
 - Nothing in the merge may write to or reset live data, apart from additive schema changes (see Rule 2).
 - Test accounts (e.g. a test "dad") are not carried over; live accounts are managed separately in live **Manage users**.
 
