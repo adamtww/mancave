@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>The Cave — Build Mode</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><title>The Cave — Build Mode</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f3ef;--paper:#fbfaf7;--line:#dedbd3;--ink:#2b2a27;--muted:#8a867c;--wall:#3a3935;--accent:#2f6fed;--bad:#d64545}
@@ -610,6 +610,8 @@ body.mode-summary #undo,body.mode-summary #redo{opacity:.35;pointer-events:none}
 /* the app fills the window and never scrolls as a page (fixes stray PC scroll bars) */
 html,body{overflow:hidden}
 .mid>.hist{box-sizing:border-box;max-width:100vw}
+/* iPad: Safari zooms the whole page in when you tap a text box smaller than 16px; keep them at 16px so it never does */
+@media (pointer:coarse){input,select,textarea{font-size:16px!important}}
 </style></head><body>
 <div class="app">
  <div class="top">
