@@ -607,6 +607,9 @@ body.mode-summary #undo,body.mode-summary #redo{opacity:.35;pointer-events:none}
 /* Layouts dialog: pinned near the top, grows downward, list scrolls if it would run off the screen */
 .mdl.mtop{align-items:flex-start;padding-top:10vh;box-sizing:border-box}
 .mdl.mtop .mbox{max-height:calc(100vh - 10vh - 24px)}
+/* the app fills the window and never scrolls as a page (fixes stray PC scroll bars) */
+html,body{overflow:hidden}
+.mid>.hist{box-sizing:border-box;max-width:100vw}
 </style></head><body>
 <div class="app">
  <div class="top">
