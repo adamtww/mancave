@@ -211,6 +211,12 @@ Object.assign(ICONS,{
  'kr-pantry':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.06})+hatch(-W/2,-D/2,W,D,3,{stroke:'#bdb8ad','stroke-width':0.06}),c=['#e8c86a','#c88a4a','#7fae7f','#e07a6a','#8fb6e0','#f2e6c9'];
   for(var i=0;i<9;i++)s+=bx(-W/2+0.25+i*(W-0.5)/9,-D/2+0.3,(W-0.5)/9-0.12,D-0.6,c[i%6],{rx:0.06,'stroke-width':0.03});return s}
 });
+
+Object.assign(ICONS,{
+ 'b-wall':function(W,D){return bx(-W/2,-D/2,W,D,'#cfcac0',{'stroke-width':Math.min(0.07,D*0.15)})+hatch(-W/2,-D/2,W,D,Math.max(2,Math.round(W/0.8)),{stroke:'#b5afa3','stroke-width':Math.min(0.05,D*0.1)})},
+ 'b-stage':function(W,D){var s=bx(-W/2,-D/2,W,D,'#c8a97a',{rx:0.15})+hatchY(-W/2,-D/2,W,D,Math.max(2,Math.round(D/0.6)),{stroke:'#a8895d','stroke-width':0.05});
+  return s+bx(-W/2+0.4,D/2-1.2,1.2,0.9,SCR,{rx:0.1})+bx(W/2-1.6,D/2-1.2,1.2,0.9,SCR,{rx:0.1})+iC(0,-D*0.1,0.35,{fill:'#5d5a54'})+iL(0,-D*0.1+0.35,0,D*0.15,{stroke:'#5d5a54','stroke-width':0.08})}
+});
 /* place a symbol on an item: rotate so the drawing's front matches the item's front */
 function iconFor(it){var f=ICONS[it.r];if(!f)return '';var rot=(it.rot||0)%4,W=rot%2?it.d:it.w,D=rot%2?it.w:it.d,cx=it.x+it.w/2,cy=it.y+it.d/2;
  return '<g transform="translate('+cx+','+cy+') rotate('+(rot*90)+')" pointer-events="none">'+f(W,D)+'</g>'}
