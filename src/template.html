@@ -1791,7 +1791,14 @@ window.addEventListener('online',function(){if(tok&&!me)cloudBoot()});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&tok&&!me)cloudBoot()});
 $('#ly-st').addEventListener('click',function(){if(tok&&!me){$('#ly-st').textContent='Reconnecting…';cloudBoot()}});
 /* first open after signing in: last layout, else your newest, else move this browser's plan into your account */
-function openInitial(){var localData=packData(),localKey=JSON.stringify({lot:localData.lot,items:localData.items}),last=null;try{last=+(localStorage.getItem('cave-cur')||0)}catch(_){}
+/* test site only: ?sample=<name> imports samples/<name>.json as a new layout in your account (once you're signed in) */
+(function(){if(!TEST_SITE)return;var q=new URLSearchParams(location.search).get('sample');if(!q||!/^[a-z0-9-]+$/.test(q))return;var tries=0;
+ function go(){if(!me||cloudBusy||!window.__caveBooted){if(++tries<600)setTimeout(go,500);return}
+  fetch('samples/'+q+'.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('Sample not found');return r.json()}).then(function(d){applyData(d.data,d.name);S.name=d.name;cur=null;savedJSON=null;return createLayout(d.name,packData(),null,'Imported "'+d.name+'"')})
+   .then(function(){try{history.replaceState(null,'',location.pathname)}catch(_){}}).catch(function(e){flash(e.message)})}
+ setTimeout(go,600)})();
+function openInitial(){window.__caveBooted=false;return openInitial0().then(function(v){window.__caveBooted=true;return v},function(e){window.__caveBooted=true;throw e})}
+function openInitial0(){var localData=packData(),localKey=JSON.stringify({lot:localData.lot,items:localData.items}),last=null;try{last=+(localStorage.getItem('cave-cur')||0)}catch(_){}
  return api('GET','/api/layouts').then(function(j){lyCache=j.layouts;var pick=lyCache.find(function(l){return l.id===last}),mine=lyCache.filter(function(l){return l.owner_id===me.id});
   if(!pick)pick=mine[0];
   if(pick)return openLayout(pick.id,{restoreLocal:pick.id===last?localKey:null,localData:localData});
