@@ -2240,10 +2240,10 @@ function renderLive(head){
     guard(function(){copyOne(l).then(function(r){return openLayout(r.layout.id)}).then(function(){flash('Copied “'+l.name+'” into the test site')}).catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy to test'})})}
    if(k.dataset.k==='liveall'){k.disabled=true;k.textContent='Copying…';var i=0,next=function(){if(i>=list.length){flash('Copied '+list.length+' live layouts into the test site');lyTab='mine';openLayouts();return}return copyOne(list[i++]).then(next)};next().catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy all to test'})}}
  }).catch(function(err){$('#mdl-b').innerHTML=head+note+'<div class="mempty">'+escH(err.message)+'</div>';bindLy()})}
-function renderLayouts(){var mine=lyCache.filter(function(l){return l.owner_id===me.id}),oth=lyCache.filter(function(l){return l.owner_id!==me.id}),list=lyTab==='mine'?mine:oth;
+function renderLayouts(){var shown=lyCache.filter(function(l){return !(cur&&cur.id===l.id)}),mine=shown.filter(function(l){return l.owner_id===me.id}),oth=shown.filter(function(l){return l.owner_id!==me.id}),list=lyTab==='mine'?mine:oth;
  var h='<div class="mtabs"><button data-tab="mine" class="'+(lyTab==='mine'?'on':'')+'">My layouts ('+mine.length+')</button><button data-tab="shared" class="'+(lyTab==='shared'?'on':'')+'">Everyone else ('+oth.length+')</button>'+(TEST_SITE?'<button data-tab="live" class="'+(lyTab==='live'?'on':'')+'">Live (read-only)</button>':'')+'</div>';
  if(lyTab==='live'){$('#mdl-b').innerHTML=h+'<div class="mempty">Loading live layouts…</div>';bindLy();renderLive(h);return}
- if(!list.length)h+='<div class="mempty">'+(lyTab==='mine'?'You have no layouts yet.':'Nobody else has saved a layout yet.')+'</div>';
+ if(!list.length)h+='<div class="mempty">'+(lyTab==='mine'?(cur&&cur.mine?'No other layouts yet.':'You have no layouts yet.'):'Nobody else has saved a layout yet.')+'</div>';
  list.forEach(function(l){var open=cur&&cur.id===l.id;
   h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
   h+=(open?'':'<button class="mbtn pri" data-k="open">Open</button>')+'<button class="mbtn" data-k="hist">History</button>';
