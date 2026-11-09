@@ -5,7 +5,8 @@ class S(socketserver.TCPServer): allow_reuse_address=True
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 srv=S(("127.0.0.1",PORT),functools.partial(Q,directory="/home/claude/mancave"));threading.Thread(target=srv.serve_forever,daemon=True).start()
-D={"lot":{"w":100,"d":100},"items":[],"defs":{}}
+import json as _j
+D=_j.load(open("/home/claude/mancave/samples/dad-1.json"));D=D.get("data",D)
 L={1:dict(id=1,name="Mine",owner_id=1,owner="adam",updated_at="2026-11-01T00:00:00Z",data=D),
    2:dict(id=2,name="Dad's layout with a long long name number one",owner_id=2,owner="dad",updated_at="2026-11-01T00:00:00Z",data=D)}
 posts=[]
@@ -29,7 +30,7 @@ async def main():
         print("box w:",await pg.evaluate("document.querySelector('.mbox').getBoundingClientRect().width"))
         await pg.click("[data-tab=shared]");await pg.wait_for_timeout(300)
         print("other btns:",await pg.evaluate("[...document.querySelectorAll('#mdl-b .mrow .mbtn')].map(b=>b.textContent)"))
-        await pg.screenshot(path="t111.png")
+        await pg.wait_for_timeout(500);await pg.screenshot(path="/home/claude/build/t111.png");print("thumbs:",await pg.evaluate("document.querySelectorAll('.lth svg').length"))
         await pg.click("#mdl-b [data-k=open]");await pg.wait_for_timeout(1200)
         print("posts:",[(x["name"],x.get("based_on")) for x in posts])
         print("modal open:",await pg.evaluate("!!document.querySelector('#mdl.show')"),"title:",await pg.evaluate("document.querySelector('#ly-name,.lyname')?.textContent"))

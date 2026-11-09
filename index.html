@@ -267,6 +267,8 @@ body:not(.isadmin) .umenu .adm{display:none}
 .mtabs .sp{flex:1}
 .mrow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #f0ede6}
 .mrow .mi{flex:1;min-width:0}
+.mrow .lth{flex:0 0 auto;width:64px;height:48px;border-radius:8px;background:#f6f4ef;border:1px solid #ece8df;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.mrow .lth svg{display:block}
 .mrow .mn{font-size:14.5px;color:#2b2a27;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrow .mn em{font-style:normal;font-size:11px;font-weight:700;color:#1f4fbf;background:#eef3fd;border-radius:5px;padding:1px 6px;margin-left:6px}
 .mrow .ms{font-size:12px;color:var(--muted);margin-top:2px}
@@ -2241,16 +2243,24 @@ function renderLive(head){
     guard(function(){copyOne(l).then(function(r){return openLayout(r.layout.id)}).then(function(){flash('Copied “'+l.name+'” into the test site')}).catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy to test'})})}
    if(k.dataset.k==='liveall'){k.disabled=true;k.textContent='Copying…';var i=0,next=function(){if(i>=list.length){flash('Copied '+list.length+' live layouts into the test site');lyTab='mine';openLayouts();return}return copyOne(list[i++]).then(next)};next().catch(function(err){flash(err.message);k.disabled=false;k.textContent='Copy all to test'})}}
  }).catch(function(err){$('#mdl-b').innerHTML=head+note+'<div class="mempty">'+escH(err.message)+'</div>';bindLy()})}
+var lyThumbs={};
+function layoutThumb(d){var lot=d&&d.lot||{w:100,d:100},its=d&&d.items||[],W=lot.w,H=lot.d,pad=Math.max(W,H)*.06,sw=Math.max(W,H)/60,rm='',ob='';
+ its.forEach(function(it){if(it.kind==='room'){roomParts(it).forEach(function(p){rm+='<rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.d+'" fill="'+(it.col||'#e9e5dc')+'"/>'})}
+  else if(it.w&&it.d){var r=((it.rot||0)%180+180)%180===90,w=r?it.d:it.w,h=r?it.w:it.d;ob+='<rect x="'+it.x+'" y="'+it.y+'" width="'+w+'" height="'+h+'"/>'}});
+ return '<svg width="62" height="46" viewBox="'+(-pad)+' '+(-pad)+' '+(W+2*pad)+' '+(H+2*pad)+'" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="'+W+'" height="'+H+'" fill="#fff" stroke="#cfc9bc" stroke-width="'+sw+'"/><g stroke="#2b2a27" stroke-width="'+sw+'">'+rm+'</g><g>'+rm+'</g><g fill="#6b675e" opacity=".75">'+ob+'</g></svg>'}
+function fillThumbs(){$('#mdl-b').querySelectorAll('.mrow .lth[data-t]').forEach(function(el){var id=+el.closest('.mrow').dataset.id,key=id+'@'+el.dataset.t,c=lyThumbs[key];
+ if(typeof c==='string'){el.innerHTML=c;return}if(c)return;lyThumbs[key]=1;
+ api('GET','/api/layouts/'+id).then(function(j){lyThumbs[key]=layoutThumb(j.layout.data);var e2=$('#mdl-b').querySelector('.mrow[data-id="'+id+'"] .lth');if(e2)e2.innerHTML=lyThumbs[key]}).catch(function(){delete lyThumbs[key]})})}
 function renderLayouts(){var shown=lyCache.filter(function(l){return !(cur&&cur.id===l.id)}),mine=shown.filter(function(l){return l.owner_id===me.id}),oth=shown.filter(function(l){return l.owner_id!==me.id}),list=lyTab==='mine'?mine:oth;
  var h='<div class="mtabs"><button data-tab="mine" class="'+(lyTab==='mine'?'on':'')+'">My layouts ('+mine.length+')</button><button data-tab="shared" class="'+(lyTab==='shared'?'on':'')+'">Everyone else ('+oth.length+')</button>'+(TEST_SITE?'<button data-tab="live" class="'+(lyTab==='live'?'on':'')+'">Live (read-only)</button>':'')+'</div>';
  if(lyTab==='live'){$('#mdl-b').innerHTML=h+'<div class="mempty">Loading live layouts…</div>';bindLy();renderLive(h);return}
  if(!list.length)h+='<div class="mempty">'+(lyTab==='mine'?(cur&&cur.mine?'No other layouts yet.':'You have no layouts yet.'):'Nobody else has saved a layout yet.')+'</div>';
  list.forEach(function(l){var open=cur&&cur.id===l.id;
-  h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
+  h+='<div class="mrow" data-id="'+l.id+'"><div class="lth" data-t="'+escH(String(l.updated_at||''))+'"></div><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
   h+=(open?'':'<button class="mbtn pri" data-k="open">Open</button>')+'<button class="mbtn" data-k="hist">History</button>';
   if(lyTab==='mine')h+='<button class="mbtn" data-k="ren">Rename</button><button class="mbtn red" data-k="del">Delete</button>';
   h+='</div></div>'});
- $('#mdl-b').innerHTML=h;
+ $('#mdl-b').innerHTML=h;fillThumbs();
  $('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts();return}var k=e.target.closest('[data-k]');if(!k)return;var row=k.closest('.mrow'),id=row?+row.dataset.id:0,l=lyCache.find(function(x){return x.id===id});
   switch(k.dataset.k){
    case 'new':guard(function(){inputM('New layout','Name','Untitled warehouse','Create',function(v,err){createLayout(v||'Untitled warehouse',{lot:{w:100,d:100},items:[],defs:{}},null,'Created').then(function(nl){return openLayout(nl.id)}).catch(function(e){err(e.message)})})});break;
