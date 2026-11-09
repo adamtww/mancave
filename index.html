@@ -2150,7 +2150,7 @@ function isDirty(){return !!cur&&savedJSON!==null&&packKey()!==savedJSON}
 function cloudUI(){var n=$('#ly-name');if(!n)return;
  n.textContent=cur?cur.name:(me?'No layout open':'Not signed in');
  $('#ly-tag').textContent=cur&&!cur.mine?(cur.owner+"'s · view only"):'';
- var d=isDirty(),st=$('#ly-st'),off=!!tok&&!me;st.className='lyst'+(off?' err':d?' dirty':'');st.textContent=off?(bootErr==='offline'?'Offline · tap to retry':'Connecting…'):cloudBusy?'Saving…':(d?'Unsaved changes':(cur?'Saved':''));
+ var d=isDirty(),st=$('#ly-st'),off=!!tok&&!me;st.className='lyst'+(off?' err':d?' dirty':'');st.textContent=off?(bootErr==='offline'?'Offline · tap to retry':'Connecting…'):'';/* saved / unsaved state isn't shown as text any more; only connection problems are */
  var sb=$('#ly-save');sb.disabled=!me||cloudBusy||(!d&&!!cur&&cur.mine);$('#ly-save-l').textContent=cur&&!cur.mine?'Save as my copy':'Save';
  $('#u-name').textContent=me?me.username:'—';document.body.classList.toggle('isadmin',!!(me&&me.admin));
  if(cur){S.name=cur.name;try{localStorage.setItem('cave-cur',String(cur.id))}catch(_){}}}
