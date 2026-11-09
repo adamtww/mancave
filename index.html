@@ -542,6 +542,8 @@ body.touch .lcard{touch-action:pan-y}
 .vtog button.on{background:#eef3fd;color:var(--accent);box-shadow:inset 0 0 0 1px #cfdcf8}
 body.touch .vtog button{height:35px;width:36px}
 .hist .artseg{display:none!important}
+.lcard.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 12px rgba(47,111,237,.18)}
+.in2.lpk{margin-top:10px;color:var(--muted)}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1079,7 +1081,7 @@ function objCard(it){var c=cat(it),r=roomOf(it),ap=c&&c.est?'≈ ':'',dirs=['dow
  h+='<div class="irow"><span>Footprint</span><b>'+ap+fmtSf(it.w*it.d)+'</b></div>';
  if(c&&!c.z)h+='<div class="irow"><span>Clearance</span><b>'+(c.cl?fmtN(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>';
  if(c&&c.cl)h+='<div class="irow"><span>Floor space with clearance</span><b>'+ap+fmtSf(c.cf?it.w*it.d+((it.rot||0)%2?c.cl*it.d:it.w*c.cl):(it.w+2*c.cl)*(it.d+2*c.cl))+'</b></div>';
- h+='<div class="irow"><span>Front faces</span><b>'+dirs[(it.rot||0)%4]+'</b></div>';
+ if(!it.lib)h+='<div class="irow"><span>Front faces</span><b>'+dirs[(it.rot||0)%4]+'</b></div>';
  if(r)h+='<div class="irow"><span>Position in room</span><b>'+fmtN(it.x-r.x)+' ft, '+fmtN(it.y-r.y)+' ft</b></div>';
  h+='<div class="isec">Power</div>';
  if(c&&c.p){var V=c.p[0],W=c.p[1],A=c.p[2],dd=c.p[3];
@@ -1093,7 +1095,10 @@ function objCard(it){var c=cat(it),r=roomOf(it),ap=c&&c.est?'≈ ':'',dirs=['dow
  if(c&&c.est&&!(c.a||[]).length)h+='<div class="iwarn">⚠ Size and power are estimates (≈)</div>';
  return h}
 function fmtN(n){return (Math.round(n*10)/10).toLocaleString('en-US')}
-function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);
+function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=sel&&find(sel);if(it)libPick=null;
+ Array.prototype.forEach.call(document.querySelectorAll('#lib .lcard'),function(c){c.classList.toggle('sel',c.dataset.r===libPick)});
+ if(!it&&libPick&&BY[libPick]&&viewMode==='objects'){var lc=BY[libPick],n=placedCount(libPick);h.textContent=lc.n.replace(/ \(\$[^)]*\)/,'');
+  b.innerHTML=objCard({r:libPick,name:lc.n,x:-1e4,y:-1e4,w:lc.w,d:lc.d,rot:0,lib:1})+'<div class="irow"><span>On the plan</span><b>'+(n?n+' placed':'none yet')+'</b></div><div class="in2 lpk">Drag the card onto a room to place it.</div>';return}
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+roomArea(r)},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
  h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(roomArea(it))+'</b></div>'+roomPowerCard(it):objCard(it)}
@@ -1415,7 +1420,7 @@ function worldAt(clientX,clientY){var r=svg.getBoundingClientRect();return {x:ca
 function placeWorld(f,clientX,clientY){var r=svg.getBoundingClientRect();cam.cx=f.x-(clientX-r.left-r.width/2)/scale;cam.cy=f.y-(clientY-r.top-r.height/2)/scale}
 function zoomAt(ns,clientX,clientY){var f=worldAt(clientX,clientY);scale=clampScale(ns);placeWorld(f,clientX,clientY);queueView();settle()}
 function panBy(dx,dy){cam.cx-=dx/scale;cam.cy-=dy/scale;queueView()}
-svg.addEventListener('pointerdown',function(e){svg.setPointerCapture(e.pointerId);
+svg.addEventListener('pointerdown',function(e){svg.setPointerCapture(e.pointerId);if(libPick){libPick=null;renderInfo()}
  if(e.pointerType==='touch'){touches.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(touches.size===2){revertDrag();pan=null;var m=mid();gesture={d0:m.d||1,s0:scale,f:worldAt(m.x,m.y)};render();return}
   if(touches.size>2||suppress)return;
@@ -1685,7 +1690,7 @@ function rpBind(it){var u=it.u,inp=$('#rp-nm');
  ci.onblur=function(){if(rpPicking&&!snap)rpPicking=false};
  $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
-$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()},function(){b.click()});return}viewMode=b.dataset.m;sel=null;if(typeof rnU!=='undefined'&&rnU)closeRename(true);applyMode2(true);render();var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
+$('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()},function(){b.click()});return}viewMode=b.dataset.m;sel=null;libPick=null;if(typeof rnU!=='undefined'&&rnU)closeRename(true);applyMode2(true);render();var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
 $('#zi').onclick=function(){zoomCenter(1.25)};$('#zo').onclick=function(){zoomCenter(0.8)};$('#zf').onclick=function(){if(furn)fitRoom(true);else fit()};
@@ -1752,7 +1757,7 @@ function heldSync(on){var cd=cdrag.card;if(!cd)return;cdrag.chip.classList.toggl
  hb.style.width=w+'px';hb.style.height=d+'px';if(!cdrag.chip.classList.contains('drop')){hb.style.left=(-w/2)+'px';hb.style.top=(cdrag.touch?ROPE:10)+'px'}hb.style.borderRadius=Math.max(3,0.25*k)+'px';hb.classList.toggle('bad',bad);var key=ghost.r+':'+ghost.rot;if(hb.dataset.k!==key){hb.dataset.k=key;var c=BY[ghost.r],f=ICONS[ghost.r];hb.classList.toggle('art',!!f);
   hb.innerHTML=f?'<svg viewBox="'+(-ghost.w/2)+' '+(-ghost.d/2)+' '+ghost.w+' '+ghost.d+'" preserveAspectRatio="none" style="overflow:visible"><g transform="rotate('+(ghost.rot*90)+')">'+f(c.w,c.d)+'</g></svg>':'<span>'+esc(ghost.name)+'</span>'}var sp=hb.querySelector('span');if(sp)sp.style.fontSize=Math.max(9,Math.min(13,Math.min(w,d)/4))+'px'}
 function endCDrag(e,cancel){if(!cdrag)return;if(e&&e.pointerId!==undefined&&e.pointerId!==cdrag.pid)return;var d=cdrag;cdrag=null;clearTimeout(d.timer);document.removeEventListener('touchmove',blockScroll);document.body.classList.remove('dragging');var keepChip=!!(d.card&&d.on&&!cancel);if(d.chip&&!keepChip)d.chip.remove();if(d.src&&!keepChip)d.src.classList.remove('lift');
- if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);if(!cancel&&d.src&&d.src.classList.contains('lcard')&&!d.moved){libSel=d.r;libNew=false;renderLib();$('#lib-b').scrollTop=0}return}
+ if(!d.on){if(!cancel&&d.src&&d.src.classList.contains('pi'))showDetails(d.r);if(!cancel&&d.src&&d.src.classList.contains('lcard')&&!d.moved){libPick=libPick===d.r?null:d.r;if(libPick&&sel){sel=null}render()}return}
  var g=ghost,okDrop=false;if(g){ghost=g;okDrop=!ghostBad()}ghost=null;var ok=!cancel&&g&&e&&overStage(e)&&okDrop;
  if(keepChip){if(ok)heldDrop(d,g);else heldReturn(d)}
  if(ok){if(!keepChip){var u0=place(g.r,g.x,g.y,g.rot);sel=null;popU=u0;render();poof(g);setTimeout(function(){if(popU===u0){popU=null}},500)}}else{if(!cancel&&g&&g.noRoom)flash(g.tooBig?'Too big for this room, even turned sideways':'Objects have to go inside a room');render()}}
@@ -1847,7 +1852,7 @@ window.addEventListener('message',function(e){var m=e.data&&e.data.caveCmd;if(!m
 /* ---------- Object Library ---------- */
 var libSel=null,libNew=false,libSyncR=null;
 /* follow the canvas selection: a selected object opens its entry; deselecting goes back to the list */
-function libSync(){var it=sel&&find(sel),want=it&&!isRoom(it)&&it.r&&BY[it.r]?it.r:null;if(want===libSyncR)return;
+function libSync(){var want=null;if(want===libSyncR)return;
  if(want){libSel=want;libNew=false}else if(libSyncR){libSel=null;libNew=false}libSyncR=want;renderLib();var b=$('#lib-b');if(b)b.scrollTop=0}
 
 $('#lq').oninput=function(){renderLib()};
@@ -1862,11 +1867,11 @@ function renderLib(){var b=$('#lib-b');if(!b)return;if(libSel||libNew){b.innerHT
   if(open){h+='<div class="lgrid">';list.forEach(function(i){h+=libCard(i,ct[1])});h+='</div>'}
   h+='</div>'});
  b.innerHTML=h||'<div class="fnote" style="padding:14px 20px">No objects match.</div>'}
-var libOpen={};
+var libOpen={},libPick=null;
 function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i.r](W,D):'<rect x="'+(-W/2)+'" y="'+(-D/2)+'" width="'+W+'" height="'+D+'" rx="'+(Math.min(W,D)*0.08)+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="'+(m*0.02)+'"/>';
  return '<svg viewBox="'+(-m/2)+' '+(-m/2)+' '+m+' '+m+'" preserveAspectRatio="xMidYMid meet" pointer-events="none">'+g+'</svg>'}
 function libCard(i,col){var tag=LIB[i.r]?(LIB[i.r].custom?'<em>custom</em>':'<em>edited</em>'):'';
- return '<div class="lcard" data-r="'+escH(i.r)+'" style="--c:'+col+'"><span class="lgrip" aria-hidden="true"></span><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+escH(i.n)+tag+'</div><div class="lbdg"><span>'+fmtN(i.w)+'×'+fmtN(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+'</div></div>'}
+ return '<div class="lcard'+(libPick===i.r?' sel':'')+'" data-r="'+escH(i.r)+'" style="--c:'+col+'"><span class="lgrip" aria-hidden="true"></span><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+escH(i.n)+tag+'</div><div class="lbdg"><span>'+fmtN(i.w)+'×'+fmtN(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+'</div></div>'}
 function libForm(c){var isNew=!c;c=c||{n:'',c:'Wishlist',w:3,d:3,cl:2,cf:1,est:1};var p=c.p||[120,500,20,0],cats=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}),n=c.r?placedCount(c.r):0;
  var h='<div class="lf"><button class="lback" id="lf-back">‹ All objects</button><h3>'+(isNew?'New object':'Edit object')+'</h3>';
  h+='<label class="fl">Name</label><input class="fi" id="lf-n" value="'+escH(c.n)+'">';
