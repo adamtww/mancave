@@ -604,6 +604,9 @@ body.mode-summary #undo,body.mode-summary #redo{opacity:.35;pointer-events:none}
 .testmark{flex:0 0 auto!important;text-align:left!important;padding:0 8px!important}
 @media (max-width:1250px){.cloud .lychip{max-width:22vw}}
 .hb.newbtn{background:#fff;color:#2b2a27;font-weight:600}
+/* Layouts dialog: pinned near the top, grows downward, list scrolls if it would run off the screen */
+.mdl.mtop{align-items:flex-start;padding-top:10vh;box-sizing:border-box}
+.mdl.mtop .mbox{max-height:calc(100vh - 10vh - 24px)}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -2203,7 +2206,7 @@ $('#ly-save').onclick=function(e){e.stopPropagation();saveLayout()};
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveLayout()}});
 window.addEventListener('beforeunload',function(e){if(isDirty()){e.preventDefault();e.returnValue=''}});
 /* ---- modal helpers ---- */
-function modal(title,html,small){$('#mdl-t').textContent=title;$('#mdl-b').innerHTML=html;$('#mbox').classList.toggle('sm',!!small);$('#mdl').classList.add('show')}
+function modal(title,html,small){$('#mdl-t').textContent=title;$('#mdl-b').innerHTML=html;$('#mbox').classList.toggle('sm',!!small);$('#mdl').classList.remove('mtop');$('#mdl').classList.add('show')}
 function closeModal(){var m=$('#mdl');m.classList.remove('show');m.classList.remove('locked')}
 $('#mdl-x').onclick=closeModal;$('#mdl').addEventListener('pointerdown',function(e){if(e.target.id!=='mdl')return;
  /* a locked dialog must be answered: shake instead of closing */
@@ -2216,7 +2219,7 @@ function inputM(title,label,val,yes,cb,type){modal(title,'<form class="mform" id
 function guard(fn){if(!isDirty())return fn();askM('Unsaved changes','You have unsaved changes to <b>'+escH(cur.name)+'</b>. Open something else and lose them?','Discard changes',function(){savedJSON=packKey();fn()},true)}
 /* ---- Layouts browser ---- */
 var lyTab='mine';
-function openLayouts(){if(!me)return showLogin();modal('Layouts','<div class="mempty">Loading…</div>');api('GET','/api/layouts').then(function(j){lyCache=j.layouts;renderLayouts()}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
+function openLayouts(){if(!me)return showLogin();modal('Layouts','<div class="mempty">Loading…</div>');$('#mdl').classList.add('mtop');api('GET','/api/layouts').then(function(j){lyCache=j.layouts;renderLayouts()}).catch(function(e){$('#mdl-b').innerHTML='<div class="mempty">'+escH(e.message)+'</div>'})}
 function bindLy(){$('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts()}}}
 function renderLive(head){
  var note='<div class="ms" style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Your real layouts from the live site. This is <b>read-only</b>: copying makes a new layout in the <b>test</b> database and never changes live.</div>';
