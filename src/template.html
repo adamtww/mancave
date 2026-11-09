@@ -544,6 +544,12 @@ body.touch .vtog button{height:35px;width:36px}
 .hist .artseg{display:none!important}
 .lcard.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 12px rgba(47,111,237,.18)}
 .in2.lpk{margin-top:10px;color:var(--muted)}
+
+/* selected object: small round rotate / trash buttons at its corners */
+#imenu.omenu{left:0!important;top:0!important;width:0;height:0;display:none}#imenu.omenu.show{display:block}
+#imenu.omenu .rmb{position:absolute;width:34px;height:34px;min-width:0;padding:0!important;margin:0!important;border-radius:50%;justify-content:center;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+#imenu.omenu .rmb span{display:none}
+#imenu.omenu .rmb svg{width:17px;height:17px}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -687,6 +693,9 @@ function render(){
   handles(si).forEach(function(k){if(small&&k.h.length===1)return;
    h+='<rect class="hd" data-h="'+k.h+'" x="'+(k.x-hit/2)+'" y="'+(k.y-hit/2)+'" width="'+hit+'" height="'+hit+'" fill="transparent" style="cursor:'+k.c+'"/>';
    h+='<rect x="'+(k.x-hs/2)+'" y="'+(k.y-hs/2)+'" width="'+hs+'" height="'+hs+'" rx="'+(hs*0.25)+'" fill="#fff" stroke="var(--accent)" stroke-width="'+(1.5/scale)+'" pointer-events="none"/>'})}
+ (function(){var so=sel&&find(sel);if(!so||isRoom(so)||(drag&&drag.it===so&&drag.moved))return;/* selected object: marching ants (phase follows the clock so re-renders don't restart it) */
+  var dl=5/scale,gp=4/scale,per=dl+gp,ph=-((performance.now()%600)/600)*per,pad=1.5/scale,g=' x="'+(so.x-pad)+'" y="'+(so.y-pad)+'" width="'+(so.w+2*pad)+'" height="'+(so.d+2*pad)+'" rx="'+(0.3)+'" fill="none" pointer-events="none" stroke-width="'+(2/scale)+'"';
+  h+='<rect'+g+' stroke="#fff"/><rect'+g+' stroke="var(--accent)" stroke-dasharray="'+dl+' '+gp+'" stroke-dashoffset="'+ph+'"><animate attributeName="stroke-dashoffset" from="'+ph+'" to="'+(ph-per)+'" dur="0.6s" repeatCount="indefinite"/></rect>'})();
  if(ghost){var gc=BY[ghost.r],gb=ghostBad();
   if(showClr&&ghost.cl>0){var gq=cr(ghost);h+='<rect x="'+gq.x+'" y="'+gq.y+'" width="'+gq.w+'" height="'+gq.d+'" fill="'+(gb?'rgba(214,69,69,.06)':'rgba(47,111,237,.05)')+'" stroke="'+(gb?'var(--bad)':'var(--accent)')+'" stroke-width="'+(1/scale)+'" stroke-dasharray="'+(4/scale)+' '+(3/scale)+'" pointer-events="none"/>'}
   if(cdrag&&cdrag.card){/* landing preview: marching ants; the phase follows the clock so re-renders while dragging don't restart it */
@@ -1077,9 +1086,16 @@ function fitMenu(m,tl,tr,sr,cls,minL){var cr=furn?sr:svg.getBoundingClientRect()
  m.style.left=left+'px';m.style.top=Math.max(T,Math.min(Bb-mh,tr.y-sr.top))+'px'}
 var _prm=placeRMenu;placeRMenu=function(){_prm();placeIMenu()};
 function placeIMenu(){var m=$('#imenu'),it=sel&&find(sel);if(!m)return;if(!it||isRoom(it)||drag||draft||(cdrag&&cdrag.on)||cdU){m.className='rmenu';m.dataset.u='';return}
- var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x+it.w;p.y=it.y;var tr=p.matrixTransform(M);p.x=it.x;var tl=p.matrixTransform(M);
- var minL=8;if(furn){var fp=$('#fpanel').getBoundingClientRect();minL=fp.right-sr.left+8}
- if(m.dataset.u!==it.u){m.className='rmenu';void m.offsetWidth;m.dataset.u=it.u}fitMenu(m,tl,tr,sr,'',minL)}
+ /* two round icon buttons hugging the object: rotate top-left, trash top-right; each hops to another corner if it would land off the canvas */
+ var sr=stage.getBoundingClientRect(),M=svg.getScreenCTM();if(!M)return;var p=svg.createSVGPoint();p.x=it.x;p.y=it.y;var a=p.matrixTransform(M);p.x=it.x+it.w;p.y=it.y+it.d;var b=p.matrixTransform(M);
+ var cv=svg.getBoundingClientRect(),bx={l:cv.left-sr.left+4,t:cv.top-sr.top+4,r:cv.right-sr.left-4,b:cv.bottom-sr.top-4};if(furn){var fp=$('#fpanel').getBoundingClientRect();bx.l=Math.max(bx.l,fp.right-sr.left+8)}
+ var R=17,off=R+2,L=a.x-sr.left,T=a.y-sr.top,Rt=b.x-sr.left,B=b.y-sr.top,S2=2*R+6,C={tl:[L-off,T-off],tr:[Rt+off,T-off],bl:[L-off,B+off],br:[Rt+off,B+off],tl2:[L-off-S2,T-off],tr2:[Rt+off+S2,T-off],bl2:[L-off-S2,B+off],br2:[Rt+off+S2,B+off],tlu:[L-off,T-off-S2],tru:[Rt+off,T-off-S2],bld:[L-off,B+off+S2],brd:[Rt+off,B+off+S2]},used=[];
+ function inB(q){return q[0]-R>=bx.l&&q[0]+R<=bx.r&&q[1]-R>=bx.t&&q[1]+R<=bx.b}
+ function pick(order){for(var i=0;i<order.length;i++){var q=C[order[i]];if(inB(q)&&!used.some(function(u){return Math.hypot(u[0]-q[0],u[1]-q[1])<2*R+4})){used.push(q);return q}}
+  var q2=C[order[0]].slice();q2[0]=cl(q2[0],bx.l+R,bx.r-R);q2[1]=cl(q2[1],bx.t+R,bx.b-R);used.forEach(function(u){if(Math.hypot(u[0]-q2[0],u[1]-q2[1])<2*R+4)q2[1]+=2*R+6});used.push(q2);return q2}
+ var pr=pick(['tl','bl','tr','br','tr2','br2','tru','brd']),pd=pick(['tr','br','tl','bl','tl2','bl2','tlu','bld']),br=$('#im-rot'),bd=$('#im-del');
+ if(m.dataset.u!==it.u){m.className='rmenu omenu';void m.offsetWidth;m.dataset.u=it.u}m.className='rmenu omenu show';
+ br.style.left=(pr[0]-R)+'px';br.style.top=(pr[1]-R)+'px';bd.style.left=(pd[0]-R)+'px';bd.style.top=(pd[1]-R)+'px'}
 function rotateObj(it){var r=roomOf(it),cx=it.x+it.w/2,cy=it.y+it.d/2,nw=it.d,nd=it.w,rect={x:snap(cx-nw/2),y:snap(cy-nd/2),w:nw,d:nd};
  if(r&&!fitInto(rect,r)){flash('Not enough room to turn it here');return}snapshot();it.x=rect.x;it.y=rect.y;it.w=nw;it.d=nd;it.rot=((it.rot||0)+1)%4;commit()}
 $('#im-rot').onclick=function(e){e.stopPropagation();var it=sel&&find(sel);if(it&&!isRoom(it))rotateObj(it)};
