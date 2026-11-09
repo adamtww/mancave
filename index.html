@@ -566,6 +566,15 @@ body.touch .vtog button{height:35px;width:36px}
 .rpe-info .rpes-c{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:100%}
 .rpe-info .rpes-k{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;font-size:14px;color:#3a372f}
 .rpe-info .rpes-k svg{flex:none}.rpe-info .rpes-k b{font-weight:700}
+
+/* Rooms list (Rooms mode, nothing selected) */
+.rlst{padding:2px 0 10px}.rlst .rlh{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:#8a857a;text-transform:uppercase;padding:4px 4px 10px}
+.rcard{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;width:100%;height:96px;padding:10px 12px;margin:0 0 10px;border:1px solid #e6e3dc;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(40,36,28,.05);box-sizing:border-box;cursor:pointer;font:inherit;text-align:left;font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
+.rcard:hover{border-color:#cfd9ef}.rcard:active{transform:scale(.99)}
+.rcard .th{width:72px;height:72px;border-radius:12px;background:#faf9f6;display:flex;align-items:center;justify-content:center}
+.rcard .tx{min-width:0;display:block}.rcard b.nm{display:block;font-size:14.5px;color:#2b2a27;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.rcard .q{display:grid;grid-template-columns:16px 1fr auto;column-gap:6px;align-items:center;font-size:12px;color:#8a857a;line-height:1.45}.rcard .q b{font-weight:700;color:#2b2a27;font-size:12.5px;text-align:right}.rcard .q b.z{color:#c0bab0}.rcard .q svg{width:13px;height:13px}
+.rpane .lbody{overflow:auto}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1699,10 +1708,20 @@ var RPI={exp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
  shp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h9v5h5v9H5z"/><rect x="3" y="3" width="4" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="17" y="17" width="4" height="4" rx="1" fill="currentColor" stroke="none"/><path d="M10.5 19v2M12 3v2" stroke-width="2.4"/></svg>',
  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>'};
 var rpPicking=false;
+/* Rooms mode, nothing selected: a list of the rooms (shape, name, sq ft, objects, kW); tap one to jump to it */
+function roomThumb(r,size){var ps=roomParts(r),x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;ps.forEach(function(p){x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+p.w);y1=Math.max(y1,p.y+p.d)});
+ var W=x1-x0,H=y1-y0,m=Math.max(W,H)*1.12,c=r.col||'#f3f1ec',rs=ps.map(function(p){return '<rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.d+'" fill="'+c+'"/>'}).join('');
+ return '<svg width="'+size+'" height="'+size+'" viewBox="'+(x0+W/2-m/2)+' '+(y0+H/2-m/2)+' '+m+' '+m+'"><g stroke="#2b2a27" stroke-width="'+(m*1.6/size)+'">'+rs+'</g><g>'+rs+'</g></svg>'}
+var RL_IC={sq:'<svg viewBox="0 0 24 24" fill="none" stroke="#8a857a" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>',ob:'<svg viewBox="0 0 24 24" fill="none" stroke="#8a857a" stroke-width="2"><rect x="3" y="8" width="8" height="8" rx="1"/><rect x="13" y="5" width="8" height="12" rx="1"/></svg>',kw:'<svg viewBox="0 0 24 24" fill="#e8b33a"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>'};
+function roomListHTML(){var rs=S.items.filter(isRoom);if(!rs.length)return '';
+ return '<div class="rlst"><div class="rlh">Your rooms</div>'+rs.map(function(r){var n=contents(r).length,kw=roomPower2(r).w/1000,a=Math.round(roomArea(r));
+  return '<button class="rcard" data-u="'+r.u+'"><span class="th">'+roomThumb(r,60)+'</span><span class="tx"><b class="nm">'+escH(r.name)+'</b><span class="q">'+RL_IC.sq+'<span>Sq ft</span><b>'+a.toLocaleString('en-US')+'</b>'+RL_IC.ob+'<span>Objects</span><b class="'+(n?'':'z')+'">'+n+'</b>'+RL_IC.kw+'<span>kW</span><b class="'+(kw?'':'z')+'">'+kw.toFixed(1)+'</b></span></span></button>'}).join('')+'</div>'}
+document.addEventListener('click',function(e){var c=e.target.closest&&e.target.closest('#rp-b .rcard');if(!c)return;var r=find(c.dataset.u);if(!r)return;
+ var bb=roomBox(r);cam.cx=bb.x+bb.w/2;cam.cy=bb.y+bb.d/2;sel=r.u;render()});
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
  if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
  if(rpPicking&&!force)return;
- if(!it||!isRoom(it)){if(b.dataset.u!==''||force)b.innerHTML='';b.dataset.u='';return}
+ if(!it||!isRoom(it)){var lh=roomListHTML();if(b.dataset.u!==''||force||b.dataset.sig!==lh){b.innerHTML=lh;b.dataset.sig=lh}b.dataset.u='';return}
  var key=it.u+'|'+it.name+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'')+'|'+(it.ph?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;
  var head='<h3>'+esc(it.name)+'</h3>';
  var nameBar='<label class="rpnm"><span class="rpdot" style="background:'+(it.col||'#faf9f6')+'"></span><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Name this room" value="'+esc(it.ph?'':it.name)+'"><span class="rppen">'+RPI.pen+'</span></label>';
