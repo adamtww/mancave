@@ -559,6 +559,13 @@ body.touch .vtog button{height:35px;width:36px}
 .dxe .ks{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:100%}
 .dxe .k{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;font-size:14px;color:#3a372f;box-sizing:border-box}
 .dxe .k svg{flex:none}.dxe .k b{font-weight:700}
+.rpe-info .rpes{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:22px}
+.rpe-info .rpes-hero{width:120px;height:90px;margin-bottom:16px}
+.rpe-info .rpes h4{margin:0 0 6px;font-size:17px;font-weight:700;color:var(--ink,#24221e)}
+.rpe-info .rpes p{margin:0;font-size:13.5px;color:#8a857a;line-height:1.5;max-width:230px}
+.rpe-info .rpes-c{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:100%}
+.rpe-info .rpes-k{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;font-size:14px;color:#3a372f}
+.rpe-info .rpes-k svg{flex:none}.rpe-info .rpes-k b{font-weight:700}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1117,7 +1124,8 @@ function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=
  Array.prototype.forEach.call(document.querySelectorAll('#lib .lcard'),function(c){c.classList.toggle('sel',c.dataset.r===libPick)});
  if(!it&&libPick&&BY[libPick]&&viewMode==='objects'){var lc=BY[libPick],n=placedCount(libPick);h.textContent=lc.n.replace(/ \(\$[^)]*\)/,'');
   b.innerHTML=objCard({r:libPick,name:lc.n,x:-1e4,y:-1e4,w:lc.w,d:lc.d,rot:0,lib:1})+'<div class="irow"><span>On the plan</span><b>'+(n?n+' placed':'none yet')+'</b></div><div class="in2 lpk">Drag the card onto a room to place it.</div>';return}
- h.classList.toggle('icen',!it&&viewMode==='objects');
+ h.classList.toggle('icen',!it&&(viewMode==='objects'||viewMode==='rooms'));
+ if(!it&&viewMode==='rooms'&&!furn){h.textContent='Details';b.innerHTML='<div class="rpe-info">'+ROOM_EMPTY+'</div>';return}
  if(!it&&viewMode==='objects'){h.textContent='Details';/* Objects mode, nothing picked: an empty state matching the Rooms panel */
   b.innerHTML='<div class="dxe"><svg class="hero" viewBox="0 0 120 90" aria-hidden="true"><rect x="8" y="8" width="104" height="66" rx="6" fill="#faf9f6" stroke="#c9c5bb" stroke-width="2"/><rect x="40" y="26" width="34" height="28" rx="3" fill="#e8e5de" stroke="#2f6fed" stroke-width="2.2" stroke-dasharray="5 3"/><rect x="18" y="16" width="16" height="12" rx="2" fill="#e8e5de" stroke="#9d988c" stroke-width="1.5"/><rect x="84" y="50" width="18" height="16" rx="2" fill="#e8e5de" stroke="#9d988c" stroke-width="1.5"/><path d="M64 48l14 6-6 2-2 6z" fill="#24221e"/></svg><h4>No object selected</h4><p>Tap an object to see its details here.</p><div class="ks"><div class="k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 6-5 2-2 5z"/></svg><span><b>Tap an object</b> on the plan</span></div><div class="k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8873e" stroke-width="2" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 7h16"/></svg><span><b>Tap a card</b> in Add Objects</span></div></div></div>';return}
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+roomArea(r)},0);h.textContent=S.name||'Warehouse';
@@ -1238,6 +1246,7 @@ var CAN_ML=16;
 var INFO_GAP=14,UNDO_H=74;
 /* how far the top bar reaches into the canvas area (Safari can render it taller than its slot) */
 function barOverlap(){if(furn)return 0;var h=$('#hist');if(!h||!stage)return 0;return Math.max(0,Math.ceil(h.getBoundingClientRect().bottom-stage.getBoundingClientRect().top))}
+var ROOM_EMPTY='<div class="rpes"><svg class="rpes-hero" viewBox="0 0 120 90" aria-hidden="true"><rect x="6" y="10" width="62" height="50" rx="4" fill="#eef3fd" stroke="#2f6fed" stroke-width="2"/><rect x="68" y="10" width="44" height="50" rx="4" fill="#fff" stroke="#c9c5bb" stroke-width="2" stroke-dasharray="5 4"/><path d="M90 28v14M83 35h14" stroke="#3f8a4f" stroke-width="2.5" stroke-linecap="round"/><path d="M40 52l14 6-6 2-2 6z" fill="#24221e"/></svg><h4>No room selected</h4><p>Tap a room to change it, or create a new one.</p><div class="rpes-c"><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 6-5 2-2 5z"/></svg><span><b>Tap a room</b> to edit it</span></div><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f8a4f" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span><b>Tap empty space</b> to add a room</span></div></div></div>';
 var infNat=0;
 /* top bar spans the canvas: undo/redo on the left, mode switch centred over the canvas, view switch on the right */
 function barParts(ub){var k=ub.children,ur=0,md=null,vt=null,i;for(i=0;i<k.length;i++){var c=k[i];if(c.classList.contains('mcol'))md=c;else if(c.id==='vtog')vt=c;else if(!md)ur+=c.offsetWidth+8}return {ur:ur,md:md,vt:vt}}
@@ -1693,7 +1702,7 @@ var rpPicking=false;
 function renderRoomsPane(force){var b=$('#rp-b');if(!b)return;var it=sel&&find(sel);
  if(xp&&(!it||it.u!==xp.u||viewMode!=='rooms'||furn)){xpRestore();xp=null;force=true}
  if(rpPicking&&!force)return;
- if(!it||!isRoom(it)){if(b.dataset.u!==''||force||!b.innerHTML)b.innerHTML='<div class="rpes"><svg class="rpes-hero" viewBox="0 0 120 90" aria-hidden="true"><rect x="6" y="10" width="62" height="50" rx="4" fill="#eef3fd" stroke="#2f6fed" stroke-width="2"/><rect x="68" y="10" width="44" height="50" rx="4" fill="#fff" stroke="#c9c5bb" stroke-width="2" stroke-dasharray="5 4"/><path d="M90 28v14M83 35h14" stroke="#3f8a4f" stroke-width="2.5" stroke-linecap="round"/><path d="M40 52l14 6-6 2-2 6z" fill="#24221e"/></svg><h4>No room selected</h4><p>Tap a room to change it, or create a new one.</p><div class="rpes-c"><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 6-5 2-2 5z"/></svg><span><b>Tap a room</b> to edit it</span></div><div class="rpes-k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f8a4f" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span><b>Tap empty space</b> to add a room</span></div></div></div>';b.dataset.u='';return}
+ if(!it||!isRoom(it)){if(b.dataset.u!==''||force)b.innerHTML='';b.dataset.u='';return}
  var key=it.u+'|'+it.name+'|'+(xp?xp.mode:0)+'|'+(it.sz?1:0)+'|'+(it.col||'')+'|'+(it.ph?1:0);if(!force&&b.dataset.u===key)return;b.dataset.u=key;
  var head='<h3>'+esc(it.name)+'</h3>';
  var nameBar='<label class="rpnm"><span class="rpdot" style="background:'+(it.col||'#faf9f6')+'"></span><input id="rp-nm" type="text" maxlength="40" autocomplete="off" placeholder="Name this room" value="'+esc(it.ph?'':it.name)+'"><span class="rppen">'+RPI.pen+'</span></label>';
