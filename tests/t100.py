@@ -11,12 +11,12 @@ plan={"lot":{"w":100,"d":100},"items":[{"u":"r1","kind":"room","name":"Room 1","
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox"])
-        for (w,h) in [(1133,744),(1180,820),(1376,1032)]:
+        for (w,h) in [(1133,744),(1180,820),(1376,1032),(1707,960),(1920,1080)]:
             ctx=await b.new_context(viewport={"width":w,"height":h},device_scale_factor=2,has_touch=True)
             pg=await ctx.new_page();errs=[];pg.on("pageerror",lambda e:errs.append(str(e)))
             await pg.goto(f"http://127.0.0.1:{PORT}/index.html");await pg.evaluate("p=>{localStorage.clear();localStorage.setItem('cave-token','x');localStorage.setItem('cave-api','http://127.0.0.1:9');localStorage.setItem('cave-build',p)}",json.dumps(plan));await pg.reload();await pg.wait_for_timeout(2500)
             await pg.click("#rotog [data-m=objects]");await pg.wait_for_timeout(500)
-            g=await pg.evaluate("(()=>{var v=document.querySelector('#vtog').getBoundingClientRect(),i=document.querySelector('#info').getBoundingClientRect(),r=document.querySelector('#rotog').getBoundingClientRect();return {vt:[v.left,v.right,v.top,v.bottom],info:i.left,rotog:[r.top,r.bottom]}})()")
+            g=await pg.evaluate("(()=>{var v=document.querySelector('#vtog').getBoundingClientRect(),i=document.querySelector('#info').getBoundingClientRect(),r=document.querySelector('#rotog').getBoundingClientRect(),s=document.querySelector('#svg').getBoundingClientRect(),u=document.querySelector('#redo').getBoundingClientRect();return {svg:[Math.round(s.left),Math.round(s.right)],modeMid:Math.round((r.left+r.right)/2),svgMid:Math.round((s.left+s.right)/2),vtR:Math.round(v.right),info:Math.round(i.left),redoR:Math.round(u.right),modeL:Math.round(r.left)}})()")
             print(w,g)
             await pg.screenshot(path=f"vt_{w}_off.png")
             await pg.click("#vtog [data-a=off]");await pg.wait_for_timeout(300);a1=await pg.evaluate("document.querySelectorAll('#svg g.ob g[transform]').length");await pg.click("#vtog [data-a=off]");await pg.wait_for_timeout(300);print(" after 1 tap on box btn:",a1)
