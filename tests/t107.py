@@ -15,7 +15,7 @@ async def main():
         pg=await ctx.new_page();errs=[];pg.on("pageerror",lambda e:errs.append(str(e)))
         await pg.goto(f"http://127.0.0.1:{PORT}/index.html");await pg.evaluate("p=>{localStorage.clear();localStorage.setItem('cave-token','x');localStorage.setItem('cave-api','http://127.0.0.1:9');localStorage.setItem('cave-build',p)}",json.dumps(plan));await pg.reload();await pg.wait_for_timeout(2500)
         await pg.click("#rotog [data-m=summary]");await pg.wait_for_timeout(700)
-        print("pane:",await pg.inner_text("#spane .lt"),"|",await pg.inner_text("#spane .sp-b"),"| visible:",await pg.evaluate("!document.querySelector('#spane').classList.contains('away')&&document.querySelector('#lib').classList.contains('away')&&document.querySelector('#rpane').classList.contains('away')"))
+        print("pane:",await pg.inner_text("#spane .lt"),"|",(await pg.inner_text("#spane .sp-b")).replace("\n"," ")[:90],"| right:",await pg.inner_text("#info-h"),(await pg.inner_text("#info-b")).replace("\n"," "),"| visible:",await pg.evaluate("!document.querySelector('#spane').classList.contains('away')&&document.querySelector('#lib').classList.contains('away')&&document.querySelector('#rpane').classList.contains('away')"))
         async def W(x,y): return await pg.evaluate("([x,y])=>{var s=document.querySelector('#svg'),m=s.getScreenCTM(),p=s.createSVGPoint();p.x=x;p.y=y;p=p.matrixTransform(m);return [p.x,p.y]}",[x,y])
         cdp=await ctx.new_cdp_session(pg)
         async def tap(x,y):
@@ -32,6 +32,6 @@ async def main():
         await pg.keyboard.press("Delete");await pg.wait_for_timeout(200)
         print("after Delete key rooms:",await pg.evaluate("JSON.parse(localStorage.getItem('cave-build')).items.filter(i=>i.kind==='room').length"))
         x,y=await W(85,85);await tap(x,y)
-        print("tap empty -> info:",await pg.inner_text("#info-h"),"| emenu:",await pg.evaluate("document.querySelector('#emenu').classList.contains('show')"),errs)
+        await pg.screenshot(path="t107.png");print("tap empty -> info:",await pg.inner_text("#info-h"),"| emenu:",await pg.evaluate("document.querySelector('#emenu').classList.contains('show')"),errs)
         await b.close()
 asyncio.run(main());srv.shutdown()
