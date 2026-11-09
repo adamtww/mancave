@@ -550,6 +550,15 @@ body.touch .vtog button{height:35px;width:36px}
 #imenu.omenu .rmb{position:absolute;width:34px;height:34px;min-width:0;padding:0!important;margin:0!important;border-radius:50%;justify-content:center;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,.18)}
 #imenu.omenu .rmb span{display:none}
 #imenu.omenu .rmb svg{width:17px;height:17px}
+
+/* Objects mode empty Details panel */
+#info-h.icen{text-align:center}
+.dxe{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 4px 8px}
+.dxe .hero{width:120px;height:90px;margin-bottom:16px}
+.dxe h4{margin:0 0 6px;font-size:17px;font-weight:700;color:#24221e}.dxe p{margin:0;font-size:13.5px;color:#8a857a;line-height:1.5;max-width:240px}
+.dxe .ks{display:flex;flex-direction:column;gap:10px;margin-top:22px;width:100%}
+.dxe .k{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;font-size:14px;color:#3a372f;box-sizing:border-box}
+.dxe .k svg{flex:none}.dxe .k b{font-weight:700}
 </style></head><body>
 <div class="app">
  <div class="top">
@@ -1108,6 +1117,9 @@ function renderInfo(){var h=$('#info-h'),b=$('#info-b');if(!h||!b)return;var it=
  Array.prototype.forEach.call(document.querySelectorAll('#lib .lcard'),function(c){c.classList.toggle('sel',c.dataset.r===libPick)});
  if(!it&&libPick&&BY[libPick]&&viewMode==='objects'){var lc=BY[libPick],n=placedCount(libPick);h.textContent=lc.n.replace(/ \(\$[^)]*\)/,'');
   b.innerHTML=objCard({r:libPick,name:lc.n,x:-1e4,y:-1e4,w:lc.w,d:lc.d,rot:0,lib:1})+'<div class="irow"><span>On the plan</span><b>'+(n?n+' placed':'none yet')+'</b></div><div class="in2 lpk">Drag the card onto a room to place it.</div>';return}
+ h.classList.toggle('icen',!it&&viewMode==='objects');
+ if(!it&&viewMode==='objects'){h.textContent='Details';/* Objects mode, nothing picked: an empty state matching the Rooms panel */
+  b.innerHTML='<div class="dxe"><svg class="hero" viewBox="0 0 120 90" aria-hidden="true"><rect x="8" y="8" width="104" height="66" rx="6" fill="#faf9f6" stroke="#c9c5bb" stroke-width="2"/><rect x="40" y="26" width="34" height="28" rx="3" fill="#e8e5de" stroke="#2f6fed" stroke-width="2.2" stroke-dasharray="5 3"/><rect x="18" y="16" width="16" height="12" rx="2" fill="#e8e5de" stroke="#9d988c" stroke-width="1.5"/><rect x="84" y="50" width="18" height="16" rx="2" fill="#e8e5de" stroke="#9d988c" stroke-width="1.5"/><path d="M64 48l14 6-6 2-2 6z" fill="#24221e"/></svg><h4>No object selected</h4><p>Tap an object to see its details here.</p><div class="ks"><div class="k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l12 6-5 2-2 5z"/></svg><span><b>Tap an object</b> on the plan</span></div><div class="k"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8873e" stroke-width="2" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 7h16"/></svg><span><b>Tap a card</b> in Add Objects</span></div></div></div>';return}
  if(!it){var ra=S.items.filter(isRoom).reduce(function(a,r){return a+roomArea(r)},0);h.textContent=S.name||'Warehouse';
   b.innerHTML='<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(S.lot.w*S.lot.d)+'</b></div><div class="irow"><span>Square Footage of Rooms:</span><b>'+fmtSf(ra)+'</b></div>'+sitePowerCard();return}
  h.textContent=it.name||'';b.innerHTML=isRoom(it)?'<div class="irow"><span>Total Square Footage:</span><b>'+fmtSf(roomArea(it))+'</b></div>'+roomPowerCard(it):objCard(it)}
