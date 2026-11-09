@@ -1899,6 +1899,7 @@ function rpBind(it){var u=it.u,inp=$('#rp-nm');
  ci.onblur=function(){if(rpPicking&&!snap)rpPicking=false};
  $('#rp-del').onclick=function(){var r=sel&&find(sel);if(r&&isRoom(r))askRemove(r)}}
 var _renderRP=render;render=function(){_renderRP.apply(this,arguments);renderRoomsPane();document.body.classList.toggle('xpon',!!xp)};renderRoomsPane();
+function modeNow(m){if(viewMode===m)return;if(typeof emAt!=='undefined'&&emAt)hideEmenu();viewMode=m;sel=null;libPick=null;if(typeof rnU!=='undefined'&&rnU)closeRename(true);applyMode2(false);var t=$('#rotog');t.classList.toggle('obj',m==='objects');t.classList.toggle('sum',m==='summary');t.querySelectorAll('button').forEach(function(x){var on=x.dataset.m===m;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})}
 $('#rotog').onclick=function(e){var b=e.target.closest('button');if(!b||b.dataset.m===viewMode)return;if(emRect&&emAt){emAskDiscard(function(){hideEmenu();b.click()},function(){b.click()});return}viewMode=b.dataset.m;sel=null;libPick=null;if(typeof rnU!=='undefined'&&rnU)closeRename(true);applyMode2(true);render();var t=$('#rotog');t.classList.toggle('obj',viewMode==='objects');t.classList.toggle('sum',viewMode==='summary');t.querySelectorAll('button').forEach(function(x){var on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})};
 $('#undo').onclick=undo;$('#redo').onclick=redo;
 function zoomCenter(f){var r=stage.getBoundingClientRect();scale=clampScale(scale*f);render()}
@@ -2199,7 +2200,7 @@ function openInitial0(){var localData=packData(),localKey=JSON.stringify({lot:lo
 function openLayout(id,o){o=o||{};return api('GET','/api/layouts/'+id).then(function(j){var l=j.layout,key=JSON.stringify({lot:l.data.lot,items:l.data.items});
   applyData(l.data,l.name);setCur(l,packKey());
   if(o.restoreLocal&&o.restoreLocal!==savedJSON&&o.localData){applyData(o.localData,l.name);cloudUI();flash('Restored your unsaved changes')}
-  closeModal();render()})}
+  closeModal();modeNow('summary');sel=null;render()})}
 function createLayout(name,data,basedOn,msg){cloudBusy=true;cloudUI();return api('POST','/api/layouts',{name:name,data:data,based_on:basedOn||undefined}).then(function(j){cloudBusy=false;
   S.name=j.layout.name;setCur(j.layout,packKey());render();flash(msg||'Saved');return j.layout}).catch(function(e){cloudBusy=false;cloudUI();flash(e.message);throw e})}
 function saveLayout(){if(!me||cloudBusy)return;if(sizingRoom()){nudgeConfirm&&nudgeConfirm();return}var data=packData(),key=JSON.stringify({lot:data.lot,items:data.items});

@@ -33,5 +33,5 @@ async def main():
         await pg.click("#mdl-b [data-k=open]");await pg.wait_for_timeout(1200)
         print("posts:",[(x["name"],x.get("based_on")) for x in posts])
         print("modal open:",await pg.evaluate("!!document.querySelector('#mdl.show')"),"title:",await pg.evaluate("document.querySelector('#ly-name,.lyname')?.textContent"))
-        print("errs",errs);await b.close()
+        print("mode:",await pg.evaluate("document.body.className"),await pg.evaluate("document.querySelector('#rotog .on').dataset.m"));print("errs",errs);await b.close()
 asyncio.run(main())
