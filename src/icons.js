@@ -191,6 +191,26 @@ Object.assign(ICONS,{
   return s+bx(-1.2,-1.6,2.4,3.2,'#6b6862',{rx:0.3})+bx(-0.8,-0.6,1.6,1.9,'#3f3d38',{rx:0.35})+iC(0,-1.15,0.45,{stroke:'#e3e1dc','stroke-width':0.12})}
 });
 ICONS['m-mf800']=ICONS['m-mf1200'];
+
+/* ---- furniture, bar and kitchen additions ---- */
+var FAB='#b9c6d6',FABD='#9aaabe';
+Object.assign(ICONS,{
+ 'l-barc':function(W,D){var s=bx(-W/2,-D/2,W,D,WOOD,{rx:0.12})+bx(-W/2,-D/2,W,D*0.45,WOODD,{rx:0.1})+hatch(-W/2,-D/2,W,D*0.45,12,{stroke:'#a88b5e'});return s+iL(-W/2+0.2,D/2-0.18,W/2-0.2,D/2-0.18,{stroke:WOODD,'stroke-width':0.1})+bx(-W/2+1,-D/2+0.15,1.3,0.75,WATER,{rx:0.1})},
+ 'l-rail':function(W,D){var s=bx(-W/2,-D/2,W,D*0.6,WOOD,{rx:0.1})+iL(-W/2+0.2,-D/2+D*0.3,W/2-0.2,-D/2+D*0.3,{stroke:WOODD,'stroke-width':0.06});for(var i=0;i<6;i++)s+=iC(-W/2+1.2+i*(W-2.4)/5,-D/2+D*0.3,0.18,{fill:['#c88a4a','#e8c86a','#7fae7f'][i%3]});return s+iL(-W/2+0.3,D/2-0.1,W/2-0.3,D/2-0.1,{stroke:'#8a877f','stroke-width':0.1})},
+ 'f-stool':function(W,D){var r=Math.min(W,D)/2;return iC(0,0,r*0.95,{fill:'#8a877f'})+iC(0,0,r*0.62,{fill:'#b0aca3'})+iC(0,0,r*0.2,{stroke:'#8a877f'})},
+ 'f-sofa':function(W,D){var s=bx(-W/2,-D/2,W,D,FABD,{rx:0.35})+bx(-W/2+0.6,-D/2+0.7,W-1.2,D-0.8,FAB,{rx:0.25});for(var i=1;i<3;i++){var x=-W/2+0.6+(W-1.2)*i/3;s+=iL(x,-D/2+0.8,x,D/2-0.15,{stroke:FABD,'stroke-width':0.06})}return s},
+ 'f-chair':function(W,D){return bx(-W/2,-D/2,W,D,FABD,{rx:0.35})+bx(-W/2+0.55,-D/2+0.7,W-1.1,D-0.8,FAB,{rx:0.22})+iL(-W/2+0.55,D/2-0.45,W/2-0.55,D/2-0.45,{stroke:FABD,'stroke-width':0.05,'stroke-dasharray':'0.12 0.1'})},
+ 'f-coffee':function(W,D){return bx(-W/2,-D/2,W,D,WOOD,{rx:Math.min(W,D)*0.25})+bx(-W/2+0.25,-D/2+0.25,W-0.5,D-0.5,'none',{rx:Math.min(W,D)*0.18,stroke:WOODD,'stroke-width':0.05})+iC(W*0.2,0,0.22,{fill:WHITE})},
+ 'f-tv':function(W,D){return bx(-W/2,-D/2+D*0.35,W,D*0.65,WOOD,{rx:0.08})+hatch(-W/2,-D/2+D*0.35,W,D*0.65,4,{stroke:WOODD})+scr(-W*0.47,-D/2+0.12,W*0.47,-D/2+0.12,0.22)+bx(-W*0.28,-D/2+D*0.42,W*0.56,0.22,SCR,{rx:0.1,stroke:'none'})},
+ 'f-dine8':function(W,D){var s='',cw=1.4,cd=1.1;for(var i=0;i<3;i++){var x=-W/2+W*(i+0.5)/3;s+=bx(x-cw/2,-D/2-cd*0.55,cw,cd,MAT,{rx:0.18})+bx(x-cw/2,D/2-cd*0.45,cw,cd,MAT,{rx:0.18})}
+  s+=bx(-W/2-cd*0.55,-cw/2,cd,cw,MAT,{rx:0.18})+bx(W/2-cd*0.45,-cw/2,cd,cw,MAT,{rx:0.18});return s+bx(-W/2+0.1,-D/2+0.1,W-0.2,D-0.2,WOOD,{rx:0.15})+hatchY(-W/2+0.1,-D/2+0.1,W-0.2,D-0.2,3,{stroke:WOODD})},
+ 'f-round4':function(W,D){var r=Math.min(W,D)/2,s='';[0,90,180,270].forEach(function(a){var t=a*Math.PI/180;s+=rot(Math.sin(t)*r*0.95,-Math.cos(t)*r*0.95,a,bx(-0.65,-0.55,1.3,1.1,MAT,{rx:0.2}))});return s+iC(0,0,r*0.78,{fill:WOOD})+iC(0,0,r*0.55,{stroke:WOODD,'stroke-width':0.05})},
+ 'kr-prep':function(W,D){return body(W,D,'#f1eee8')+iL(-W/2,-D/2+0.12,W/2,-D/2+0.12,{stroke:DARK})+bx(-W*0.32,-D*0.18,W*0.64,D*0.5,'#e2d3b4',{rx:0.06})+iL(-W/2,D/2-0.08,W/2,D/2-0.08,{stroke:DARK})+iC(W*0.3,-D*0.28,0.08,{fill:DARK})},
+ 'kr-sink':function(W,D){return body(W,D,'#f1eee8')+basin(-W*0.38,-D*0.18,W*0.76,D*0.62)+faucet(0,-D/2+0.22)+iL(-W/2,D/2-0.08,W/2,D/2-0.08,{stroke:DARK})},
+ 'kr-freezer':function(W,D){return body(W,D,WHITE)+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.25,'#e3eef6',{rx:0.05})+iL(-W/2,D/2-D*0.12,W/2,D/2-D*0.12,{'stroke-dasharray':'0.15 0.1'})+iL(W/2-0.35,D/2-0.02,W/2-0.35,D/2-D*0.4,{'stroke-width':0.12})+iP('M-0.25 -0.15 l0.25 0.25 l0.25 -0.25 M0 -0.35 v0.7 M-0.3 0 h0.6',{stroke:'#8fb6e0','stroke-width':0.08})},
+ 'kr-pantry':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.06})+hatch(-W/2,-D/2,W,D,3,{stroke:'#bdb8ad','stroke-width':0.06}),c=['#e8c86a','#c88a4a','#7fae7f','#e07a6a','#8fb6e0','#f2e6c9'];
+  for(var i=0;i<9;i++)s+=bx(-W/2+0.25+i*(W-0.5)/9,-D/2+0.3,(W-0.5)/9-0.12,D-0.6,c[i%6],{rx:0.06,'stroke-width':0.03});return s}
+});
 /* place a symbol on an item: rotate so the drawing's front matches the item's front */
 function iconFor(it){var f=ICONS[it.r];if(!f)return '';var rot=(it.rot||0)%4,W=rot%2?it.d:it.w,D=rot%2?it.w:it.d,cx=it.x+it.w/2,cy=it.y+it.d/2;
  return '<g transform="translate('+cx+','+cy+') rotate('+(rot*90)+')" pointer-events="none">'+f(W,D)+'</g>'}

@@ -1,5 +1,5 @@
 var CATS=[
- ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],
+ ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],
  ["Kitchen – Residential","#ffd166"],["Kitchen – Commercial","#ffb000"],["Fitness","#3ddc97"],["Court & Rink","#34c3ff"],
  ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Indoor Garden","#7bd389"],["Wishlist","#d0d0e0"]];
 var CATCOLOR={};CATS.forEach(function(c){CATCOLOR[c[0]]=c[1]});
@@ -61,12 +61,25 @@ var CATALOG=[
  {r:"l-fridge",c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1},
  {r:"l-seat",c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0},
  {r:"l-tv",c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1},
+ {r:"l-barc",c:"Bar & Lounge",n:"Bar counter (straight, 12 ft)",w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights."},
+ {r:"l-rail",c:"Bar & Lounge",n:"Drink rail / long high-top (15 ft)",w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft)."},
+ {r:"f-stool",c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center."},
+ {r:"f-sofa",c:"Furniture & Seating",n:"Sofa (3-seat)",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table."},
+ {r:"f-chair",c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw)."},
+ {r:"f-coffee",c:"Furniture & Seating",n:"Coffee table",w:4,d:2,cl:1.5,p:null,no:"About two-thirds the sofa's length; leave 14–18 in to the sofa."},
+ {r:"f-tv",c:"Furniture & Seating",n:"TV (75–85 in) + media console",w:6.5,d:1.5,cl:0,p:[120,500,20,0],est:1,no:"An 85 in TV draws roughly 200–475 W depending on the model; the rest covers a soundbar or console."},
+ {r:"f-dine8",c:"Furniture & Seating",n:"Dining table, seats 8",w:7,d:3.5,cl:3,p:null,no:"84 × 40 in is a common 8-seat size. Clearance is the 36 in needed to pull chairs out."},
+ {r:"f-round4",c:"Furniture & Seating",n:"Round table, seats 4",w:4,d:4,cl:3,p:null,no:"42–48 in round seats four. Clearance is for pulling chairs out."},
  // Kitchen residential
  {r:"kr-range",c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1},
  {r:"kr-fridge",c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1]},
  {r:"kr-dw",c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1},
  {r:"kr-micro",c:"Kitchen – Residential",n:"Microwave (home)",w:2,d:1.5,cl:0,p:[120,1500,20,1],ov:1},
  {r:"kr-counter",c:"Kitchen – Residential",n:"Counter + sink run (10 ft)",w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets."},
+ {r:"kr-prep",c:"Kitchen – Residential",n:"Prep counter (3 ft base cabinet)",w:3,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters."},
+ {r:"kr-sink",c:"Kitchen – Residential",n:"Kitchen sink + disposal (3 ft)",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit."},
+ {r:"kr-freezer",c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it."},
+ {r:"kr-pantry",c:"Kitchen – Residential",n:"Pantry / storage shelving (6 ft)",w:6,d:2,cl:3,cf:1,p:null},
  // Kitchen commercial
  {r:"kc-range",c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"]},
  {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"]},
