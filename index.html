@@ -270,7 +270,7 @@ body:not(.isadmin) .umenu .adm{display:none}
 .mrow .mn{font-size:14.5px;color:#2b2a27;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrow .mn em{font-style:normal;font-size:11px;font-weight:700;color:#1f4fbf;background:#eef3fd;border-radius:5px;padding:1px 6px;margin-left:6px}
 .mrow .ms{font-size:12px;color:var(--muted);margin-top:2px}
-.mrow .ma{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mrow .ma{display:flex;gap:6px;flex-wrap:nowrap;justify-content:flex-end;flex-shrink:0}
 .mbtn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:#3d3b36;white-space:nowrap}
 .mbtn:hover{background:#f4f2ed}
 .mbtn.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
@@ -606,7 +606,7 @@ body.mode-summary #undo,body.mode-summary #redo{opacity:.35;pointer-events:none}
 .hb.newbtn{background:#fff;color:#2b2a27;font-weight:600}
 /* Layouts dialog: pinned near the top, grows downward, list scrolls if it would run off the screen */
 .mdl.mtop{align-items:flex-start;padding-top:10vh;box-sizing:border-box}
-.mdl.mtop .mbox{max-height:calc(100vh - 10vh - 24px)}
+.mdl.mtop .mbox{max-height:calc(100vh - 10vh - 24px);width:min(820px,94vw)}
 /* the app fills the window and never scrolls as a page (fixes stray PC scroll bars) */
 html,body{overflow:hidden}
 .mid>.hist{box-sizing:border-box;max-width:100vw}
@@ -2247,18 +2247,15 @@ function renderLayouts(){var mine=lyCache.filter(function(l){return l.owner_id==
  list.forEach(function(l){var open=cur&&cur.id===l.id;
   h+='<div class="mrow" data-id="'+l.id+'"><div class="mi"><div class="mn">'+escH(l.name)+(open?'<em>open</em>':'')+'</div><div class="ms">'+(lyTab==='mine'?'':'by <b>'+escH(l.owner)+'</b> · ')+'saved '+ago(l.updated_at)+(l.based_on_name?' · based on “'+escH(l.based_on_name)+'”'+(l.based_on_owner?' by '+escH(l.based_on_owner):''):'')+'</div></div><div class="ma">';
   h+=(open?'':'<button class="mbtn pri" data-k="open">Open</button>')+'<button class="mbtn" data-k="hist">History</button>';
-  if(lyTab==='mine')h+='<button class="mbtn" data-k="ren">Rename</button><button class="mbtn" data-k="dup">Duplicate</button><button class="mbtn red" data-k="del">Delete</button>';
-  else h+='<button class="mbtn" data-k="copy">Make my copy</button>';
+  if(lyTab==='mine')h+='<button class="mbtn" data-k="ren">Rename</button><button class="mbtn red" data-k="del">Delete</button>';
   h+='</div></div>'});
  $('#mdl-b').innerHTML=h;
  $('#mdl-b').onclick=function(e){var t=e.target.closest('[data-tab]');if(t){lyTab=t.dataset.tab;renderLayouts();return}var k=e.target.closest('[data-k]');if(!k)return;var row=k.closest('.mrow'),id=row?+row.dataset.id:0,l=lyCache.find(function(x){return x.id===id});
   switch(k.dataset.k){
    case 'new':guard(function(){inputM('New layout','Name','Untitled warehouse','Create',function(v,err){createLayout(v||'Untitled warehouse',{lot:{w:100,d:100},items:[],defs:{}},null,'Created').then(function(nl){return openLayout(nl.id)}).catch(function(e){err(e.message)})})});break;
-   case 'open':guard(function(){openLayout(id).catch(function(e){flash(e.message)})});break;
+   case 'open':guard(function(){if(l&&l.owner_id!==me.id){api('GET','/api/layouts/'+id).then(function(j){return api('POST','/api/layouts',{name:j.layout.name+' ('+me.username+"'s copy)",data:j.layout.data,based_on:id})}).then(function(r){lyTab='mine';return openLayout(r.layout.id).then(function(){flash('Opened your own copy')})}).catch(function(e){flash(e.message)})}else openLayout(id).catch(function(e){flash(e.message)})});break;
    case 'hist':openHistory(l);break;
    case 'ren':inputM('Rename layout','Name',l.name,'Rename',function(v,err){api('PUT','/api/layouts/'+id,{name:v}).then(function(j){if(cur&&cur.id===id){cur.name=j.name;cloudUI();renderInfo()}openLayouts()}).catch(function(e){err(e.message)})});break;
-   case 'dup':api('GET','/api/layouts/'+id).then(function(j){return api('POST','/api/layouts',{name:j.layout.name+' (copy)',data:j.layout.data,based_on:id})}).then(function(){flash('Duplicated');openLayouts()}).catch(function(e){flash(e.message)});break;
-   case 'copy':api('GET','/api/layouts/'+id).then(function(j){return api('POST','/api/layouts',{name:j.layout.name+' ('+me.username+"'s copy)",data:j.layout.data,based_on:id})}).then(function(){flash('Copied to your layouts');lyTab='mine';openLayouts()}).catch(function(e){flash(e.message)});break;
    case 'del':askM('Delete layout','Delete <b>'+escH(l.name)+'</b> and its history? This can’t be undone. Copies other people made are not affected.','Delete',function(){api('DELETE','/api/layouts/'+id).then(function(){if(cur&&cur.id===id){cur=null;savedJSON=null;cloudUI()}flash('Deleted');openLayouts()}).catch(function(e){flash(e.message)})},true);break}}}
 $('#ly-open').onclick=function(e){e.stopPropagation();openLayouts()};
 $('#ly-load').onclick=function(e){e.stopPropagation();openLayouts()};
