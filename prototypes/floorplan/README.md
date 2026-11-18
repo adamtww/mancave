@@ -9,6 +9,7 @@ before it is merged into the app. Nothing here is served by the app or deployed.
 | `fork/zones.js` | The Spaces step: named zones of 8 types, painted by room, rectangle, outline or brush; no overlaps. Injected into the editor at build time. |
 | `fork/layout.js` | The Layout step: objects from the app's catalog placed into named zones, with drawings, clearances, typed sizes, rotation and power. Injected after zones.js. |
 | `fork/polygon-clipping.umd.min.js` | [polygon-clipping](https://github.com/mfogel/polygon-clipping) 0.15.7 (MIT), used to cut zones against each other, the outer walls and unusable space. |
+| `fork/siteshim.js`, `fork/site_build.py` | Build the test-site copy (`/floorplan.html` on the `test` branch): the same page plus a shim that reads plans through the test server's `/api/read-plan` route. |
 | `fork/extra.html` | Extra panel pieces for the editor (outer walls lock / reset). |
 | `flow/app/flow.html` | The "+ New" flow overlay: chooser, upload dialog, loading screen and the panel layout. |
 | `shape-proto/index.html` | The older editor used by "The Cave — new Floor Plan flow" artifact. |
