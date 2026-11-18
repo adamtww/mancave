@@ -102,6 +102,20 @@ body.st-spaces #zleft,body.st-layout #zleft,body.st-spaces #zright,body.st-layou
 .zchk{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#26251f}.zchk span{margin-left:auto;font-size:11.5px;color:#6b6960}.zchk input{width:17px;height:17px;margin:0}
 .zbanner{font-size:12.5px;color:#1f3d75;background:#eef3fd;border-radius:8px;padding:9px 10px;line-height:1.45;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
 .zdel{color:#b42336!important;border-color:#e3b4bb!important;align-self:flex-start}
+
+#l-q{font:inherit;font-size:14px;padding:8px 10px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:#26251f}
+#l-cats{display:flex;flex-direction:column;gap:4px;overflow:auto;min-height:0}
+.lcat summary{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;padding:7px 4px;cursor:pointer;list-style:none;color:#26251f}
+.lcat summary::-webkit-details-marker{display:none}.lcat summary .za{margin-left:auto;font-weight:400;font-size:12px;color:#6b6960}
+.lpi{font:inherit;font-size:13px;display:flex;gap:8px;justify-content:space-between;align-items:baseline;width:100%;text-align:left;padding:6px 8px 6px 26px;border:1px solid transparent;border-radius:7px;background:transparent;color:#26251f;cursor:pointer}
+.lpi:hover{background:#f5f4f0}.lpi.on{border-color:#2f7de1;background:#eaf1fd;color:#1d4f91;font-weight:600}.lpi.nofit{color:#8f8b82}.lpi .za{font-size:12px;color:#6b6960;white-space:nowrap}
+.lwarn{font-size:12.5px;color:#9b2c2c;background:#fdecec;border-radius:8px;padding:8px 10px;line-height:1.4}
+.lsize{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}.lsize input{width:100%;box-sizing:border-box}
+.lrow{display:flex;gap:8px;flex-wrap:wrap}
+.lcirc{display:flex;flex-direction:column;gap:6px}.lcirc div{display:grid;grid-template-columns:1fr auto;font-size:13px;color:#26251f}.lcirc em{font-style:normal;color:#6b6960;font-size:12px}.lcirc small{grid-column:1/-1;color:#6b6960;font-size:12px}
+.lz{display:flex;flex-direction:column;gap:6px}.lz div{display:flex;align-items:center;gap:8px;font-size:13px}.lz .zn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lz .za{font-size:12px;color:#6b6960}
+.lalert summary{font-size:13px;font-weight:600;color:#8a4a0e;cursor:pointer}.lalert p{font-size:12.5px;color:#4a4943;line-height:1.45;margin:6px 0 0}
+body.st-layout #zleft{min-height:0;overflow:hidden}
 </style>
 </head>
 <body>
@@ -210,7 +224,7 @@ var sv=$('#sv'),stage=$('#stage');
 
 /* ---------- state ---------- */
 // A shape is {id,label,pts:[{x,y,b}]}, b = signed sagitta (ft) of the wall from this corner to the next.
-var S={outline:null,blk:[],walls:[],marks:[],doors:[],zones:[],nid:1,wid:1000,did:1,zid:1};var trace=null;
+var S={outline:null,blk:[],walls:[],marks:[],doors:[],zones:[],objs:[],nid:1,wid:1000,did:1,zid:1,oid:1};var trace=null;
 var tool='select',sel=null,view={s:6,ox:40,oy:40};
 var hist=[],fut=[];
 
@@ -255,9 +269,9 @@ function splitEdge(pts,i){var n=pts.length,p=pts[i],q=pts[(i+1)%n],s=p.b||0,a=ar
 function wallLen(p,q,s){var a=arc(p,q,s),c=len(sub(q,p));if(!a)return c;var half=Math.asin(Math.min(1,c/(2*a.r)));var ang=a.large?2*Math.PI-2*half:2*half;return a.r*ang}
 
 /* ---------- history ---------- */
-function snap(){return JSON.stringify({o:S.outline,b:S.blk,w:S.walls,m:S.marks,d:S.doors,z:S.zones||[],zi:S.zid||1,g:S.orig||null,k:!!S.lock})}
+function snap(){return JSON.stringify({o:S.outline,b:S.blk,w:S.walls,m:S.marks,d:S.doors,z:S.zones||[],zi:S.zid||1,ob:S.objs||[],oi:S.oid||1,g:S.orig||null,k:!!S.lock})}
 function push(){hist.push(snap());if(hist.length>80)hist.shift();fut=[];btns()}
-function restore(j){var o=JSON.parse(j);S.outline=o.o;S.blk=o.b;S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||S.zid||1;if(typeof zSel!=='undefined'&&zSel&&!zById(zSel)){zSel=null;zAdd=null}S.orig=o.g||null;S.lock=!!o.k;sel=null;render();shapeUI()}
+function restore(j){var o=JSON.parse(j);S.outline=o.o;S.blk=o.b;S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||S.zid||1;S.objs=o.ob||[];S.oid=o.oi||S.oid||1;if(typeof lSel!=='undefined'&&lSel&&!oById(lSel))lSel=null;if(typeof zSel!=='undefined'&&zSel&&!zById(zSel)){zSel=null;zAdd=null}S.orig=o.g||null;S.lock=!!o.k;sel=null;render();shapeUI()}
 $('#undo').onclick=function(){if(!hist.length)return;fut.push(snap());restore(hist.pop());btns()};
 $('#redo').onclick=function(){if(!fut.length)return;hist.push(snap());restore(fut.pop());btns()};
 function btns(){$('#undo').disabled=!hist.length;$('#redo').disabled=!fut.length}
@@ -352,7 +366,7 @@ function fillRoom(p){if(!S.outline)return;if(!insideOK(p)){toast('Click inside t
  toast((lab?lab+' marked':'Room marked')+' unusable · about '+Math.round(Math.abs(sarea(flat(nb.pts)))).toLocaleString()+' sq ft')}
 
 /*ZONES*/
-var ZHINT={zsel:'Click a zone to select it · drag its corners or ◆ to reshape · drag empty floor to move around',zroom:'Click inside a room to make it a zone',zrect:'Click one corner, then the opposite corner',zpoly:'Click each corner · click the first point or press Enter to finish',zbrush:'Drag to paint · stops at walls (Shift paints through) · Alt takes space from other zones',zview:'Layout comes next'};
+var ZHINT={zsel:'Click a zone to select it · drag its corners or ◆ to reshape · drag empty floor to move around',zroom:'Click inside a room to make it a zone',zrect:'Click one corner, then the opposite corner',zpoly:'Click each corner · click the first point or press Enter to finish',zbrush:'Drag to paint · stops at walls (Shift paints through) · Alt takes space from other zones',zview:'Pick an object on the left, then click inside a zone · drag objects to move them · R rotates'};
 /* ---------- render ---------- */
 function d(pts,open){var s='M'+X(pts[0].x)+' '+Y(pts[0].y);for(var i=0;i<pts.length-(open?1:0);i++){var p=pts[i],q=pts[(i+1)%pts.length],a=arc(p,q,p.b||0);
  s+=a?' A'+(a.r*view.s)+' '+(a.r*view.s)+' 0 '+(a.large?1:0)+' '+a.sweep+' '+X(q.x)+' '+Y(q.y):' L'+X(q.x)+' '+Y(q.y)}return open?s:s+'Z'}
@@ -388,6 +402,7 @@ function render(){resolveJoints(drag&&drag.sh&&drag.sh.open&&(drag.kind==='verte
  S.blk.forEach(function(b){var on=sel&&sel.id===b.id,c=bbox(flat(b.pts));h+='<path d="'+d(b.pts)+'" fill="#3a3936" fill-opacity=".6" '+(S.outline?'clip-path="url(#oc)" ':'')+(on?'stroke="#2f7de1" stroke-width="2.5"':'')+' data-shape="'+b.id+'" style="cursor:'+(tool==='select'?'move':'crosshair')+'"/>';
   var w=(c.x1-c.x0)*view.s,hh=(c.y1-c.y0)*view.s;if(b.label&&w>44&&hh>18)h+='<text x="'+X((c.x0+c.x1)/2)+'" y="'+(Y((c.y0+c.y1)/2)+4)+'" text-anchor="middle" font-size="11.5" fill="#dedad2" style="pointer-events:none">'+esc(b.label)+'</text>'});
  h+=clearSvg();
+ h+=objsSvg();
  S.walls.forEach(function(w){var on=sel&&sel.id===w.id,whole=on&&(sel.kind==='shape'||w.pts.length<=2);h+='<path d="'+d(w.pts,true)+'" fill="none" stroke="'+(whole?'#2f7de1':on?'#7f9fd6':'#55524c')+'" stroke-width="'+Math.max(3,(w.thick||.5)*view.s)+'" stroke-linecap="butt" stroke-linejoin="miter" style="pointer-events:none"/>';if(on&&!whole&&sel.kind==='edge'&&w.pts[sel.i+1]){var sp0=w.pts[sel.i],sq0=w.pts[sel.i+1],sa=arc(sp0,sq0,sp0.b||0);h+='<path d="'+(sa?'M'+X(sp0.x)+' '+Y(sp0.y)+' A'+(sa.r*view.s)+' '+(sa.r*view.s)+' 0 '+(sa.large?1:0)+' '+sa.sweep+' '+X(sq0.x)+' '+Y(sq0.y):'M'+X(sp0.x)+' '+Y(sp0.y)+' L'+X(sq0.x)+' '+Y(sq0.y))+'" fill="none" stroke="#2f7de1" stroke-width="'+Math.max(4,(w.thick||.5)*view.s+2)+'" stroke-linecap="butt" style="pointer-events:none"/>'}
   if(tool==='select'&&!on)for(var k=0;k<w.pts.length-1;k++){var p0=w.pts[k],q0=w.pts[k+1],aa=arc(p0,q0,p0.b||0);h+='<path data-h="wall" data-id="'+w.id+'" data-i="'+k+'" d="M'+X(p0.x)+' '+Y(p0.y)+(aa?' A'+(aa.r*view.s)+' '+(aa.r*view.s)+' 0 '+(aa.large?1:0)+' '+aa.sweep+' ':' L')+X(q0.x)+' '+Y(q0.y)+'" fill="none" stroke="rgba(47,125,225,0)" stroke-width="18" class="wallhit" style="cursor:pointer"/>'}});
  // two interior walls that meet end to end: fill the outside of the corner (flat wall ends leave a notch there)
@@ -774,7 +789,9 @@ sv.addEventListener('pointermove',function(e){if(ptrs[e.pointerId])ptrs[e.pointe
   view.ox=cx-(cx-pinch.ox)*ns/pinch.s+((a[0].x+a[1].x)/2-pinch.cx);view.oy=cy-(cy-pinch.oy)*ns/pinch.s+((a[0].y+a[1].y)/2-pinch.cy);view.s=ns;render();return}
  var p=toFt(e);
  if(drag&&drag.kind&&drag.kind.charAt(0)==='z'&&zMove(p))return;
+ if(drag&&drag.kind==='lmove'){lMove(p);return}
  if(!drag&&step==='spaces'){zHover(p);return}
+ if(!drag&&step==='layout'){lHover(p);return}
  if(!drag&&draft&&draft.type==='box'){draft.b=sp(p);render();return}
  if(!drag&&draft&&draft.type==='circle'){draft.r=Math.max(0,Math.round(len(sub(p,draft.a))*2)/2);render();return}
  if(!drag){if(draft&&draft.type==='poly'){cursor=snapFrom(draft.pts[draft.pts.length-1],p);render()}else if(tool==='iwall'){cursor=wallPick(draft&&draft.pts[draft.pts.length-1],p);render()}return}
@@ -795,6 +812,7 @@ function keepInView(){if(!S.outline)return;var r=sv.getBoundingClientRect(),b=bb
 function up(e){if(assist){assist=null;setTimeout(function(){render();shapeUI()},0)}if(drag&&drag.timer){clearTimeout(drag.timer);holdEnd()}var had=drag&&drag.moved&&drag.kind!=='pan';setTimeout(function(){if(had)keepInView()},0);delete ptrs[e.pointerId];if(pinch){if(Object.keys(ptrs).length<2)pinch=null;return}if(!drag)return;var dg=drag;drag=null;
  if(dg.kind==='pan'){if(!dg.moved){if(dg.tapE){pdown(dg.tapE);return}sel=null;render()}return}
  if(dg.kind.charAt(0)==='z'){zUp(dg);return}
+ if(dg.kind==='lmove'){lUp(dg);return}
  if(dg.kind==='door'){if(dg.moved){hist.push(dg.snapshot);fut=[];btns()}sel={kind:'door',id:dg.dr.id};render();return}
  if(dg.kind==='wall'){if(dg.moved){hist.push(dg.snapshot);fut=[];btns();dg.sh.pts=dg.sh.open?dg.sh.pts:clean(normalize(dg.sh.pts));if(dg.sh.open){attachEnds(dg.sh);splitAtJoints()}render()}else{var nw=Date.now();if(dg.sh.open&&dg.sh.pts.length>2&&lastTap.w===dg.sh.id&&nw-lastTap.t<400){lastTap={};sel={id:dg.sh.id,kind:'shape'}}else{lastTap={w:dg.sh.id,t:nw};sel={id:dg.sh.id,kind:'edge',i:dg.i}}render()}return}
  if(dg.kind==='vertex'&&!dg.moved){var now=Date.now();if(lastTap.id===dg.sh.id&&lastTap.i===dg.i&&now-lastTap.t<400){lastTap={};delCorner(dg.sh,dg.i);return}lastTap={id:dg.sh.id,i:dg.i,t:now}}
@@ -1303,7 +1321,7 @@ var idb=null;function db(){if(idb)return idb;idb=new Promise(function(res){try{v
 async function kvSet(k,v){var d=await db();if(!d)return;try{d.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(_){}}
 async function kvGet(k){var d=await db();if(!d)return null;return new Promise(function(res){try{var q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}}catch(_){res(null)}})}
 var ptimer=null,restored=false;function persistSoon(){if(!restored)return;clearTimeout(ptimer);ptimer=setTimeout(function(){kvSet('state',{s:snap(),trace:trace?{x:trace.x,y:trace.y,w:trace.w,h:trace.h}:null,meta:plan?plan.meta:null});kvSet('file',plan?plan.file:null);kvSet('img',plan?plan.img:null)},400)}
-async function restoreSaved(){try{var st=await kvGet('state');if(st&&st.s){var o=JSON.parse(st.s);S.outline=o.o;S.blk=o.b||[];S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||1;S.orig=o.g||null;S.lock=!!o.k;S.did=Math.max.apply(null,[1].concat(S.doors.map(function(x){return x.id+1})));
+async function restoreSaved(){try{var st=await kvGet('state');if(st&&st.s){var o=JSON.parse(st.s);S.outline=o.o;S.blk=o.b||[];S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||1;S.objs=o.ob||[];S.oid=o.oi||1;S.orig=o.g||null;S.lock=!!o.k;S.did=Math.max.apply(null,[1].concat(S.doors.map(function(x){return x.id+1})));
   S.nid=Math.max.apply(null,[1].concat(S.blk.map(function(b){return b.id+1})));S.wid=Math.max.apply(null,[1000].concat(S.walls.map(function(w){return w.id+1})));
   var f=await kvGet('file'),im=await kvGet('img');if(st.meta&&f&&im){plan={file:f,img:im,meta:st.meta};if(st.trace){trace=Object.assign({url:URL.createObjectURL(im)},st.trace);$('#ai-tracewrap').style.display='flex'}}
   planUI();fitView();render();toast('Restored your last layout')}}catch(_){}restored=true}

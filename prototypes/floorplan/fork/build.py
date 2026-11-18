@@ -1,8 +1,8 @@
 import re
 src=open('/home/claude/build/fork/editor.html').read()
-src=src.replace('/*ZONES*/',open('/home/claude/build/fork/zones.js').read(),1)
+src=src.replace('/*ZONES*/',open('/home/claude/build/fork/zones.js').read()+'\n'+open('/home/claude/build/fork/layout.js').read(),1)
 lib=open('/home/claude/build/fork/polygon-clipping.umd.min.js').read()
-src=src.replace('</head>','<script>/* polygon-clipping 0.15.7 · MIT License · github.com/mfogel/polygon-clipping */\n'+lib+'\n</script>\n</head>',1)
+src=src.replace('</head>','<script>/* polygon-clipping 0.15.7 · MIT License · github.com/mfogel/polygon-clipping */\n'+lib+'\n</script>\n<script>/* the app\'s object catalog and drawings, unchanged from src/ */\n'+open('/home/claude/build/fork/catalog.js').read()+'\n'+open('/home/claude/build/fork/icons.js').read()+'\n</script>\n</head>',1)
 def parts(path):
     fl=open(path).read()
     css=fl.split('<!--CSS-->')[1].split('<!--HTML-->')[0].strip().replace('<style>','').replace('</style>','')

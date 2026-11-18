@@ -75,7 +75,7 @@ function zLabelAt(z){var best=null;z.mp.forEach(function(pg){var a=Math.abs(ring
  var bp=null,bd=-1;for(var i=1;i<12;i++)for(var j=1;j<12;j++){var p={x:x0+(x1-x0)*i/12,y:y0+(y1-y0)*j/12};if(!inMP(p,[pg]))continue;var dmin=1e9;pg.forEach(function(rr){for(var k=0;k<rr.length;k++){var a=rr[k],b=rr[(k+1)%rr.length];dmin=Math.min(dmin,zDist(p,{x:a[0],y:a[1]},{x:b[0],y:b[1]}))}});if(dmin>bd){bd=dmin;bp=p}}
  return bp?{p:bp,room:bd,w:x1-x0}:null}
 function zonesSvg(){var zs=S.zones||[];if(!zs.length)return '';var h='',full=step!=='structure';
- zs.forEach(function(z){if(!zPlaced(z))return;var t=ZTB[z.type]||ZT[0],on=full&&zSel===z.id;h+='<path d="'+mpPath(z.mp)+'" fill="'+t.c+'" fill-opacity="'+(full?(on?.28:.2):.08)+'" fill-rule="evenodd" stroke="'+(on?'#2f7de1':t.c)+'" stroke-width="'+(full?(on?3:2):1)+'" stroke-opacity="'+(full?1:.4)+'" style="pointer-events:none"/>'});
+ zs.forEach(function(z){if(!zPlaced(z))return;var t=ZTB[z.type]||ZT[0],on=step==='spaces'&&zSel===z.id;h+='<path d="'+mpPath(z.mp)+'" fill="'+t.c+'" fill-opacity="'+(full?(on?.28:step==='layout'?.13:.2):.08)+'" fill-rule="evenodd" stroke="'+(on?'#2f7de1':t.c)+'" stroke-width="'+(full?(on?3:2):1)+'" stroke-opacity="'+(full?1:.4)+'" style="pointer-events:none"/>'});
  if(full)zs.forEach(function(z){if(!zPlaced(z))return;var t=ZTB[z.type]||ZT[0],L=zLabelAt(z);if(!L||L.room*view.s<16)return;var fs=Math.max(11,Math.min(15,L.room*view.s/3));
   h+='<text x="'+X(L.p.x)+'" y="'+(Y(L.p.y)-2)+'" text-anchor="middle" font-size="'+fs.toFixed(1)+'" font-weight="600" fill="'+t.k+'" style="pointer-events:none">'+esc(z.name)+'</text><text x="'+X(L.p.x)+'" y="'+(Y(L.p.y)+fs-1)+'" text-anchor="middle" font-size="'+Math.max(10,fs-3).toFixed(1)+'" fill="'+t.k+'" fill-opacity=".85" style="pointer-events:none">'+Math.round(zArea(z)).toLocaleString()+' sq ft</text>'});
  return h}
@@ -93,7 +93,7 @@ function zOverlaySvg(){if(step!=='spaces')return '';var h='',t=ZTB[ztype],col=zE
 
 /* ---- pointer handling while in the Spaces step ---- */
 function zSetTool(t){tool=t;zdraft=null;zcur=null;draft=null;cursor=null;render()}
-function zDown(e,p,t){if(step==='layout'){if(!e._tap)drag={kind:'pan',ox:view.ox,oy:view.oy,sx:e.clientX,sy:e.clientY,moved:false};return true}
+function zDown(e,p,t){if(step==='layout')return lDown(e,p,t);
  if(e._tap){zTap(p,e);return true}
  if(e.pointerType==='mouse'&&e.button!==0)return true;
  var z=zById(zSel);if(t.dataset&&t.dataset.zh&&z){var pi=+t.dataset.pi,ri=+t.dataset.ri,vi=+t.dataset.vi,ring=z.mp[pi][ri];
@@ -125,17 +125,18 @@ document.addEventListener('keydown',function(e){if(step!=='spaces'||/INPUT|SELEC
  if(e.key==='Enter'&&zdraft&&zdraft.type==='poly'){zFinishPoly(e.altKey);return}
  if(e.key==='Escape'){if(zdraft){zdraft=null;zcur=null}else if(zAdd){zAdd=null}else zSel=null;render();return}
  if((e.key==='Delete'||e.key==='Backspace')&&zSel){e.preventDefault();zDelete(zSel)}});
-function zDelete(id){var z=zById(id);if(!z)return;push();S.zones.splice(S.zones.indexOf(z),1);if(zSel===id)zSel=null;if(zAdd===id)zAdd=null;toast(z.name+' deleted');render()}
+function zDelete(id){var z=zById(id);if(!z)return;push();S.zones.splice(S.zones.indexOf(z),1);var n=0;S.objs=(S.objs||[]).filter(function(o){if(o.zone===id){n++;return false}return true});if(zSel===id)zSel=null;if(zAdd===id)zAdd=null;toast(z.name+' deleted'+(n?' with its '+n+' object'+(n>1?'s':''):''));render()}
 
 /* ---- steps and panels ---- */
 function zReclip(){var base=outlineMP();if(!base.length)return;var cut=blkMP(),al;try{al=cut.length?PC.difference.apply(null,[base].concat(cut)):base}catch(_){return}(S.zones||[]).forEach(function(z){if(zPlaced(z)){try{z.mp=tidy(PC.intersection(z.mp,al))}catch(_){}}})}
 function setStep(s){if(s!=='structure'&&step==='structure')zReclip();step=s;document.body.classList.toggle('st-spaces',s==='spaces');document.body.classList.toggle('st-layout',s==='layout');document.body.classList.toggle('st-structure',s==='structure');
  document.querySelectorAll('#steps button').forEach(function(b){b.setAttribute('aria-current',b.dataset.s===s?'page':'false')});
- sel=null;draft=null;cursor=null;zdraft=null;closeMenu&&closeMenu();if(s==='structure'){zSel=null;zAdd=null;setTool('select')}else{tool=s==='spaces'?'zsel':'zview';render()}zPanelKey='';zPanels()}
+ sel=null;draft=null;cursor=null;zdraft=null;lPlace=null;lGhost=null;lSel=null;lLeftBuilt=false;lPanelKey='';closeMenu&&closeMenu();if(s==='structure'){zSel=null;zAdd=null;setTool('select')}else{tool=s==='spaces'?'zsel':'zview';render()}zPanelKey='';zPanels()}
 var zPanelKey='';
 function zEsc(s){return esc(String(s))}
-function zPanels(){var L=document.getElementById('zleft'),R=document.getElementById('zright');if(!L||!R)return; var key=JSON.stringify([step,tool,ztype,zSel,zAdd,zErase,brushR,(S.zones||[]).map(function(z){return [z.id,z.type,z.plumb,Math.round(zArea(z))]}),Math.round(usableArea())]);if(key===zPanelKey)return;zPanelKey=key;
- if(step==='layout'){L.innerHTML='<h2>Layout</h2><p class="zmuted">Coming next: placing objects into your named zones.</p>';R.innerHTML='<div class="zcard"><div class="zlab">LAYOUT</div><p class="zmuted">This step will hold the object catalog. Each object is placed into one of your zones, and Arrange lays a zone out by its type.</p></div>';return}
+function zPanels(){var L=document.getElementById('zleft'),R=document.getElementById('zright');if(!L||!R)return; if(step==='layout'){lPanels(L,R);return}
+ var key=JSON.stringify([step,tool,ztype,zSel,zAdd,zErase,brushR,(S.zones||[]).map(function(z){return [z.id,z.type,z.plumb,Math.round(zArea(z))]}),Math.round(usableArea())]);if(key===zPanelKey)return;zPanelKey=key;
+ if(step==='layout'){lPanels(L,R);return}
  var paintT=[['zroom','Room'],['zrect','Rectangle'],['zpoly','Outline'],['zbrush','Brush']],tg=zTarget();
  var h='<h2>Select</h2><button class="btn zsel'+(tool==='zsel'?' on':'')+'" data-zt="zsel">Select / edit</button>';
  h+='<h2>Paint a zone</h2><div class="zseg" role="group" aria-label="How to paint">'+paintT.map(function(o){return '<button data-zt="'+o[0]+'" aria-pressed="'+(tool===o[0])+'">'+o[1]+'</button>'}).join('')+'</div>';
@@ -174,4 +175,4 @@ function zInitUI(){if(document.getElementById('steps'))return;var top=document.q
  if(h1&&h1.nextSibling)top.insertBefore(nav,h1.nextSibling);else top.appendChild(nav);nav.querySelectorAll('button').forEach(function(b){b.onclick=function(){if(b.dataset.s!=='structure'&&!S.outline){toast('Set up the outer walls first');return}setStep(b.dataset.s)}});
  var panes=document.querySelectorAll('.app .pane');if(panes.length<2)return;panes[0].classList.add('zpL');panes[1].classList.add('zpR');var L=document.createElement('div');L.id='zleft';panes[0].appendChild(L);var R=document.createElement('div');R.id='zright';panes[1].appendChild(R);document.body.classList.add('st-structure');zPanels()}
 window.addEventListener('load',function(){setTimeout(zInitUI,0)});
-window.__cave=Object.assign(window.__cave||{},{zones:{get:function(){return S.zones},step:function(s){if(s)setStep(s);return step},sel:function(){return zSel},area:zArea,brush:function(pts,c){return brushShape(pts,c)},grid:function(){var g=zGrid();return g&&{W:g.W,H:g.H,walls:g.wall.reduce(function(a,b){return a+b},0)}},at:function(x,y){var z=zoneAt({x:x,y:y});return z&&z.id}}});
+window.__cave=Object.assign(window.__cave||{},{objs:{get:function(){return S.objs},sel:function(){return lSel},problem:function(u){var it=oById(u);return it&&oProblem(it)}},zones:{get:function(){return S.zones},step:function(s){if(s)setStep(s);return step},sel:function(){return zSel},area:zArea,brush:function(pts,c){return brushShape(pts,c)},grid:function(){var g=zGrid();return g&&{W:g.W,H:g.H,walls:g.wall.reduce(function(a,b){return a+b},0)}},at:function(x,y){var z=zoneAt({x:x,y:y});return z&&z.id}}});

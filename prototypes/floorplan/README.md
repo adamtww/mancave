@@ -7,6 +7,7 @@ before it is merged into the app. Nothing here is served by the app or deployed.
 |---|---|
 | `fork/editor.html` | The floor plan editor (outer walls, interior walls, doors, unusable space, zones). Source of the "Floor Plan + Rooms" artifact. |
 | `fork/zones.js` | The Spaces step: named zones of 8 types, painted by room, rectangle, outline or brush; no overlaps. Injected into the editor at build time. |
+| `fork/layout.js` | The Layout step: objects from the app's catalog placed into named zones, with drawings, clearances, typed sizes, rotation and power. Injected after zones.js. |
 | `fork/polygon-clipping.umd.min.js` | [polygon-clipping](https://github.com/mfogel/polygon-clipping) 0.15.7 (MIT), used to cut zones against each other, the outer walls and unusable space. |
 | `fork/extra.html` | Extra panel pieces for the editor (outer walls lock / reset). |
 | `flow/app/flow.html` | The "+ New" flow overlay: chooser, upload dialog, loading screen and the panel layout. |
@@ -25,6 +26,8 @@ same layout. Copy this folder there (or change the paths), then:
 cd fork && python3 build.py          # → fork/index.html (Floor Plan + Rooms)
 cd flow/app && python3 build.py      # → flow/app/index.html (older flow)
 ```
+
+The build also pulls in the app's own `src/catalog.js` and `src/icons.js` (copied next to `editor.html`), unchanged.
 
 Tests expect the built page served on port 8766 from `flow/app/`
 (`python3 -m http.server 8766`, with `fork/index.html` copied to `flow/app/fork.html`).
