@@ -1,0 +1,33 @@
+<!--CSS-->
+<style>
+.nf-grow{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:12.5px;color:#6b675e}
+.nf-grow div{display:flex;gap:6px;flex-wrap:wrap}
+.nf-grow .btn{padding:6px 10px;font-size:13px}
+.nf-shape{display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e6e2d9;font-size:13px}
+.nf-shape.show{display:block}
+.nf-shape .st{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.nf-shape .lk{display:flex;align-items:center;gap:6px;color:#5c5950}
+.nf-shape .btn{padding:6px 11px;font-size:13px}
+.nf-shape .rst{display:none;margin-top:8px;width:100%;justify-content:center}
+.nf-shape.changed .rst{display:flex}
+.nf-shape .why{color:#8a867c;font-size:12px;margin-top:6px;line-height:1.4}
+</style>
+<!--HTML-->
+<!--JS-->
+<script>
+(function(){
+var card=document.querySelector('.nf-card');if(!card||!window.__cave||!window.__cave.shape)return;var S=window.__cave.shape;
+var box=document.createElement('div');box.className='nf-shape';
+box.innerHTML='<div class="st"><span class="lk" id="nf-lk"></span><button class="btn" id="nf-lockbtn"></button></div><button class="btn rst" id="nf-reset">Reset outer walls to the import</button><div class="why" id="nf-why"></div>';
+var more=card.querySelector('.nf-more');card.insertBefore(box,more);
+var lockIc='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',openIc='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>';
+function upd(){if(!S.has()){box.classList.remove('show');return}box.classList.add('show');var lk=S.locked();
+ document.getElementById('nf-lk').innerHTML=(lk?lockIc+'Outer walls locked':openIc+'Editing outer walls');
+ var b=document.getElementById('nf-lockbtn');b.textContent=lk?'Edit shape':'Done';b.classList.toggle('pri',lk);
+ box.classList.toggle('changed',S.changed());
+ document.getElementById('nf-why').textContent=lk?'Locked so the imported shape can\'t be bumped by accident.':'Drag a wall to push it; corners stay square (hold Shift to move a corner freely). Tap a wall to type its length.'}
+document.getElementById('nf-lockbtn').onclick=function(){S.setLock(!S.locked())};
+document.getElementById('nf-reset').onclick=function(){S.reset()};
+window.__onShape=upd;upd();
+})();
+</script>
