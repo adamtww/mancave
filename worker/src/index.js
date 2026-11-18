@@ -115,6 +115,7 @@ async function route(req, env) {
   const me = await auth(req, env);
 
   if (p === '/api/me' && M === 'GET') return json({ user: pub(me) });
+  if (p === '/api/read-plan' && M === 'POST') return readPlan(req, env);
   if (p === '/api/logout' && M === 'POST') {
     await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(me.tokenHash).run();
     return json({ ok: true });
@@ -238,6 +239,34 @@ async function route(req, env) {
 }
 
 function pub(u) { return { id: u.id, username: u.username, admin: u.admin }; }
+
+// ---------- floor plan reading (test site only) ----------
+// The floor plan builder sends a drawing and a prompt; this asks Claude and returns the text.
+// It only works where an ANTHROPIC_API_KEY secret exists, and the deploy workflow only sets that on the test backend.
+const PLAN_MODELS = ['claude-haiku-5-5', 'claude-opus-5-5'];
+const MAX_PLAN_BYTES = 16_000_000;
+async function readPlan(req, env) {
+  if (!env.ANTHROPIC_API_KEY) throw new HttpError(503, "Floor plan reading isn't set up on this site yet");
+  const text = await req.text();
+  if (text.length > MAX_PLAN_BYTES) throw new HttpError(413, 'That drawing is too large to send');
+  let b; try { b = JSON.parse(text); } catch { bad('Bad request'); }
+  const prompt = String(b.prompt || '');
+  if (!prompt) bad('Missing prompt');
+  const model = PLAN_MODELS.includes(b.model) ? b.model : PLAN_MODELS[0];
+  const images = (Array.isArray(b.images) ? b.images : []).slice(0, 4).filter((im) =>
+    im && /^image\/(png|jpeg|webp|gif)$/.test(im.media_type) && typeof im.data === 'string');
+  const content = images.map((im) => ({ type: 'image', source: { type: 'base64', media_type: im.media_type, data: im.data } }));
+  content.push({ type: 'text', text: prompt });
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens: Math.min(16000, Math.max(256, +b.max_tokens || 8000)), messages: [{ role: 'user', content }] }),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new HttpError(502, 'Claude: ' + ((j.error && j.error.message) || ('error ' + r.status)));
+  const out = (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
+  return json({ text: out, truncated: j.stop_reason === 'max_tokens', usage: j.usage || null });
+}
 
 async function login(req, env) {
   const b = await body(req), username = String(b.username || '').trim(), pw = String(b.password || '');
