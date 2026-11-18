@@ -6,6 +6,8 @@ before it is merged into the app. Nothing here is served by the app or deployed.
 | Path | What it is |
 |---|---|
 | `fork/editor.html` | The floor plan editor (outer walls, interior walls, doors, unusable space, zones). Source of the "Floor Plan + Rooms" artifact. |
+| `fork/zones.js` | The Spaces step: named zones of 8 types, painted by room, rectangle, outline or brush; no overlaps. Injected into the editor at build time. |
+| `fork/polygon-clipping.umd.min.js` | [polygon-clipping](https://github.com/mfogel/polygon-clipping) 0.15.7 (MIT), used to cut zones against each other, the outer walls and unusable space. |
 | `fork/extra.html` | Extra panel pieces for the editor (outer walls lock / reset). |
 | `flow/app/flow.html` | The "+ New" flow overlay: chooser, upload dialog, loading screen and the panel layout. |
 | `shape-proto/index.html` | The older editor used by "The Cave — new Floor Plan flow" artifact. |
