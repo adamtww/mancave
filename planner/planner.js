@@ -72,7 +72,7 @@ function layout(items,W,D,stable){var placed=[],out={},order=items.slice(),moved
  var at=function(it,c){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);return ok(b,cc,placed,W,D)?{x:it.x,y:it.y,rot:it.rot,b:b,c:cc}:null};
  for(var i=0;i<order.length;i++){var it=order[i],c=defOf(it),best;
   if(it.pin){best=at(it,c);if(!best)return {fail:it,pinned:true};put(it,c,best)}
-  else if(stable&&it.placed){best=at(it,c);if(best)put(it,c,best);else moved.push(it)}
+  else if(stable&&it.placed){best=stable===2?null:at(it,c);if(best)put(it,c,best);else moved.push(it)}
   else{best=spotFor(it,c,placed,W,D);if(!best)return {fail:it};put(it,c,best)}}
  // the ones that got bumped go to the closest free spot to where they were
  moved.sort(function(a,b){return pr(b)-pr(a)});
@@ -99,8 +99,20 @@ function add(r){var c=LIB[r];if(!c)return;var before=snapP(),it={u:'o'+(P.uid++)
  if(!relayout()){var msg=lastFail;P=JSON.parse(before);lastFail={msg:msg,r:r};render();return}
  hist.push(before);fut=[];sel=it.u;lastFail=null;persist();render();pop(it.u)}
 function remove(u){push();P.items=P.items.filter(function(i){return i.u!==u});if(sel===u)sel=null;relayout();persist();render()}
-function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}var r=layout(P.items,w,d,true);if(!r.pos)r=layout(P.items,w,d);
- if(!r.pos){toast((w*d<P.room.w*P.room.d?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}push();P.room.w=w;P.room.d=d;apply(r);lastFail=null;persist();render()}
+// Resizing pushes things to fit, in steps: keep everything where it is (walls carry their pieces with them),
+// then nudge only what clashes, then re-place everything near where it was, and only then rearrange from scratch.
+function scaled(items,W,D,W2,D2){var h=function(v){return Math.round(v*2)/2};return items.map(function(it){var m=dims(it,it.rot),o=Object.assign({},it,{pin:false});if(!it.placed)return o;
+ o.x=it.x+m.w>=W-1e-6?W2-m.w:it.x<=1e-6?0:h((it.x+m.w/2)*W2/W-m.w/2);o.y=it.y+m.d>=D-1e-6?D2-m.d:it.y<=1e-6?0:h((it.y+m.d/2)*D2/D-m.d/2);
+ o.x=Math.max(0,Math.min(W2-m.w,o.x));o.y=Math.max(0,Math.min(D2-m.d,o.y));return o})}
+function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}
+ var W=P.room.w,D=P.room.d,base=scaled(P.items,W,D,w,d),free=P.items.map(function(it){return Object.assign({},it,{pin:false})}),r,how;
+ r=layout(base,w,d,true);how=0;
+ if(!r.pos){r=layout(base,w,d,2);how=1}
+ if(!r.pos){r=layout(free,w,d);how=2}
+ if(!r.pos){toast((w*d<W*D?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}
+ push();var moved=0;P.items.forEach(function(it){var q=r.pos[it.u];if(q&&(q.x!==it.x||q.y!==it.y||q.rot!==it.rot))moved++});
+ P.room.w=w;P.room.d=d;apply(r);if(how===2)P.items.forEach(function(it){it.pin=false});lastFail=null;persist();render();
+ if(w*d<W*D||how)toast(how===2?'Everything was rearranged to fit, and pins were released':how===1?'Things were pushed around to fit':'Resized to '+fmt(w)+' × '+fmt(d)+' ft')}
 function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();persist();render()}
 // turn a quarter left (-1) or right (+1) about its centre; if that spot is blocked, nudge it into the nearest free space close by
 function rotate(u,dir){var it=byU(u);if(!it)return;dir=dir||1;var nr=(it.rot+dir+4)%4,m0=dims(it,it.rot),m=dims(it,nr),cx=it.x+m0.w/2,cy=it.y+m0.d/2,
