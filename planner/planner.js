@@ -128,27 +128,33 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  if(it.pin)h+='<circle cx="'+(m.w-.35)+'" cy=".35" r="'+(6*k)+'" fill="#e07b1f" stroke="#fff" stroke-width="'+(1.5*k)+'"/>';
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
-function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-obj"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj')}
+function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-obj"></g><g id="g-ghost"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.ghost=sv.querySelector('#g-ghost')}
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
- $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to pin an object · R turns it · Ctrl+Z undoes':'Click objects on the left to add them · the room lays itself out'}
+ $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to move · it lands in the nearest free spot · R turns it':'Click objects on the left to add them · the room lays itself out'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
 /* ---------------- dragging an object pins it ---------------- */
 function toFt(e){var p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse())}
 sv.addEventListener('pointerdown',function(e){var g=e.target.closest('g.obj');if(!g){sel=null;render();return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};sv.setPointerCapture(e.pointerId);e.preventDefault()});
-sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;drag.moved=true;var it=byU(drag.u),p=toFt(e),m=dims(it,it.rot);
+// the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
+function others(it){return P.items.filter(function(o){return o!==it}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
+function nearestFree(it,x,y,obs){var c=defOf(it),m=dims(it,it.rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
+ for(var yy=0;yy+m.d<=D+1e-6;yy+=.5)for(var xx=0;xx+m.w<=W+1e-6;xx+=.5){var dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(ok(b,clr(c,b,it.rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
+ return best}
+function ghost(sp,it){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,it.rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
+sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;if(!drag.moved)drag.obs=others(byU(drag.u));drag.moved=true;var it=byU(drag.u),p=toFt(e),m=dims(it,it.rot);
  var x=Math.round((p.x-drag.dx)*2)/2,y=Math.round((p.y-drag.dy)*2)/2;x=Math.max(0,Math.min(P.room.w-m.w,x));y=Math.max(0,Math.min(P.room.d-m.d,y));drag.x=x;drag.y=y;drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
- var b={x:x,y:y,w:m.w,d:m.d},pins=P.items.filter(function(o){return o!==it&&o.pin}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}});
- drag.el.style.opacity=ok(b,clr(defOf(it),b,it.rot),pins,P.room.w,P.room.d)?1:.55});
-sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';var it=byU(d.u);
+ drag.spot=nearestFree(it,x,y,drag.obs);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it)});
+sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;render();return}
- var before=snapP();it.x=d.x;it.y=d.y;it.pin=true;sel=it.u;
- if(!relayout({nogrow:true})){var msg=lastFail;P=JSON.parse(before);lastFail=null;toast('Not enough room for it there, so it went back');render();return}hist.push(before);fut=[];persist();render()});
+ var before=snapP();sel=it.u;it.pin=true;
+ if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
+ if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');render();return}hist.push(before);fut=[];persist();render()});
 
 /* ---------------- left: library ---------------- */
 var openCats={},q='';
