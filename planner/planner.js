@@ -134,7 +134,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
- $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to move · it lands in the nearest free spot · R turns it':'Click objects on the left to add them · the room lays itself out'}
+ $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it against that wall · R turns it':'Click objects on the left to add them · the room lays itself out'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
@@ -143,18 +143,27 @@ function toFt(e){var p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.
 sv.addEventListener('pointerdown',function(e){var g=e.target.closest('g.obj');if(!g){sel=null;render();return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};sv.setPointerCapture(e.pointerId);e.preventDefault()});
 // the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
 function others(it){return P.items.filter(function(o){return o!==it}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
-function nearestFree(it,x,y,obs){var c=defOf(it),m=dims(it,it.rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
- for(var yy=0;yy+m.d<=D+1e-6;yy+=.5)for(var xx=0;xx+m.w<=W+1e-6;xx+=.5){var dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(ok(b,clr(c,b,it.rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
+function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
+ for(var yy=0;yy+m.d<=D+1e-6;yy+=.5)for(var xx=0;xx+m.w<=W+1e-6;xx+=.5){var dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(ok(b,clr(c,b,rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
  return best}
-function ghost(sp,it){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,it.rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
-sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;if(!drag.moved)drag.obs=others(byU(drag.u));drag.moved=true;var it=byU(drag.u),p=toFt(e),m=dims(it,it.rot);
- var x=Math.round((p.x-drag.dx)*2)/2,y=Math.round((p.y-drag.dy)*2)/2;x=Math.max(0,Math.min(P.room.w-m.w,x));y=Math.max(0,Math.min(P.room.d-m.d,y));drag.x=x;drag.y=y;drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
- drag.spot=nearestFree(it,x,y,drag.obs);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it)});
+function ghost(sp,it,rot){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
+// pushing past a wall turns the object to sit against that wall: front-facing pieces face into the room, others run their long side along it
+function wallTurn(it,s){var c=defOf(it);if(c.cf)return s;var m=dims(it,0);return m.w>=m.d?s:(s+1)%4}
+function drawAs(d,it,rot){if(d.shown===rot)return;d.shown=rot;var t=Object.assign({},it,{rot:rot});d.el.dataset.k='';d.el.innerHTML=objInner(t,1/scale())}
+sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot}drag.moved=true;
+ var p=toFt(e),W=P.room.w,D=P.room.d,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr;
+ for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
+ var x,y,rot,m;
+ if(side>=0){rot=wallTurn(it,side);m=dims(it,rot);x=side===3?0:side===1?W-m.w:Math.round((p.x-m.w/2)*2)/2;y=side===0?0:side===2?D-m.d:Math.round((p.y-m.d/2)*2)/2}
+ else{rot=it.rot;m=dims(it,rot);if(drag.rot!==it.rot){var m0=dims(it,drag.rot);drag.dx=m.w/2;drag.dy=m.d/2}x=Math.round((p.x-drag.dx)*2)/2;y=Math.round((p.y-drag.dy)*2)/2}
+ x=Math.max(0,Math.min(W-m.w,x));y=Math.max(0,Math.min(D-m.d,y));drag.x=x;drag.y=y;drag.rot=rot;drawAs(drag,it,rot);
+ drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
+ drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
 sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;render();return}
- var before=snapP();sel=it.u;it.pin=true;
+ var before=snapP();sel=it.u;it.pin=true;it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
- if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');render();return}hist.push(before);fut=[];persist();render()});
+ if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}hist.push(before);fut=[];persist();render()});
 
 /* ---------------- left: library ---------------- */
 var openCats={},q='';
