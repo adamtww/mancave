@@ -116,6 +116,83 @@ async function route(req, env) {
 
   if (p === '/api/me' && M === 'GET') return json({ user: pub(me) });
   if (p === '/api/read-plan' && M === 'POST') return readPlan(req, env);
+
+  // shared object library + personal objects
+  if (p === '/api/objects' && M === 'GET') {
+    const { results } = await env.DB.prepare(
+      'SELECT r, owner_id, data, deleted, updated_at FROM objects WHERE owner_id IS NULL OR owner_id = ? ORDER BY r').bind(me.id).all();
+    return json({ admin: me.admin, me: me.id, objects: results.map((o) => ({
+      r: o.r, shared: o.owner_id === null, mine: o.owner_id === me.id, deleted: !!o.deleted, updated_at: o.updated_at, data: JSON.parse(o.data) })) });
+  }
+  if (p === '/api/objects/seed' && M === 'POST') {
+    needAdmin(me);
+    const b = await body(req), list = Array.isArray(b.objects) ? b.objects : [];
+    let added = 0;
+    for (const o of list.slice(0, 2000)) {
+      const d = checkObj(o);
+      const r = await env.DB.prepare('INSERT OR IGNORE INTO objects (r, owner_id, data) VALUES (?, NULL, ?)').bind(d.r, JSON.stringify(d)).run();
+      added += r.meta.changes || 0;
+    }
+    return json({ ok: true, added });
+  }
+  if ((m = /^\/api\/objects\/([A-Za-z0-9_-]{1,80})$/.exec(p))) {
+    const r = m[1];
+    const row = await env.DB.prepare('SELECT r, owner_id FROM objects WHERE r = ?').bind(r).first();
+    const mineKey = r.startsWith('u' + me.id + '-');
+    if (M === 'PUT') {
+      const b = await body(req), d = checkObj(Object.assign({}, b.data, { r }));
+      if (row ? row.owner_id === null : !mineKey) {
+        if (!row && !me.admin) bad('Your own objects need an id starting with u' + me.id + '-');
+        needAdmin(me);   // the shared library: admins only
+        await env.DB.prepare(`INSERT INTO objects (r, owner_id, data, deleted, updated_at) VALUES (?, NULL, ?, 0, datetime('now'))
+          ON CONFLICT(r) DO UPDATE SET data = excluded.data, deleted = 0, updated_at = datetime('now')`).bind(r, JSON.stringify(d)).run();
+      } else {
+        if (row && row.owner_id !== me.id) throw new HttpError(403, 'That object belongs to someone else');
+        if (!mineKey) bad('Your own objects need an id starting with u' + me.id + '-');
+        await env.DB.prepare(`INSERT INTO objects (r, owner_id, data, updated_at) VALUES (?, ?, ?, datetime('now'))
+          ON CONFLICT(r) DO UPDATE SET data = excluded.data, updated_at = datetime('now')`).bind(r, me.id, JSON.stringify(d)).run();
+      }
+      return json({ ok: true });
+    }
+    if (M === 'DELETE') {
+      if (!row) {
+        // removing a built-in that was never edited: admins record it as removed
+        needAdmin(me);
+        await env.DB.prepare(`INSERT INTO objects (r, owner_id, data, deleted) VALUES (?, NULL, '{}', 1)`).bind(r).run();
+      } else if (row.owner_id === null) {
+        needAdmin(me);
+        await env.DB.prepare(`UPDATE objects SET deleted = 1, updated_at = datetime('now') WHERE r = ?`).bind(r).run();
+      } else {
+        if (row.owner_id !== me.id) throw new HttpError(403, 'That object belongs to someone else');
+        await env.DB.prepare('DELETE FROM objects WHERE r = ?').bind(r).run();
+      }
+      return json({ ok: true });
+    }
+  }
+
+  // Space Planner: saved rooms (each user's own)
+  if (p === '/api/spaces' && M === 'GET') {
+    const { results } = await env.DB.prepare(
+      'SELECT id, name, created_at, updated_at, length(data) AS bytes FROM spaces WHERE owner_id = ? ORDER BY updated_at DESC').bind(me.id).all();
+    return json({ spaces: results });
+  }
+  if (p === '/api/spaces' && M === 'POST') {
+    const b = await body(req), data = checkSpace(b.data);
+    const r = await env.DB.prepare('INSERT INTO spaces (owner_id, name, data) VALUES (?, ?, ?)').bind(me.id, cleanName(b.name, 'Untitled room'), data).run();
+    return json({ id: r.meta.last_row_id });
+  }
+  if ((m = /^\/api\/spaces\/(\d+)$/.exec(p))) {
+    const row = await env.DB.prepare('SELECT * FROM spaces WHERE id = ? AND owner_id = ?').bind(+m[1], me.id).first();
+    if (!row) throw new HttpError(404, 'No such room');
+    if (M === 'GET') return json({ space: { id: row.id, name: row.name, data: JSON.parse(row.data), updated_at: row.updated_at } });
+    if (M === 'PUT') {
+      const b = await body(req);
+      await env.DB.prepare(`UPDATE spaces SET name = ?, data = ?, updated_at = datetime('now') WHERE id = ?`)
+        .bind(cleanName(b.name ?? row.name, row.name), b.data ? checkSpace(b.data) : row.data, row.id).run();
+      return json({ ok: true });
+    }
+    if (M === 'DELETE') { await env.DB.prepare('DELETE FROM spaces WHERE id = ?').bind(row.id).run(); return json({ ok: true }); }
+  }
   if (p === '/api/logout' && M === 'POST') {
     await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(me.tokenHash).run();
     return json({ ok: true });
@@ -238,6 +315,23 @@ async function route(req, env) {
   throw new HttpError(404, 'Not found');
 }
 
+function checkObj(o) {
+  if (!o || typeof o !== 'object') bad('Object data is missing');
+  const r = String(o.r || ''), n = String(o.n || '').trim().slice(0, 80), c = String(o.c || '').trim().slice(0, 60);
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(r)) bad('Bad object id');
+  if (!n || !c) bad('An object needs a name and a category');
+  const w = +o.w, d = +o.d;
+  if (!(w > 0 && w <= 200 && d > 0 && d <= 200)) bad('Width and depth must be between 0 and 200 ft');
+  const s = JSON.stringify(Object.assign({}, o, { r, n, c, w, d }));
+  if (s.length > 20000) throw new HttpError(413, 'That object is too large');
+  return JSON.parse(s);
+}
+function checkSpace(d) {
+  if (!d || typeof d !== 'object' || !d.room || !Array.isArray(d.items)) bad('Room data is missing');
+  const s = JSON.stringify(d);
+  if (s.length > MAX_LAYOUT_BYTES) throw new HttpError(413, 'That room is too large to save');
+  return s;
+}
 function pub(u) { return { id: u.id, username: u.username, admin: u.admin }; }
 
 // ---------- floor plan reading (test site only) ----------

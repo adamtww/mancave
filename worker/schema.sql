@@ -39,7 +39,28 @@ CREATE TABLE IF NOT EXISTS login_fails (
   at         TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Shared object library (owner_id NULL: only admins edit) plus each user's own objects.
+CREATE TABLE IF NOT EXISTS objects (
+  r          TEXT PRIMARY KEY,           -- object id, same as the catalog key; personal ones start with u<user id>-
+  owner_id   INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  data       TEXT NOT NULL,              -- JSON definition: same fields as src/catalog.js, plus req (requirements)
+  deleted    INTEGER NOT NULL DEFAULT 0, -- a shared object an admin removed (kept so the built-in stays hidden)
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Space Planner: saved rooms
+CREATE TABLE IF NOT EXISTS spaces (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  owner_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name       TEXT NOT NULL,
+  data       TEXT NOT NULL,              -- JSON: room size, settings, objects with positions, object definitions
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_layouts_owner   ON layouts(owner_id);
+CREATE INDEX IF NOT EXISTS idx_objects_owner   ON objects(owner_id);
+CREATE INDEX IF NOT EXISTS idx_spaces_owner    ON spaces(owner_id);
 CREATE INDEX IF NOT EXISTS idx_versions_layout ON versions(layout_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user   ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_fails_user      ON login_fails(username, at);
