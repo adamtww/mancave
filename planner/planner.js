@@ -102,14 +102,18 @@ function remove(u){push();P.items=P.items.filter(function(i){return i.u!==u});if
 function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}var r=layout(P.items,w,d,true);if(!r.pos)r=layout(P.items,w,d);
  if(!r.pos){toast((w*d<P.room.w*P.room.d?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}push();P.room.w=w;P.room.d=d;apply(r);lastFail=null;persist();render()}
 function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();persist();render()}
-function rotate(u){var it=byU(u);if(!it)return;var before=snapP(),m0=dims(it,it.rot),cx=it.x+m0.w/2,cy=it.y+m0.d/2;it.rot=(it.rot+1)%4;var m=dims(it,it.rot);it.x=Math.max(0,Math.round((cx-m.w/2)*2)/2);it.y=Math.max(0,Math.round((cy-m.d/2)*2)/2);it.pin=true;
- if(!relayout({nogrow:true})){var msg=lastFail;P=JSON.parse(before);lastFail=null;toast('Not enough room to turn it there');render();return}hist.push(before);fut=[];persist();render()}
+// turn a quarter left (-1) or right (+1) about its centre; if that spot is blocked, nudge it into the nearest free space close by
+function rotate(u,dir){var it=byU(u);if(!it)return;dir=dir||1;var nr=(it.rot+dir+4)%4,m0=dims(it,it.rot),m=dims(it,nr),cx=it.x+m0.w/2,cy=it.y+m0.d/2,
+  x=Math.round((cx-m.w/2)*2)/2,y=Math.round((cy-m.d/2)*2)/2,sp=nearestFree(it,x,y,others(it),nr),give=Math.max(3,Math.max(m.w,m.d)*.75);
+ if(!sp||Math.hypot(sp.x-x,sp.y-y)>give){toast('No room nearby to turn it');return}
+ var before=snapP();it.rot=nr;it.x=sp.x;it.y=sp.y;it.pin=true;
+ if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No room nearby to turn it');render();return}hist.push(before);fut=[];persist();render()}
 function byU(u){for(var i=0;i<P.items.length;i++)if(P.items[i].u===u)return P.items[i];return null}
 function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop());if(sel&&!byU(sel))sel=null;persist();render()}
 function redo(){if(!fut.length)return;hist.push(snapP());P=JSON.parse(fut.pop());persist();render()}
 document.addEventListener('keydown',function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
- if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel);if(e.key==='Escape'){sel=null;render()}});
+ if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;render()}});
 
 /* ---------------- drawing ---------------- */
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
@@ -134,7 +138,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
- $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it against that wall · R turns it':'Click objects on the left to add them · the room lays itself out'}
+ $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn':'Click objects on the left to add them · the room lays itself out'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
@@ -204,14 +208,14 @@ function side(){var W=P.room.w,D=P.room.d,h='';
  h+='</div>';
  var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
   '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+(c.cl?fmt(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>'+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
-  '<div class="row"><button class="btn" id="o-rot">Turn 90°</button><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div></div>'}
+  '<div class="row"><button class="btn" id="o-rl" title="Turn left (Shift+R)">↺ Turn left</button><button class="btn" id="o-rr" title="Turn right (R)">↻ Turn right</button></div><div class="row"><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div></div>'}
  h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
  if(P.items.length){var cnt={};h+='<div class="card"><span class="lab">In this room · '+P.items.length+'</span><div class="ol">'+P.items.map(function(i){var c=defOf(i),m=dims(i,i.rot);return '<button class="oi'+(sel===i.u?' on':'')+'" data-u="'+i.u+'"><span class="nm">'+esc(c.n)+'</span>'+(i.pin?'<span class="pin">pinned</span>':'')+'<span class="sz">'+fmt(m.w)+'×'+fmt(m.d)+'</span></button>'}).join('')+'</div></div>'}
  var S=$('#side');S.innerHTML=h;
  $('#r-set').onclick=function(){setSize(parseFloat($('#r-w').value),parseFloat($('#r-d').value))};['#r-w','#r-d'].forEach(function(s){$(s).onkeydown=function(e){if(e.key==='Enter')$('#r-set').click()}});
  $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};
  var gb=$('#r-grow');if(gb)gb.onclick=function(){var r=lastFail.r,c=LIB[r],before=snapP(),nit={u:'o'+(P.uid++),r:r,x:0,y:0,rot:0,n:P.uid};P.defs[r]=JSON.parse(JSON.stringify(c));P.items.push(nit);if(!relayout({force:true})){P=JSON.parse(before);toast('Even a much bigger room can\'t fit that');render();return}hist.push(before);fut=[];sel=nit.u;lastFail=null;persist();render()};
- if(it){$('#o-rot').onclick=function(){rotate(it.u)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
+ if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
 
 /* ---------------- objects: make your own; the admin edits the shared library ---------------- */
