@@ -52,7 +52,7 @@ button{font:inherit;cursor:pointer}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#26251f;color:#fff;font-size:13.5px;padding:10px 16px;border-radius:10px;opacity:0;transition:all .2s;pointer-events:none;z-index:60;max-width:90vw}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:none}
+g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:none}g.obj.pop{animation:spop .35s ease-out}@keyframes spop{0%{opacity:.15}100%{opacity:1}}
 .lgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
 .lcard{position:relative}

@@ -55,27 +55,41 @@ function wallSpots(it,W,D){var o=[];for(var s=0;s<4;s++){var rot=WALLROT[s],m=di
 function gridSpots(it,W,D){var o=[];[0,1].forEach(function(rot){var m=dims(it,rot);for(var y=0;y+m.d<=D+1e-6;y+=.5)for(var x=0;x+m.w<=W+1e-6;x+=.5)o.push({x:x,y:y,rot:rot})});return o}
 function center(b){return {x:b.x+b.w/2,y:b.y+b.d/2}}
 // lay the whole room out; returns placements or the first object that didn't fit
-function layout(items,W,D){var placed=[],out={},order=items.slice();
- var pr=function(it){var c=defOf(it),m=dims(it,0),k=c.cl||0;return (it.pin?1e9:0)+({center:3e6,wall:2e6,flex:1e6})[kind(c)]+(m.w+2*k)*(m.d+2*k)};
+// Lay the room out. stable: objects already in the room stay put unless they now clash; only those move, to the nearest free spot.
+function spotFor(it,c,placed,W,D,near){var k=kind(c),same=placed.filter(function(p){return p.cat===c.c}),best=null,
+  cands=k==='center'?gridSpots(it,W,D):wallSpots(it,W,D);if(k==='flex'||(near&&k==='wall'))cands=cands.concat(gridSpots(it,W,D).map(function(s){s.t=1e4;return s}));
+ for(var j=0;j<cands.length;j++){var s=cands[j],mm=dims(it,s.rot),bb={x:s.x,y:s.y,w:mm.w,d:mm.d},c2=clr(c,bb,s.rot);if(!ok(bb,c2,placed,W,D))continue;
+  var ce=center(bb),sc;
+  if(near){sc=Math.hypot(ce.x-near.x,ce.y-near.y)+(s.rot===near.rot?0:1.5)+(k==='wall'&&s.t>=1e4?12:0)}
+  else{var cl=0;if(same.length){cl=1e9;same.forEach(function(p){var q=center(p.b);cl=Math.min(cl,Math.hypot(q.x-ce.x,q.y-ce.y))})}
+   sc=k==='center'?Math.hypot(ce.x-W/2,ce.y-D/2)+cl*.5:cl*2+s.t*.05+(s.t>=1e4?Math.min(bb.x,bb.y,W-bb.x-bb.w,D-bb.y-bb.d)*2:0)}
+  if(!best||sc<best.sc-1e-9)best={x:s.x,y:s.y,rot:s.rot,b:bb,c:c2,sc:sc}}
+ return best}
+function layout(items,W,D,stable){var placed=[],out={},order=items.slice(),moved=[];
+ var pr=function(it){var c=defOf(it),m=dims(it,0),k=c.cl||0;return (it.pin?1e9:0)+(stable&&it.placed?5e8:0)+({center:3e6,wall:2e6,flex:1e6})[kind(c)]+(m.w+2*k)*(m.d+2*k)};
  order.sort(function(a,b){return pr(b)-pr(a)||a.n-b.n});
- for(var i=0;i<order.length;i++){var it=order[i],c=defOf(it),best=null;
-  if(it.pin){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);if(!ok(b,cc,placed,W,D))return {fail:it,pinned:true};best={x:it.x,y:it.y,rot:it.rot,b:b,c:cc}}
-  else{var k=kind(c),same=placed.filter(function(p){return p.cat===c.c}),cands=k==='center'?gridSpots(it,W,D):wallSpots(it,W,D);if(k==='flex')cands=cands.concat(gridSpots(it,W,D).map(function(s){s.t=1e4;return s}));
-   for(var j=0;j<cands.length;j++){var s=cands[j],mm=dims(it,s.rot),bb={x:s.x,y:s.y,w:mm.w,d:mm.d},c2=clr(c,bb,s.rot);if(!ok(bb,c2,placed,W,D))continue;
-    var ce=center(bb),cl=0;if(same.length){cl=1e9;same.forEach(function(p){var q=center(p.b);cl=Math.min(cl,Math.hypot(q.x-ce.x,q.y-ce.y))})}
-    var sc=k==='center'?Math.hypot(ce.x-W/2,ce.y-D/2)+cl*.5:cl*2+s.t*.05+(s.t>=1e4?Math.min(bb.x,bb.y,W-bb.x-bb.w,D-bb.y-bb.d)*2:0);
-    if(!best||sc<best.sc-1e-9)best={x:s.x,y:s.y,rot:s.rot,b:bb,c:c2,sc:sc}}
-   if(!best)return {fail:it}}
-  placed.push({u:it.u,b:best.b,c:best.c,cat:c.c});out[it.u]={x:best.x,y:best.y,rot:best.rot}}
+ var put=function(it,c,best){placed.push({u:it.u,b:best.b,c:best.c,cat:c.c});out[it.u]={x:best.x,y:best.y,rot:best.rot}};
+ var at=function(it,c){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);return ok(b,cc,placed,W,D)?{x:it.x,y:it.y,rot:it.rot,b:b,c:cc}:null};
+ for(var i=0;i<order.length;i++){var it=order[i],c=defOf(it),best;
+  if(it.pin){best=at(it,c);if(!best)return {fail:it,pinned:true};put(it,c,best)}
+  else if(stable&&it.placed){best=at(it,c);if(best)put(it,c,best);else moved.push(it)}
+  else{best=spotFor(it,c,placed,W,D);if(!best)return {fail:it};put(it,c,best)}}
+ // the ones that got bumped go to the closest free spot to where they were
+ moved.sort(function(a,b){return pr(b)-pr(a)});
+ for(var q=0;q<moved.length;q++){var mv=moved[q],mc=defOf(mv),m0=dims(mv,mv.rot),best2=spotFor(mv,mc,placed,W,D,{x:mv.x+m0.w/2,y:mv.y+m0.d/2,rot:mv.rot});if(!best2)return {fail:mv};put(mv,mc,best2)}
  return {pos:out}}
-function apply(res){P.items.forEach(function(it){var q=res.pos[it.u];if(q){it.x=q.x;it.y=q.y;it.rot=q.rot}})}
+function apply(res){P.items.forEach(function(it){var q=res.pos[it.u];if(q){it.x=q.x;it.y=q.y;it.rot=q.rot;it.placed=1}})}
+// when the room grows, things against the far walls move out with them and the rest shift by half
+function shifted(items,W,D,W2,D2){var dw=W2-W,dd=D2-D,h=function(v){return Math.round(v*2)/2};return items.map(function(it){if(it.pin||!it.placed)return it;var m=dims(it,it.rot),o=Object.assign({},it);
+ o.x=it.x+m.w>=W-1e-6?it.x+dw:it.x<=1e-6?it.x:it.x+h(dw/2);o.y=it.y+m.d>=D-1e-6?it.y+dd:it.y<=1e-6?it.y:it.y+h(dd/2);return o})}
 // smallest bigger room (never smaller) that fits everything; prefers squarish growth over corridors
 function grow(items,W,D,maxTries){var body=0,need=items.map(function(it){var c=defOf(it),m=dims(it,0),k=c.cl||0;body+=m.w*m.d;return c.cf?{a:Math.min(m.w,m.d),b:Math.max(m.w,m.d)}:{a:Math.min(m.w,m.d)+2*k,b:Math.max(m.w,m.d)+2*k}});
  var C=[];for(var w=W;w<=W+60;w+=.5)for(var d=D;d<=D+60;d+=.5){if(w===W&&d===D)continue;if(w*d<body)continue;var lo=Math.min(w,d),hi=Math.max(w,d);if(!need.every(function(n){return n.a<=lo+1e-6&&n.b<=hi+1e-6}))continue;C.push({w:w,d:d,k:w*d*(1+.25*Math.max(0,hi/lo-1.3))})}
- C.sort(function(a,b){return a.k-b.k});var t0=Date.now();for(var i=0;i<C.length&&i<(maxTries||4000)&&Date.now()-t0<2500;i++){var r=layout(items,C[i].w,C[i].d);if(r.pos)return {w:C[i].w,d:C[i].d,res:r}}return null}
+ C.sort(function(a,b){return a.k-b.k});var t0=Date.now();
+ for(var i=0;i<C.length&&i<(maxTries||4000)&&Date.now()-t0<2500;i++){var sh=shifted(items,W,D,C[i].w,C[i].d),r=layout(sh,C[i].w,C[i].d,true);if(!r.pos)r=layout(items,C[i].w,C[i].d);if(r.pos)return {w:C[i].w,d:C[i].d,res:r}}return null}
 function why(f){var c=defOf(f.fail);return f.pinned?c.n+' is pinned where nothing else can fit around it':'No room for '+c.n+' with its clearance'}
 // re-lay out after a change; with Dynamic Expansion the room grows when it has to
-function relayout(opts){opts=opts||{};var r=layout(P.items,P.room.w,P.room.d);
+function relayout(opts){opts=opts||{};var r=layout(P.items,P.room.w,P.room.d,true);if(!r.pos&&!opts.nogrow){var r2=layout(P.items,P.room.w,P.room.d);if(r2.pos)r=r2}
  if(r.pos){apply(r);lastFail=null;return true}
  if((P.dyn&&!opts.nogrow)||opts.force){var g=grow(P.items,P.room.w,P.room.d);if(g){var gw=g.w-P.room.w,gd=g.d-P.room.d;P.room.w=g.w;P.room.d=g.d;apply(g.res);lastFail=null;toast('Room grew to '+fmt(g.w)+' × '+fmt(g.d)+' ft to fit it');return true}}
  lastFail=why(r);return false}
@@ -85,7 +99,7 @@ function add(r){var c=LIB[r];if(!c)return;var before=snapP(),it={u:'o'+(P.uid++)
  if(!relayout()){var msg=lastFail;P=JSON.parse(before);lastFail={msg:msg,r:r};render();return}
  hist.push(before);fut=[];sel=it.u;lastFail=null;persist();render();pop(it.u)}
 function remove(u){push();P.items=P.items.filter(function(i){return i.u!==u});if(sel===u)sel=null;relayout();persist();render()}
-function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}var r=layout(P.items,w,d);
+function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}var r=layout(P.items,w,d,true);if(!r.pos)r=layout(P.items,w,d);
  if(!r.pos){toast((w*d<P.room.w*P.room.d?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}push();P.room.w=w;P.room.d=d;apply(r);lastFail=null;persist();render()}
 function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();persist();render()}
 function rotate(u){var it=byU(u);if(!it)return;var before=snapP(),m0=dims(it,it.rot),cx=it.x+m0.w/2,cy=it.y+m0.d/2;it.rot=(it.rot+1)%4;var m=dims(it,it.rot);it.x=Math.max(0,Math.round((cx-m.w/2)*2)/2);it.y=Math.max(0,Math.round((cy-m.d/2)*2)/2);it.pin=true;
@@ -118,7 +132,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
-  if(!(drag&&drag.u===it.u&&drag.moved))el.style.transform='translate('+it.x+'px,'+it.y+'px)';seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
+  if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
  $('#rname').value=P.name;side();markLib();$('#hint').textContent=P.items.length?'Drag to pin an object · R turns it · Ctrl+Z undoes':'Click objects on the left to add them · the room lays itself out'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
