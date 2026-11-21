@@ -1728,7 +1728,7 @@ function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i
  return '<svg viewBox="'+(-m/2)+' '+(-m/2)+' '+m+' '+m+'" preserveAspectRatio="xMidYMid meet" pointer-events="none">'+g+'</svg>'}
 function libCard(i,col){var tag=LIB[i.r]?(LIB[i.r].custom?'<em>custom</em>':'<em>edited</em>'):'';
  return '<div class="lcard'+(libPick===i.r?' sel':'')+'" data-r="'+escH(i.r)+'" style="--c:'+col+'"><span class="lgrip" aria-hidden="true"></span><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+escH(i.n)+tag+'</div><div class="lbdg"><span>'+fmtN(i.w)+'×'+fmtN(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(i.bi?'<span class="rz" title="Resizable">↔</span>':'')+'</div></div>'}
-function libForm(c){var isNew=!c;c=c||{n:'',c:'Wishlist',w:3,d:3,cl:2,cf:1,est:1};var p=c.p||[120,500,20,0],cats=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}),n=c.r?placedCount(c.r):0;
+function libForm(c){var isNew=!c;c=c||{n:'',c:'Creator / Maker',w:3,d:3,cl:2,cf:1,est:1};var p=c.p||[120,500,20,0],cats=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}),n=c.r?placedCount(c.r):0;
  var h='<div class="lf"><button class="lback" id="lf-back">‹ All objects</button><h3>'+(isNew?'New object':'Edit object')+'</h3>';
  h+='<label class="fl">Name</label><input class="fi" id="lf-n" value="'+escH(c.n)+'">';
  h+='<label class="fl">Category</label><select class="fi" id="lf-c">'+cats.map(function(x){return '<option'+(x[0]===c.c?' selected':'')+'>'+escH(x[0])+'</option>'}).join('')+'</select>';
@@ -1788,7 +1788,7 @@ function whenFull(ts){var d=utc(ts);return d?d.toLocaleString(undefined,{month:'
 function packData(){var items=S.items.map(function(it){var o=Object.assign({},it);delete o.sz;delete o.ed;delete o.wasLk;delete o.ph;return o}),defs={};
  items.forEach(function(it){if(it.r&&BY[it.r]&&!defs[it.r]){var c=Object.assign({},BY[it.r]);defs[it.r]=c}});return {lot:S.lot,items:items,defs:defs}}
 function packKey(){var d=packData();return JSON.stringify({lot:d.lot,items:d.items})}
-function applyData(d,name){(function(defs){Object.keys(defs||{}).forEach(function(r){if(!BY[r]){var c=Object.assign({},defs[r],{r:r});CATALOG.push(c);BY[r]=c}})})(d.defs);
+function applyData(d,name){(d.items||[]).forEach(function(i){if(i&&i.r&&ALIAS[i.r]&&BY[ALIAS[i.r]]){var o=i.r,n=BY[ALIAS[o]],old=((d.defs&&d.defs[o]&&d.defs[o].n)||'').replace(/ \(\$[^)]*\)/,'');i.r=ALIAS[o];if(!i.name||i.name===old||/xTool|Prusa/.test(i.name))i.name=n.n}});(function(defs){Object.keys(defs||{}).forEach(function(r){if(ALIAS[r])return;if(!BY[r]){var c=Object.assign({},defs[r],{r:r});CATALOG.push(c);BY[r]=c}})})(d.defs);
  S={lot:d.lot||{w:100,d:100},items:(d.items||[]).map(function(i){return Object.assign({},i)}),name:name};undoS=[];redoS=[];sel=null;infoOpenU=null;commit();fit();renderCats();renderLib()}
 function isDirty(){return !!cur&&savedJSON!==null&&packKey()!==savedJSON}
 function cloudUI(){var n=$('#ly-name');if(!n)return;

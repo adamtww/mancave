@@ -14,6 +14,8 @@ var me=null;
 function api(m,p,b){return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b?JSON.stringify(b):undefined}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmt(n){return (Math.round(n*10)/10).toLocaleString('en-US')}
+function money(v){return v>=1000?'$'+(v>=10000?Math.round(v/1000):Math.round(v/100)/10)+'k':'$'+Math.round(v)}
+function costTxt(c){if(!c||!c.cost)return '';var a=c.cost[0],b=c.cost[1];if(!a&&!b)return '';return a===b?money(a):money(a)+'–'+money(b)}
 function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+' kW':Math.round(w)+' W'}
 var tt=null;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('on')},2600)}
 
@@ -21,22 +23,29 @@ var tt=null;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add(
 var LIB={},MINE={},SHAREDROWS=0;
 function baseLib(){LIB={};CATALOG.forEach(function(c){if(c.z||c.r==='b-wall'||c.c==='Rooms & Zones')return;LIB[c.r]=JSON.parse(JSON.stringify(c))})}
 baseLib();
+// The catalog is the source of truth for built-in objects. A shared row only replaces a built-in when the
+// library owner actually edited it (rows copied in by the old one-time seed are ignored), and never for a retired id.
 function loadLib(){if(!tok)return Promise.resolve();return api('GET','/api/objects').then(function(j){baseLib();MINE={};SHAREDROWS=0;
-  j.objects.forEach(function(o){if(o.shared){SHAREDROWS++;if(o.deleted){delete LIB[o.r];return}LIB[o.r]=Object.assign({},o.data,{r:o.r})}else if(o.mine){LIB[o.r]=Object.assign({},o.data,{r:o.r});MINE[o.r]=1}});
-  // first visit by an admin: fill the shared library from the built-in catalog
-  if(j.admin&&!SHAREDROWS){var list=CATALOG.filter(function(c){return !c.z&&c.r!=='b-wall'&&c.c!=='Rooms & Zones'});return api('POST','/api/objects/seed',{objects:list}).then(function(){toast('Shared object library set up from the catalog')}).catch(function(){})}
+  var sh=j.objects.filter(function(o){return o.shared}),t0=sh.reduce(function(m,o){var t=Date.parse(o.updated_at+'Z')||0;return Math.min(m,t)},Infinity);
+  j.objects.forEach(function(o){if(ALIAS[o.r])return;
+   if(o.shared){SHAREDROWS++;var builtIn=!!BY[o.r],edited=(o.data&&o.data.ed)||(Date.parse(o.updated_at+'Z')||0)>t0+60000;
+    if(o.deleted){delete LIB[o.r];return}
+    if(builtIn&&!edited)return;LIB[o.r]=Object.assign({},o.data,{r:o.r})}
+   else if(o.mine){LIB[o.r]=Object.assign({},o.data,{r:o.r});MINE[o.r]=1}});
  }).catch(function(e){if(e.status===401){tok=null;showWho()}})}
+// rooms saved before an object was retired: move them onto its generic replacement
+function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&BY[n]){if(x.defs){delete x.defs[it.r];x.defs[n]=JSON.parse(JSON.stringify(BY[n]))}it.r=n}});if(x.defs)Object.keys(x.defs).forEach(function(r){if(ALIAS[r])delete x.defs[r]});return x}
 function defOf(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
 // what a room needs because of what's in it
 function needs(c){var a=c.a||[],q=c.req||{},o={};
  o.water=!!q.water||a.indexOf('plumbing')>=0||a.indexOf('garden')>=0||/sink|dishwasher|ice m|shower|toilet/i.test(c.n);
- o.vent=q.vent?'Ventilation':a.indexOf('co2')>=0?'Fume exhaust to outside':a.indexOf('weld')>=0?'Ventilation for welding':a.indexOf('commercial')>=0?'Type I hood with fire suppression':a.indexOf('dust')>=0?'Dust collection':'';
- o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['truck','public','notyet'].indexOf(k)>=0});return o}
+ o.vent=q.vent?'Ventilation':a.indexOf('fumes')>=0?'Fume extraction':a.indexOf('co2')>=0?'Fume exhaust to outside':a.indexOf('weld')>=0?'Ventilation for welding':a.indexOf('commercial')>=0?'Type I hood with fire suppression':a.indexOf('dust')>=0?'Dust collection':'';
+ o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['truck','public','notyet','ev'].indexOf(k)>=0});return o}
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,lastFail=null;
 function blank(){return {id:null,name:'Untitled room',room:{w:7,d:7},dyn:true,items:[],defs:{},uid:1}}
-P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=Object.assign(blank(),sv0)}catch(_){}
+P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=migrate(Object.assign(blank(),sv0))}catch(_){}
 function snapP(){return JSON.stringify(P)}
 function push(){hist.push(snapP());if(hist.length>60)hist.shift();fut=[]}
 function persist(){try{localStorage.setItem('space-planner-cur',JSON.stringify(P))}catch(_){}}
@@ -184,7 +193,7 @@ sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null
 /* ---------------- left: library ---------------- */
 var openCats={},q='';
 function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i.r](W,D):'<rect x="'+(-W/2)+'" y="'+(-D/2)+'" width="'+W+'" height="'+D+'" rx="'+(Math.min(W,D)*0.08)+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="'+(m*0.02)+'"/>';return '<svg viewBox="'+(-m/2)+' '+(-m/2)+' '+m+' '+m+'" preserveAspectRatio="xMidYMid meet" pointer-events="none">'+g+'</svg>'}
-function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0"><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lbdg"><span>'+fmt(i.w)+'×'+fmt(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(n.water?'<span>water</span>':'')+'</div></div>'}
+function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0"><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lbdg"><span>'+fmt(i.w)+'×'+fmt(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(n.water?'<span>water</span>':'')+(costTxt(i)?'<span>'+costTxt(i)+'</span>':'')+'</div></div>'}
 function cats(){var by={},order=[];CATS.forEach(function(c){if(c[0]!=='Rooms & Zones'){order.push(c[0]);by[c[0]]={col:c[1],list:[]}}});by['My objects']={col:'#2f7de1',list:[]};order.unshift('My objects');
  Object.keys(LIB).forEach(function(r){var i=LIB[r],cat=MINE[r]?'My objects':i.c;if(!by[cat]){by[cat]={col:'#888',list:[]};order.push(cat)}by[cat].list.push(i)});return {by:by,order:order}}
 function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
@@ -219,8 +228,9 @@ function side(){var W=P.room.w,D=P.room.d,h='';
  if(lastFail&&lastFail.msg)h+='<div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div>';
  h+='</div>';
  var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
-  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+(c.cl?fmt(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>'+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
+  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+(c.cl?fmt(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
   '<div class="row"><button class="btn" id="o-rl" title="Turn left (Shift+R)">↺ Turn left</button><button class="btn" id="o-rr" title="Turn right (R)">↻ Turn right</button></div><div class="row"><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div></div>'}
+ var lo=0,hi=0,nc=0;P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});if(P.items.length&&hi)h+='<div class="card"><span class="lab">Equipment cost</span><div class="big" style="font-size:20px">'+money(lo)+' – '+money(hi)+'</div><p class="muted">Typical prices for new equipment'+(nc?'; '+nc+' object'+(nc>1?'s have':' has')+' no price':'')+'. Install, wiring and plumbing not included.</p></div>';
  h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
  if(P.items.length){var cnt={};h+='<div class="card"><span class="lab">In this room · '+P.items.length+'</span><div class="ol">'+P.items.map(function(i){var c=defOf(i),m=dims(i,i.rot);return '<button class="oi'+(sel===i.u?' on':'')+'" data-u="'+i.u+'"><span class="nm">'+esc(c.n)+'</span>'+(i.pin?'<span class="pin">pinned</span>':'')+'<span class="sz">'+fmt(m.w)+'×'+fmt(m.d)+'</span></button>'}).join('')+'</div></div>'}
  var S=$('#side');S.innerHTML=h;
@@ -243,14 +253,14 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
   '<label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><span></span>'+
   '<label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label>'+
   '<label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label><label class="fl">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label>'+
-  '<label class="fl" style="grid-column:1/-1">Notes<textarea name="no">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
+  '<label class="fl">Typical cost, low ($)<input name="lo" inputmode="numeric" value="'+(c&&c.cost?c.cost[0]:'')+'"></label><label class="fl">Typical cost, high ($)<input name="hi" inputmode="numeric" value="'+(c&&c.cost?c.cost[1]:'')+'"></label>'+'<label class="fl" style="grid-column:1/-1">Notes<textarea name="no">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(c&&canEdit?'<button class="btn red" value="del" formnovalidate>'+(shared?'Remove from library':'Delete')+'</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button>'+(shared?'<button class="btn" value="copy">Save as my own copy</button>':'')+(canEdit?'<button class="btn pri" value="save">Save</button>':'')+'</span></div></form>';
  if(shared&&!admin)Array.prototype.forEach.call(d.querySelectorAll('input,select,textarea'),function(el){if(el.name)el.dataset.ro=1});
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
   if(v==='del'){if(!confirm((shared?'Remove '+c.n+' from the shared library for everyone?':'Delete '+c.n+'?')))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
   var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),cl:num('cl')};if(F('cf').value==='1')nd.cf=1;
-  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();
-  if(c&&c.a)nd.a=c.a.slice();if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
+  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();var lo=num('lo'),hi=num('hi');if(lo||hi)nd.cost=[Math.min(lo||hi,hi||lo),Math.max(lo,hi)];if(admin&&shared)nd.ed=1;
+  if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
   var slug=nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4),toShared=!c&&admin&&f.elements.sh&&f.elements.sh.checked;
   var key=toShared?'s-'+slug:(v==='copy'||!c)?'u'+me.id+'-'+slug:r;
   api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((toShared?'Added to the shared library':v==='copy'?'Copy saved to My objects':'Saved')+': '+nd.n);return loadLib()}).then(function(){P.items.forEach(function(i){if(i.r===key)P.defs[key]=JSON.parse(JSON.stringify(LIB[key]))});if(toShared)openCats[nd.c]=true;else if(!c||v==='copy')openCats['My objects']=true;renderLib();relayout();render()}).catch(function(e){toast(e.message)})};
@@ -265,7 +275,7 @@ $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to
 $('#b-new').onclick=function(){push();P=blank();sel=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
- d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=r.space.data;P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{}});sel=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};d.showModal()}).catch(function(e){toast(e.message)})};
+ d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{}});sel=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};d.showModal()}).catch(function(e){toast(e.message)})};
 function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'</b>'+(me.admin?' · library owner':''):'Not signed in · <a href="index.html">sign in to the test app</a> to save'}
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render()}).catch(function(){tok=null;me=null;showWho()});

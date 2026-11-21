@@ -355,7 +355,7 @@ body.touch .lcard{touch-action:pan-y}
 var CATS=[
  ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Built-ins & Counters","#8d7b68"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],
  ["Kitchen – Residential","#ffd166"],["Kitchen – Commercial","#ffb000"],["Fitness","#3ddc97"],["Court & Rink","#34c3ff"],
- ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Indoor Garden","#7bd389"],["Wishlist","#d0d0e0"]];
+ ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Home Theater & Music","#6c7cff"],["Auto & Garage","#e5533d"],["Crafts & Office","#3fb5a8"],["Storage & Utility","#a39e8f"],["Indoor Garden","#7bd389"]];
 var CATCOLOR={};CATS.forEach(function(c){CATCOLOR[c[0]]=c[1]});
 var ALERTS={
  truck:["Truck parked inside","A space where vehicles park is usually classed as Group S-2 (parking) under the California Building Code, which can mean a fire-rated wall between it and other uses, plus other fire-code steps. The city/fire marshal decides. Look for units that already have a grade-level roll-up door, ask the broker/city early whether parking inside is allowed, and keep the bay away from welding and lasers."],
@@ -369,9 +369,11 @@ var ALERTS={
  garden:["Water & humidity","Hydroponics needs a water source and floor drain nearby and adds humidity — keep it away from electronics and the shop."],
  dust:["Wood dust","Run a dust collector and keep the woodshop separated (wall or curtain) from the arcade, sims and lounge so dust stays out of electronics."],
  hvac:["Cooling","He wants it not hot. Many warehouses only heat (or use evaporative coolers) in the open area. Cooling 10k sq ft is a large electrical load — a prime concession to ask for, and something to verify on every tour."],
+ fumes:["Fumes","Resin, solvents, glazes and finishes give off fumes. Plan an extractor or a window/exhaust fan, and keep it away from the lounge."],
+ ev:["EV charging","A Level 2 charger needs a 240V circuit (often 50–60 A). Check the panel has room before planning one."],
  notyet:["Not released yet","Not available yet — dimensions and power are placeholders."]
 };
-/* p: [volts, watts, breakerAmps, dedicated(1/0)] ; est: estimate flag ; ov: may overlap others ; z: zone */
+/* p: [volts, watts, breakerAmps, dedicated(1/0)] ; est: estimate flag ; ov: may overlap others ; z: zone ; cost: [low, high] typical US$ new */
 var CATALOG=[
  // Rooms & Zones
  {r:"z-court",c:"Rooms & Zones",n:"Multipurpose court / skate rink",w:45,d:45,z:1,a:["public","ceiling"],no:"Ping-pong + robot, hoop overhead, netting around. Sealed concrete or sport tile for skating."},
@@ -390,114 +392,223 @@ var CATALOG=[
  {r:"r-truck",c:"Rooms & Zones",n:"Truck bay + roll-up door",w:14,d:26,z:1,a:["truck"],no:"Full-size pickup ≈ 7×20 ft; 14×26 leaves room to open doors. Roll-up door ~12 ft wide."},
  // Building & Support
  {r:"b-elec",c:"Building & Support",n:"Electrical room / main panel",w:6,d:8,z:1,no:"Code requires ~3 ft clear working space in front of panels."},
- {r:"b-net",c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1},
+ {r:"b-net",c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
  {r:"b-mop",c:"Building & Support",n:"Janitor closet / mop sink",w:5,d:6,z:1,a:["plumbing"]},
- {r:"b-gas",c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"]},
- {r:"b-hvac",c:"Building & Support",n:"AC / mini-split system (placeholder)",w:4,d:4,cl:0,p:[240,6000,40,1],est:1,a:["hvac"]},
+ {r:"b-gas",c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
+ {r:"b-hvac",c:"Building & Support",n:"Mini-split AC (2–3 ton)",w:4,d:4,cl:0,p:[240,6000,40,1],est:1,a:["hvac"],cost:[3000,9000]},
  // Arcade & Gaming
- {r:"g-sim",c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added)."},
- {r:"g-cab",c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1},
- {r:"g-pin",c:"Arcade & Gaming",n:"Virtual pinball machine",w:3,d:5,cl:3,cf:1,p:[120,400,20,0],est:1},
- {r:"g-gun",c:"Arcade & Gaming",n:"Dual light-gun shooter",w:5,d:4,cl:6,cf:1,p:[120,600,20,0],est:1},
- {r:"g-airh",c:"Arcade & Gaming",n:"Air hockey table",w:4,d:8,cl:3,p:[120,300,20,0],est:1},
- {r:"g-foos",c:"Arcade & Gaming",n:"Foosball table",w:2.5,d:5,cl:3},
- {r:"g-skee",c:"Arcade & Gaming",n:"Skee-Ball lane",w:2.5,d:10,cl:4,cf:1,p:[120,200,20,0],est:1},
- {r:"g-bball",c:"Arcade & Gaming",n:"Basketball arcade game",w:4,d:9,cl:4,cf:1,p:[120,500,20,0],est:1},
- {r:"g-darts",c:"Arcade & Gaming",n:"Darts (board + throw lane)",w:3,d:10,cl:1,cf:1},
- {r:"g-shuffle",c:"Arcade & Gaming",n:"Shuffleboard table",w:2,d:22,cl:3},
- {r:"g-pool",c:"Arcade & Gaming",n:"Pool table (8 ft)",w:4.5,d:8.5,cl:4.5,no:"Clearance sized for standard 58\" cues (room ≈ 13.5×17.5 ft)."},
- {r:"g-console",c:"Arcade & Gaming",n:"Console / PC gaming station",w:6,d:4,cl:4,cf:1,p:[120,800,20,0],est:1},
+ {r:"g-sim",c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added).",cost:[3000,12000]},
+ {r:"g-cab",c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,4500]},
+ {r:"g-pin",c:"Arcade & Gaming",n:"Virtual pinball machine",w:3,d:5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[4000,9000]},
+ {r:"g-gun",c:"Arcade & Gaming",n:"Dual light-gun shooter",w:5,d:4,cl:6,cf:1,p:[120,600,20,0],est:1,cost:[6000,15000]},
+ {r:"g-airh",c:"Arcade & Gaming",n:"Air hockey table",w:4,d:8,cl:3,p:[120,300,20,0],est:1,cost:[600,3500]},
+ {r:"g-foos",c:"Arcade & Gaming",n:"Foosball table",w:2.5,d:5,cl:3,cost:[300,2000]},
+ {r:"g-skee",c:"Arcade & Gaming",n:"Skee-Ball lane",w:2.5,d:10,cl:4,cf:1,p:[120,200,20,0],est:1,cost:[4000,9000]},
+ {r:"g-bball",c:"Arcade & Gaming",n:"Basketball arcade game",w:4,d:9,cl:4,cf:1,p:[120,500,20,0],est:1,cost:[2000,6000]},
+ {r:"g-darts",c:"Arcade & Gaming",n:"Darts (board + throw lane)",w:3,d:10,cl:1,cf:1,cost:[150,1200]},
+ {r:"g-shuffle",c:"Arcade & Gaming",n:"Shuffleboard table (22 ft)",w:2,d:22,cl:3,cost:[3000,9000]},
+ {r:"g-pool",c:"Arcade & Gaming",n:"Pool table (8 ft)",w:4.5,d:8.5,cl:4.5,no:"Clearance sized for standard 58\" cues (room ≈ 13.5×17.5 ft).",cost:[2500,8000]},
+ {r:"g-console",c:"Arcade & Gaming",n:"Console / PC gaming station",w:6,d:4,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[800,4000]},
  // Bar & Lounge
- {r:"b-wall",c:"Built-ins & Counters",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it."},
- {r:"b-stage",c:"Built-ins & Counters",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets."},
- {r:"l-bar",c:"Built-ins & Counters",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license."},
- {r:"l-keg",c:"Bar & Lounge",n:"Kegerator",w:2,d:2.5,cl:2,cf:1,p:[120,300,20,0],ov:1,est:1},
- {r:"l-ice",c:"Bar & Lounge",n:"Ice maker (residential)",w:1.5,d:2,cl:2,cf:1,p:[120,400,15,1],ov:1,est:1,no:"Needs water line + drain."},
- {r:"l-icec",c:"Bar & Lounge",n:"Ice machine (commercial)",w:2.5,d:2.5,cl:2.5,cf:1,p:[120,1200,20,1],est:1,a:["commercial"]},
- {r:"l-fridge",c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1},
- {r:"l-seat",c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0},
- {r:"l-tv",c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1},
- {r:"l-barc",c:"Built-ins & Counters",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights."},
- {r:"l-rail",c:"Built-ins & Counters",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft)."},
- {r:"f-stool",c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center."},
- {r:"f-sofa",c:"Furniture & Seating",n:"Sofa (3-seat)",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table."},
- {r:"f-chair",c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw)."},
- {r:"f-coffee",c:"Furniture & Seating",n:"Coffee table",w:4,d:2,cl:1.5,p:null,no:"About two-thirds the sofa's length; leave 14–18 in to the sofa."},
- {r:"f-tv",c:"Furniture & Seating",n:"TV (75–85 in) + media console",w:6.5,d:1.5,cl:0,p:[120,500,20,0],est:1,no:"An 85 in TV draws roughly 200–475 W depending on the model; the rest covers a soundbar or console."},
- {r:"f-dine8",c:"Furniture & Seating",n:"Dining table, seats 8",w:7,d:3.5,cl:3,p:null,no:"84 × 40 in is a common 8-seat size. Clearance is the 36 in needed to pull chairs out."},
- {r:"f-round4",c:"Furniture & Seating",n:"Round table, seats 4",w:4,d:4,cl:3,p:null,no:"42–48 in round seats four. Clearance is for pulling chairs out."},
+ {r:"b-wall",c:"Built-ins & Counters",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it.",cost:[400,2000]},
+ {r:"b-stage",c:"Built-ins & Counters",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets.",cost:[2000,8000]},
+ {r:"l-bar",c:"Built-ins & Counters",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license.",cost:[6000,25000]},
+ {r:"l-keg",c:"Bar & Lounge",n:"Kegerator",w:2,d:2.5,cl:2,cf:1,p:[120,300,20,0],ov:1,est:1,cost:[700,2500]},
+ {r:"l-ice",c:"Bar & Lounge",n:"Ice maker (residential)",w:1.5,d:2,cl:2,cf:1,p:[120,400,15,1],ov:1,est:1,no:"Needs water line + drain.",cost:[600,2000]},
+ {r:"l-icec",c:"Bar & Lounge",n:"Ice machine (commercial)",w:2.5,d:2.5,cl:2.5,cf:1,p:[120,1200,20,1],est:1,a:["commercial"],cost:[3000,7000]},
+ {r:"l-fridge",c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1,cost:[300,1500]},
+ {r:"l-seat",c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0,cost:[3000,12000]},
+ {r:"l-tv",c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1,cost:[2500,9000]},
+ {r:"l-barc",c:"Built-ins & Counters",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights.",cost:[3000,12000]},
+ {r:"l-rail",c:"Built-ins & Counters",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft).",cost:[800,3500]},
+ {r:"f-stool",c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center.",cost:[60,350]},
+ {r:"f-sofa",c:"Furniture & Seating",n:"Sofa (3-seat)",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table.",cost:[900,4000]},
+ {r:"f-chair",c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw).",cost:[400,2500]},
+ {r:"f-coffee",c:"Furniture & Seating",n:"Coffee table",w:4,d:2,cl:1.5,p:null,no:"About two-thirds the sofa's length; leave 14–18 in to the sofa.",cost:[150,1200]},
+ {r:"f-tv",c:"Furniture & Seating",n:"TV (75–85 in) + media console",w:6.5,d:1.5,cl:0,p:[120,500,20,0],est:1,no:"An 85 in TV draws roughly 200–475 W depending on the model; the rest covers a soundbar or console.",cost:[1200,4500]},
+ {r:"f-dine8",c:"Furniture & Seating",n:"Dining table, seats 8",w:7,d:3.5,cl:3,p:null,no:"84 × 40 in is a common 8-seat size. Clearance is the 36 in needed to pull chairs out.",cost:[1000,5000]},
+ {r:"f-round4",c:"Furniture & Seating",n:"Round table, seats 4",w:4,d:4,cl:3,p:null,no:"42–48 in round seats four. Clearance is for pulling chairs out.",cost:[400,2500]},
  // Kitchen residential
- {r:"kr-range",c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1},
- {r:"kr-fridge",c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1]},
- {r:"kr-dw",c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1},
- {r:"kr-micro",c:"Kitchen – Residential",n:"Microwave (home)",w:2,d:1.5,cl:0,p:[120,1500,20,1],ov:1},
- {r:"kr-counter",c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets."},
- {r:"kr-prep",c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters."},
- {r:"kr-sink",c:"Kitchen – Residential",n:"Kitchen sink + disposal (3 ft)",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit."},
- {r:"kr-freezer",c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it."},
- {r:"kr-pantry",c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null},
+ {r:"kr-range",c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1,cost:[700,3000]},
+ {r:"kr-fridge",c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1],cost:[1200,4000]},
+ {r:"kr-dw",c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1,cost:[500,1500]},
+ {r:"kr-micro",c:"Kitchen – Residential",n:"Microwave (home)",w:2,d:1.5,cl:0,p:[120,1500,20,1],ov:1,cost:[150,700]},
+ {r:"kr-counter",c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
+ {r:"kr-prep",c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
+ {r:"kr-sink",c:"Kitchen – Residential",n:"Kitchen sink + disposal (3 ft)",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit.",cost:[500,2000]},
+ {r:"kr-freezer",c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it.",cost:[600,1800]},
+ {r:"kr-pantry",c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
  // Kitchen commercial
- {r:"kc-range",c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"]},
- {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"]},
- {r:"kc-fridge",c:"Kitchen – Commercial",n:"Reach-in refrigerator",w:2.5,d:3,cl:3,cf:1,p:[120,800,20,1],est:1,a:["commercial"]},
- {r:"kc-dw",c:"Kitchen – Commercial",n:"Commercial dishwasher (high-temp)",w:2,d:2.5,cl:3,cf:1,p:[240,6000,30,1],est:1,a:["commercial"]},
- {r:"kc-3sink",c:"Kitchen – Commercial",n:"3-compartment sink",w:8,d:2.5,cl:3,cf:1,a:["commercial"]},
- {r:"kc-hand",c:"Kitchen – Commercial",n:"Hand-wash sink",w:1.5,d:1.5,cl:2,cf:1,a:["commercial"]},
- {r:"kc-grease",c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"]},
+ {r:"kc-range",c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"],cost:[2500,8000]},
+ {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],cost:[8000,30000]},
+ {r:"kc-fridge",c:"Kitchen – Commercial",n:"Reach-in refrigerator",w:2.5,d:3,cl:3,cf:1,p:[120,800,20,1],est:1,a:["commercial"],cost:[2500,6000]},
+ {r:"kc-dw",c:"Kitchen – Commercial",n:"Commercial dishwasher (high-temp)",w:2,d:2.5,cl:3,cf:1,p:[240,6000,30,1],est:1,a:["commercial"],cost:[5000,15000]},
+ {r:"kc-3sink",c:"Kitchen – Commercial",n:"3-compartment sink",w:8,d:2.5,cl:3,cf:1,a:["commercial"],cost:[800,3000]},
+ {r:"kc-hand",c:"Kitchen – Commercial",n:"Hand-wash sink",w:1.5,d:1.5,cl:2,cf:1,a:["commercial"],cost:[200,800]},
+ {r:"kc-grease",c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"],cost:[1000,5000]},
  // Fitness
- {r:"f-gym",c:"Fitness",n:"Weight machine (home gym)",w:7,d:7,cl:2},
- {r:"f-tread",c:"Fitness",n:"Treadmill",w:3,d:7,cl:6.5,cf:1,p:[120,1800,20,1],no:"Most manufacturers call for a dedicated 20A circuit and ~6.5 ft clear behind."},
- {r:"f-row",c:"Fitness",n:"Rowing machine",w:2,d:8,cl:2},
- {r:"f-bike",c:"Fitness",n:"Exercise bike",w:2,d:5,cl:2,p:[120,100,20,0]},
- {r:"f-free",c:"Fitness",n:"Free weights / mat area",w:8,d:8,cl:0},
+ {r:"f-gym",c:"Fitness",n:"Weight machine (home gym)",w:7,d:7,cl:2,cost:[1500,6000]},
+ {r:"f-tread",c:"Fitness",n:"Treadmill",w:3,d:7,cl:6.5,cf:1,p:[120,1800,20,1],no:"Most manufacturers call for a dedicated 20A circuit and ~6.5 ft clear behind.",cost:[1000,5000]},
+ {r:"f-row",c:"Fitness",n:"Rowing machine",w:2,d:8,cl:2,cost:[600,2000]},
+ {r:"f-bike",c:"Fitness",n:"Exercise bike",w:2,d:5,cl:2,p:[120,100,20,0],cost:[400,2500]},
+ {r:"f-free",c:"Fitness",n:"Free weights / mat area",w:8,d:8,cl:0,cost:[800,4000]},
  // Court & rink
- {r:"c-pp",c:"Court & Rink",n:"Ping-pong table",w:5,d:9,cl:6},
- {r:"c-robot",c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1},
- {r:"c-hoop",c:"Court & Rink",n:"Basketball hoop (wall/ceiling mount)",w:6,d:4,cl:0,ov:1,a:["ceiling"]},
- {r:"c-net",c:"Court & Rink",n:"Divider / ceiling net (45 ft run)",w:45,d:1,cl:0,ov:1},
+ {r:"c-pp",c:"Court & Rink",n:"Ping-pong table",w:5,d:9,cl:6,cost:[400,2500]},
+ {r:"c-robot",c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1,cost:[200,1500]},
+ {r:"c-hoop",c:"Court & Rink",n:"Basketball hoop (wall/ceiling mount)",w:6,d:4,cl:0,ov:1,a:["ceiling"],cost:[1500,5000]},
+ {r:"c-net",c:"Court & Rink",n:"Divider / ceiling net (45 ft run)",w:45,d:1,cl:0,ov:1,cost:[1000,4000]},
  // Creator
- {r:"m-mf1200",c:"Creator / Maker",n:"xTool MetalFab 1200W welder + CNC cutter ($17,749)",w:5,d:4,cl:4,p:[240,4200,25,1],a:["weld"],no:"xTool: 200–240V, 4,200W, 21A max; independent 220V/25A+ circuit. Footprint ≈ workstation."},
- {r:"m-mf800",c:"Creator / Maker",n:"xTool MetalFab 800W welder + CNC cutter",w:5,d:4,cl:4,p:[240,3000,20,1],a:["weld"],no:"xTool: 200–240V, 3,000W, 15A max. Footprint ≈ workstation."},
- {r:"m-comp",c:"Creator / Maker",n:"xTool air compressor (for cutting)",w:2,d:2,cl:2,p:[240,2200,15,1],no:"xTool: 200–240V, 2,200W."},
- {r:"m-dryer",c:"Creator / Maker",n:"xTool air dryer",w:1.5,d:1.5,cl:1,p:[120,380,20,0],ov:1},
- {r:"m-ap2",c:"Creator / Maker",n:"xTool AP2 Max fume purifier",w:2,d:2,cl:1,p:[120,900,20,0],no:"xTool: 100–240V, 900W."},
- {r:"m-x1co2",c:"Creator / Maker",n:"xTool X1 — 55W CO2 ($3,399)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"]},
- {r:"m-x1diode",c:"Creator / Maker",n:"xTool X1 — CO2 + 20W diode galvo ($3,999)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"]},
- {r:"m-x1fiber",c:"Creator / Maker",n:"xTool X1 — + 30W fiber ($5,799)",w:4,d:3,cl:3,p:[120,1300,20,1],est:1,a:["co2"]},
- {r:"m-x1uv",c:"Creator / Maker",n:"xTool X1 — + 5W UV ($6,499)",w:4,d:3,cl:3,p:[120,1300,20,1],est:1,a:["co2"]},
- {r:"m-x1mopa",c:"Creator / Maker",n:"xTool X1 — + 60W MOPA ($6,679)",w:4,d:3,cl:3,p:[120,1400,20,1],est:1,a:["co2"]},
- {r:"m-o1",c:"Creator / Maker",n:"xTool O1 Omni printer + press bundle ($5,249)",w:4,d:3,cl:3,p:[120,2000,20,1],est:1,no:"Heat press + craft oven drive the power estimate."},
- {r:"m-se1",c:"Creator / Maker",n:"xTool SE1 embroidery (unreleased)",w:2,d:2,cl:2,p:[120,150,20,0],est:1,a:["notyet"]},
- {r:"m-prusa",c:"Creator / Maker",n:"Prusa CORE One L+ INDX 8-tool ($2,989)",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,no:"Ships after Jan 18, 2027."},
- {r:"m-bench",c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0]},
- {r:"m-filament",c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1},
+ {r:"m-laser1",c:"Creator / Maker",n:"Laser cutter — hobby (desktop, 10–40 W)",w:2.5,d:2,cl:2,p:[120,300,20,0],est:1,a:["co2"],cost:[600,2500],no:"Enclosed desktop diode or small CO2 laser. Sits on a bench; vent the fumes out a window or through a filter."},
+ {r:"m-laser2",c:"Creator / Maker",n:"Laser cutter — mid (55–80 W CO2)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"],cost:[3000,8000],no:"Prosumer CO2 cutter, often with a camera and add-on modules (diode, fiber or UV). Needs fume exhaust or a filter unit."},
+ {r:"m-laser3",c:"Creator / Maker",n:"Laser cutter — pro (100–150 W CO2, 4×2.5 ft bed)",w:6.5,d:4,cl:3,p:[240,3000,20,1],est:1,a:["co2"],cost:[10000,30000],no:"Large-bed production CO2 laser with a water chiller and exhaust blower. Duct the exhaust outside."},
+ {r:"m-fiber",c:"Creator / Maker",n:"Fiber laser engraver (metal marking)",w:2,d:2,cl:2,cf:1,p:[120,500,20,0],est:1,a:["co2"],cost:[2500,8000],no:"Galvo fiber laser for marking metal and plastics. Small, but still a Class 4 laser: enclose it or use a laser curtain."},
+ {r:"m-weld1",c:"Creator / Maker",n:"Laser welder — compact (≈1 kW, air-cooled)",w:2.5,d:2,cl:4,p:[240,3000,20,1],est:1,a:["weld","gas"],cost:[4000,8000],no:"Handheld welder on a small cart. Uses argon or nitrogen shielding gas."},
+ {r:"m-weld2",c:"Creator / Maker",n:"Laser welder + CNC cutting table (1–1.5 kW)",w:5,d:4,cl:4,p:[240,4200,25,1],est:1,a:["weld","gas"],cost:[10000,20000],no:"Workstation that welds by hand and cuts sheet metal on a small CNC table."},
+ {r:"m-weld3",c:"Creator / Maker",n:"Laser welder — industrial (2–3 kW, water-cooled)",w:3,d:2.5,cl:4,p:[240,7500,40,1],est:1,a:["weld","gas"],cost:[15000,30000],no:"Production welder with a built-in chiller. Plan a 40 A 240V circuit."},
+ {r:"m-comp",c:"Creator / Maker",n:"Air compressor for laser cutting",w:2,d:2,cl:2,p:[240,2200,15,1],est:1,cost:[800,2000],no:"High-pressure compressor that feeds assist air to a metal-cutting laser."},
+ {r:"m-dryer",c:"Creator / Maker",n:"Compressed-air dryer",w:1.5,d:1.5,cl:1,p:[120,380,20,0],ov:1,est:1,cost:[300,1200],no:"Keeps moisture out of the air line."},
+ {r:"m-fume",c:"Creator / Maker",n:"Laser fume extractor / filter",w:2,d:2,cl:1,p:[120,900,20,0],est:1,cost:[600,2500],no:"Filters laser smoke when you can't duct it outside. Filters are a running cost."},
+ {r:"m-dtf",c:"Creator / Maker",n:"DTF / sublimation printer + heat press",w:4,d:3,cl:3,p:[120,2000,20,1],est:1,a:["fumes"],cost:[2000,8000],no:"Printer, powder shaker/oven and a heat press. The press drives the power."},
+ {r:"m-emb1",c:"Creator / Maker",n:"Embroidery machine — single-needle (hobby)",w:2,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[400,1500],no:"Sits on a table; one thread colour at a time."},
+ {r:"m-emb2",c:"Creator / Maker",n:"Embroidery machine — multi-needle",w:2.5,d:2.5,cl:2,cf:1,p:[120,200,20,0],est:1,cost:[5000,15000],no:"6–15 needles, runs whole designs without re-threading. Often on its own stand."},
+ {r:"m-emb3",c:"Creator / Maker",n:"Embroidery machine — commercial (multi-head)",w:7,d:3.5,cl:3,cf:1,p:[120,600,20,1],est:1,cost:[20000,45000],no:"2–6 heads stitching identical pieces at once."},
+ {r:"m-print1",c:"Creator / Maker",n:"3D printer — entry (open frame)",w:2,d:2,cl:1.5,p:[120,350,20,0],est:1,cost:[200,600]},
+ {r:"m-print2",c:"Creator / Maker",n:"3D printer — enclosed, multi-colour",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,cost:[800,3000],no:"Enclosed CoreXY printer with a tool changer or filament switcher."},
+ {r:"m-print3",c:"Creator / Maker",n:"3D print farm rack (6–8 printers)",w:6,d:2,cl:3,cf:1,p:[120,3000,20,1],est:1,cost:[4000,15000],no:"Shelving with several printers running at once. Two circuits are safer than one."},
+ {r:"m-resin",c:"Creator / Maker",n:"Resin printer + wash/cure station",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
+ {r:"m-vinyl",c:"Creator / Maker",n:"Vinyl cutter / plotter (24 in)",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
+ {r:"m-mill",c:"Creator / Maker",n:"Desktop CNC router / mill",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
+ {r:"m-bench",c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
+ {r:"m-filament",c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
  // Woodworking
- {r:"w-tsaw",c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"]},
- {r:"w-band",c:"Woodworking",n:"Bandsaw 14\"",w:3,d:3,cl:3,p:[120,1500,20,1],est:1},
- {r:"w-router",c:"Woodworking",n:"Router table",w:3,d:4,cl:3,p:[120,1800,20,1],est:1},
- {r:"w-miter",c:"Woodworking",n:"Miter saw station",w:12,d:2.5,cl:3,cf:1,p:[120,1800,20,1],est:1},
- {r:"w-jointer",c:"Woodworking",n:"Jointer 8\"",w:2,d:7,cl:3,p:[240,2600,20,1],est:1},
- {r:"w-planer",c:"Woodworking",n:"Thickness planer 15\"",w:2.5,d:3,cl:6,p:[240,3000,20,1],est:1,no:"Big clearance for infeed/outfeed."},
- {r:"w-drill",c:"Woodworking",n:"Floor drill press",w:2,d:2.5,cl:2,p:[120,900,20,0],est:1},
- {r:"w-sander",c:"Woodworking",n:"Spindle / belt sander",w:2,d:2,cl:2,p:[120,600,20,0],est:1},
- {r:"w-dust",c:"Woodworking",n:"Dust collector 2 HP",w:3,d:5,cl:2,p:[240,2400,20,1],est:1,a:["dust"]},
- {r:"w-cnc",c:"Woodworking",n:"CNC router 4×8",w:6,d:10,cl:3,p:[240,3000,20,1],est:1},
- {r:"w-comp",c:"Woodworking",n:"Shop air compressor 60 gal",w:3,d:3,cl:2,p:[240,3700,30,1],est:1},
- {r:"w-bench",c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0]},
- {r:"w-assy",c:"Built-ins & Counters",n:"Assembly table 4×8",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3},
- {r:"w-lumber",c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1},
- {r:"w-wall",c:"Built-ins & Counters",n:"Hand-tool wall / chargers",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0]},
+ {r:"w-tsaw",c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"],cost:[3000,6000]},
+ {r:"w-band",c:"Woodworking",n:"Bandsaw 14\"",w:3,d:3,cl:3,p:[120,1500,20,1],est:1,cost:[900,2500]},
+ {r:"w-router",c:"Woodworking",n:"Router table",w:3,d:4,cl:3,p:[120,1800,20,1],est:1,cost:[400,1500]},
+ {r:"w-miter",c:"Woodworking",n:"Miter saw station",w:12,d:2.5,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[800,3000]},
+ {r:"w-jointer",c:"Woodworking",n:"Jointer 8\"",w:2,d:7,cl:3,p:[240,2600,20,1],est:1,cost:[1500,4000]},
+ {r:"w-planer",c:"Woodworking",n:"Thickness planer 15\"",w:2.5,d:3,cl:6,p:[240,3000,20,1],est:1,no:"Big clearance for infeed/outfeed.",cost:[1500,4000]},
+ {r:"w-drill",c:"Woodworking",n:"Floor drill press",w:2,d:2.5,cl:2,p:[120,900,20,0],est:1,cost:[600,2000]},
+ {r:"w-sander",c:"Woodworking",n:"Spindle / belt sander",w:2,d:2,cl:2,p:[120,600,20,0],est:1,cost:[300,1200]},
+ {r:"w-dust",c:"Woodworking",n:"Dust collector 2 HP",w:3,d:5,cl:2,p:[240,2400,20,1],est:1,a:["dust"],cost:[1000,3000]},
+ {r:"w-cnc",c:"Woodworking",n:"CNC router 4×8",w:6,d:10,cl:3,p:[240,3000,20,1],est:1,cost:[8000,25000]},
+ {r:"w-comp",c:"Woodworking",n:"Shop air compressor 60 gal",w:3,d:3,cl:2,p:[240,3700,30,1],est:1,cost:[800,2500]},
+ {r:"w-bench",c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
+ {r:"w-assy",c:"Built-ins & Counters",n:"Assembly table 4×8",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
+ {r:"w-lumber",c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
+ {r:"w-wall",c:"Built-ins & Counters",n:"Hand-tool wall / chargers",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
  // Garden
- {r:"h-rack",c:"Indoor Garden",n:"Hydroponic rack w/ LEDs (4-tier)",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"]},
- {r:"h-micro",c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"]},
- {r:"h-sink",c:"Indoor Garden",n:"Utility sink",w:2,d:2,cl:2,cf:1,a:["plumbing"]},
- // Wishlist
- {r:"x-batting",c:"Wishlist",n:"Batting cage (tunnel)",w:12,d:55,cl:1,p:[120,1000,20,1],est:1,a:["ceiling"],no:"Tunnels typically ~55–70 ft long."},
- {r:"x-tennis",c:"Wishlist",n:"Tennis ball machine lane",w:12,d:40,cl:0,a:["ceiling"],no:"Machine is battery powered; size is the hitting lane."},
- {r:"x-return",c:"Wishlist",n:"Basketball ball-return machine",w:6,d:10,cl:0,p:[120,500,20,0],ov:1,est:1},
- {r:"x-motion",c:"Wishlist",n:"Motion platform for a sim rig",w:6,d:6,cl:2,p:[120,1500,20,1],ov:1,est:1,no:"The 'up-and-down stuff'."}
+ {r:"h-rack",c:"Indoor Garden",n:"Hydroponic rack w/ LEDs (4-tier)",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
+ {r:"h-micro",c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
+ {r:"h-sink",c:"Indoor Garden",n:"Utility sink",w:2,d:2,cl:2,cf:1,a:["plumbing"],cost:[200,700]},
+ {r:"x-batting",c:"Court & Rink",n:"Batting cage (tunnel)",w:12,d:55,cl:1,p:[120,1000,20,1],est:1,a:["ceiling"],no:"Tunnels typically ~55–70 ft long.",cost:[2000,8000]},
+ {r:"x-tennis",c:"Court & Rink",n:"Tennis ball machine lane",w:12,d:40,cl:0,a:["ceiling"],no:"Machine is battery powered; size is the hitting lane.",cost:[700,3500]},
+ {r:"x-return",c:"Court & Rink",n:"Basketball ball-return machine",w:6,d:10,cl:0,p:[120,500,20,0],ov:1,est:1,cost:[2500,8000]},
+ {r:"x-motion",c:"Arcade & Gaming",n:"Motion platform for a sim rig",w:6,d:6,cl:2,p:[120,1500,20,1],ov:1,est:1,no:"The 'up-and-down stuff'.",cost:[3000,12000]},
+ // Arcade & Gaming (more)
+ {r:"g-pool7",c:"Arcade & Gaming",n:"Pool table (7 ft bar box)",w:4,d:7.5,cl:4.5,cost:[1500,5000],no:"Bar-size table; with 58 in cues the room is about 13 × 16.5 ft."},
+ {r:"g-pool9",c:"Arcade & Gaming",n:"Pool table (9 ft tournament)",w:5,d:9.5,cl:4.8,cost:[4000,12000],no:"Tournament size; with 58 in cues the room is about 14.5 × 19 ft."},
+ {r:"g-shuf12",c:"Arcade & Gaming",n:"Shuffleboard table (12 ft)",w:2,d:12,cl:3,cost:[1500,4000]},
+ {r:"g-shuf16",c:"Arcade & Gaming",n:"Shuffleboard table (16 ft)",w:2,d:16,cl:3,cost:[2500,6000]},
+ {r:"g-vr",c:"Arcade & Gaming",n:"VR play space",w:8,d:8,cl:0,p:[120,800,20,0],est:1,cost:[600,4000],no:"About 8 × 8 ft clear floor with nothing to trip on. Power is for a gaming PC."},
+ {r:"g-poker",c:"Arcade & Gaming",n:"Poker table (8 players)",w:8,d:4,cl:3,cost:[600,4000],no:"Oval 96 × 48 in. Clearance is for pulling chairs out."},
+ {r:"g-claw",c:"Arcade & Gaming",n:"Claw crane machine",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,6000]},
+ {r:"g-bubble",c:"Arcade & Gaming",n:"Bubble hockey (dome hockey)",w:3.5,d:5,cl:3,p:[120,200,20,0],est:1,cost:[3000,7000]},
+ {r:"g-cocktail",c:"Arcade & Gaming",n:"Cocktail-table arcade",w:2.5,d:2,cl:2.5,p:[120,200,20,0],est:1,cost:[1000,3000],no:"Sit-down cabinet; players sit at each end."},
+ {r:"g-cornhole",c:"Arcade & Gaming",n:"Cornhole lane",w:4,d:35,cl:0,cost:[100,600],no:"Boards 27 ft apart front to front, plus room to stand behind each."},
+ // Court & Rink (more)
+ {r:"c-golf1",c:"Court & Rink",n:"Golf simulator — entry (net + launch monitor)",w:10,d:12,cl:0,p:[120,500,20,0],est:1,a:["ceiling"],cost:[1500,6000],no:"Hitting net and mat with a launch monitor and a tablet or TV. Wants about 9 ft clear height."},
+ {r:"c-golf2",c:"Court & Rink",n:"Golf simulator — mid (enclosure + projector)",w:12,d:16,cl:0,p:[120,1200,20,1],est:1,a:["ceiling"],cost:[10000,25000],no:"Impact screen enclosure, projector and gaming PC. 10 ft clear height is comfortable."},
+ {r:"c-golf3",c:"Court & Rink",n:"Golf simulator — pro (full bay)",w:16,d:22,cl:0,p:[120,2000,20,1],est:1,a:["ceiling"],cost:[30000,70000],no:"Camera-based tracking, large screen and turf with a putting area. 10–12 ft clear height."},
+ {r:"c-bowl",c:"Court & Rink",n:"Bowling lane (full 60 ft, with pinsetter)",w:6,d:88,cl:0,p:[240,2500,20,1],est:1,cost:[60000,150000],no:"Lane, approach and pinsetter. Usually installed in pairs."},
+ {r:"c-bowlmini",c:"Court & Rink",n:"Mini bowling lane (≈40 ft)",w:4,d:42,cl:0,p:[120,1200,20,1],est:1,cost:[25000,60000],no:"Shorter lane with small balls and a string pinsetter."},
+ {r:"c-pickle",c:"Court & Rink",n:"Pickleball court",w:30,d:60,cl:0,a:["ceiling"],cost:[3000,15000],no:"20 × 44 ft court plus run-off. Lines can be taped onto an existing floor."},
+ {r:"c-half",c:"Court & Rink",n:"Half basketball court",w:30,d:30,cl:0,a:["ceiling"],cost:[5000,25000],no:"Three-point arc and key with a little run-off. Hoop sold separately."},
+ {r:"c-climb",c:"Court & Rink",n:"Bouldering wall (12 ft, with crash pads)",w:12,d:10,cl:0,a:["ceiling"],cost:[3000,15000],no:"Wall along the back edge; the rest is padded fall zone."},
+ {r:"c-ninja",c:"Court & Rink",n:"Ninja / rig training frame",w:10,d:12,cl:2,a:["ceiling"],cost:[1500,6000]},
+ // Fitness (more)
+ {r:"f-rack",c:"Fitness",n:"Power rack + platform",w:8,d:8,cl:2,cost:[1000,4000],no:"Squat rack on an 8 × 8 lifting platform with room to load plates."},
+ {r:"f-cable",c:"Fitness",n:"Functional trainer (cable crossover)",w:6,d:4,cl:4,cf:1,cost:[1500,5000]},
+ {r:"f-ellip",c:"Fitness",n:"Elliptical",w:3,d:7,cl:2,p:[120,300,20,0],cost:[800,4000]},
+ {r:"f-stair",c:"Fitness",n:"Stair climber",w:3,d:5,cl:2,p:[120,500,20,1],cost:[2000,6000]},
+ {r:"f-turf",c:"Fitness",n:"Turf lane (sled / sprints)",w:6,d:30,cl:0,cost:[800,3000]},
+ {r:"f-sauna",c:"Fitness",n:"Sauna (2–4 person)",w:6,d:5,cl:2,cf:1,p:[240,6000,40,1],est:1,cost:[4000,12000],no:"Electric heater on its own 240V circuit; infrared models can run on 120V."},
+ {r:"f-plunge",c:"Fitness",n:"Cold plunge tub",w:3,d:6,cl:2,p:[120,1200,20,1],est:1,a:["plumbing"],cost:[2000,10000],no:"Chiller needs its own circuit. Plan a drain nearby for water changes."},
+ // Woodworking (more)
+ {r:"w-tsawj",c:"Woodworking",n:"Table saw — jobsite / contractor",w:3,d:3,cl:4,p:[120,1800,20,1],est:1,a:["dust"],cost:[500,2000],no:"Folding-stand saw; much smaller than a cabinet saw but needs the same infeed and outfeed room."},
+ {r:"w-lathe",c:"Woodworking",n:"Wood lathe",w:6,d:2,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["dust"],cost:[1000,5000]},
+ {r:"w-scroll",c:"Woodworking",n:"Scroll saw",w:2.5,d:1.5,cl:2,cf:1,p:[120,200,20,0],cost:[150,1500]},
+ {r:"w-panel",c:"Woodworking",n:"Wall-mounted panel saw",w:9,d:2,cl:4,cf:1,p:[120,1800,20,1],est:1,a:["dust"],cost:[2000,6000],no:"Cuts full 4 × 8 sheets standing up, against a wall."},
+ // Home Theater & Music
+ {r:"ht-row3",c:"Home Theater & Music",n:"Theater recliners — row of 3",w:9,d:3.5,cl:2,cf:1,p:[120,300,20,0],est:1,cost:[3000,9000],no:"Power recliners need about 2 ft more in front when reclined."},
+ {r:"ht-row4",c:"Home Theater & Music",n:"Theater recliners — row of 4",w:12,d:3.5,cl:2,cf:1,p:[120,400,20,0],est:1,cost:[4000,12000],no:"Power recliners need about 2 ft more in front when reclined."},
+ {r:"ht-riser",c:"Home Theater & Music",n:"Theater riser (for a second row)",w:14,d:6,cl:0,cost:[1000,4000],no:"12–18 in platform so the back row sees over the front."},
+ {r:"ht-screen",c:"Home Theater & Music",n:"Projection screen wall (120–150 in)",w:12,d:1.5,cl:0,p:[120,600,20,0],est:1,cost:[1500,8000],no:"Screen plus speakers; the projector hangs mid-room. Seat about 1.2–1.5 × the screen width back."},
+ {r:"ht-proj",c:"Home Theater & Music",n:"Ceiling projector",w:1.5,d:1.5,cl:0,ov:1,p:[120,400,20,0],est:1,cost:[1500,6000]},
+ {r:"ht-sub",c:"Home Theater & Music",n:"Subwoofer",w:2,d:2,cl:0.5,p:[120,500,20,0],est:1,cost:[400,3000]},
+ {r:"ht-speaker",c:"Home Theater & Music",n:"Floor-standing speaker",w:1.2,d:1.2,cl:0.5,cost:[300,3000]},
+ {r:"ht-rack",c:"Home Theater & Music",n:"AV equipment rack",w:2,d:2,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[500,3000]},
+ {r:"mu-drums",c:"Home Theater & Music",n:"Drum kit (acoustic)",w:6,d:5,cl:2,cost:[700,5000],no:"Loud: put it on a rug or riser and away from the lounge if you can."},
+ {r:"mu-edrums",c:"Home Theater & Music",n:"Electronic drum kit",w:5,d:4,cl:2,p:[120,100,20,0],cost:[500,4000]},
+ {r:"mu-upright",c:"Home Theater & Music",n:"Upright piano",w:5,d:2,cl:3,cf:1,cost:[3000,12000],no:"Keep it off outside walls and away from heaters. Front clearance is for the bench."},
+ {r:"mu-grand",c:"Home Theater & Music",n:"Baby grand piano",w:5,d:5.5,cl:3,cf:1,cost:[8000,30000],no:"About 5 ft wide and 5–5.5 ft deep; leave room for the bench and the open lid."},
+ {r:"mu-keys",c:"Home Theater & Music",n:"Keyboard / synth station",w:5,d:1.5,cl:2.5,cf:1,p:[120,200,20,0],cost:[300,4000]},
+ {r:"mu-guitar",c:"Home Theater & Music",n:"Guitar & bass rig (amps + stands)",w:6,d:2.5,cl:3,cf:1,p:[120,600,20,0],est:1,cost:[1000,5000]},
+ {r:"mu-desk",c:"Home Theater & Music",n:"Recording / mixing desk",w:6,d:3,cl:3,cf:1,p:[120,800,20,0],est:1,cost:[1500,8000],no:"Desk with monitors and interface. Monitor speakers want space from the wall behind."},
+ {r:"mu-booth",c:"Home Theater & Music",n:"Vocal isolation booth (4×6)",w:6,d:4,cl:2.5,cf:1,p:[120,200,20,0],est:1,cost:[3000,12000],no:"Prefab booth; check the ceiling height (7.5–8 ft tall)."},
+ {r:"mu-dj",c:"Home Theater & Music",n:"DJ booth",w:6,d:2.5,cl:3,cf:1,p:[120,1500,20,0],est:1,cost:[1000,6000],no:"Controller, monitors and lights."},
+ {r:"mu-karaoke",c:"Home Theater & Music",n:"Karaoke setup (screen + PA)",w:6,d:2,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[500,3000]},
+ // Auto & Garage
+ {r:"a-car",c:"Auto & Garage",n:"Parking bay — car / SUV",w:10,d:20,cl:0,a:["truck"],cost:[0,0],no:"About 10 × 20 ft lets you open the doors."},
+ {r:"a-pickup",c:"Auto & Garage",n:"Parking bay — full-size pickup",w:11,d:23,cl:0,a:["truck"],cost:[0,0]},
+ {r:"a-moto",c:"Auto & Garage",n:"Motorcycle",w:3,d:8,cl:2,cost:[0,0],no:"Space for one bike plus room to walk around it."},
+ {r:"a-lift2",c:"Auto & Garage",n:"2-post car lift",w:12,d:22,cl:2,p:[240,2200,30,1],est:1,a:["ceiling","truck"],cost:[3000,7000],no:"Posts are about 11.5 ft apart; needs 4–6 in concrete and roughly 12 ft clear height to lift fully."},
+ {r:"a-lift4",c:"Auto & Garage",n:"4-post storage lift",w:9.5,d:19,cl:2,p:[120,1800,20,1],est:1,a:["ceiling","truck"],cost:[3500,8000],no:"Parks one car above another. Needs about 12–13 ft clear height."},
+ {r:"a-scissor",c:"Auto & Garage",n:"Mid-rise scissor lift",w:7,d:7,cl:3,ov:1,p:[120,1500,20,1],est:1,cost:[2000,5000],no:"Portable; rolls out of the way. Lifts about 4 ft."},
+ {r:"a-chest1",c:"Auto & Garage",n:"Rolling tool chest — standard (26–41 in)",w:3.5,d:2,cl:3,cf:1,cost:[300,1500]},
+ {r:"a-chest2",c:"Auto & Garage",n:"Rolling tool chest — pro (56–72 in)",w:6,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[2000,8000],no:"Many have a power strip and USB in the top."},
+ {r:"a-tire",c:"Auto & Garage",n:"Tire changer",w:3.5,d:3.5,cl:3,p:[120,1100,20,0],est:1,cost:[1500,6000],no:"Also needs shop air."},
+ {r:"a-balance",c:"Auto & Garage",n:"Wheel balancer",w:3,d:3,cl:3,cf:1,p:[120,500,20,0],est:1,cost:[1500,6000]},
+ {r:"a-press",c:"Auto & Garage",n:"Shop press (20-ton)",w:2.5,d:2,cl:3,cf:1,cost:[300,1500]},
+ {r:"a-mig1",c:"Auto & Garage",n:"MIG welder — hobby (120V)",w:1.5,d:2.5,cl:4,p:[120,2400,20,1],est:1,a:["gas"],cost:[400,1200],no:"Flux-core or MIG with a small gas bottle on a cart."},
+ {r:"a-mig2",c:"Auto & Garage",n:"MIG / TIG welder — shop (240V)",w:2,d:3,cl:4,p:[240,7000,50,1],est:1,a:["gas"],cost:[1500,6000],no:"Needs a 240V welder outlet (often 50 A) and gas bottles chained to the cart or wall."},
+ {r:"a-blast",c:"Auto & Garage",n:"Sandblast cabinet",w:4,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,a:["dust"],cost:[500,3000],no:"Needs plenty of shop air and a dust collector."},
+ {r:"a-parts",c:"Auto & Garage",n:"Parts washer",w:3,d:2,cl:3,cf:1,p:[120,200,20,0],a:["fumes"],cost:[200,1500]},
+ {r:"a-hoist",c:"Auto & Garage",n:"Engine hoist + engine stand",w:4,d:7,cl:2,ov:1,cost:[300,1200],no:"Folds up when not in use."},
+ {r:"a-ev",c:"Auto & Garage",n:"EV charger (Level 2)",w:1,d:0.5,cl:0,ov:1,p:[240,11500,60,1],a:["ev"],cost:[500,2000],no:"Wall unit. 48 A charging needs a 60 A circuit."},
+ // Crafts & Office
+ {r:"o-desk",c:"Crafts & Office",n:"Desk (5 ft) + chair",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[300,2000],no:"Front clearance is the room for the chair."},
+ {r:"o-ldesk",c:"Crafts & Office",n:"L-shaped desk + chair",w:6,d:6,cl:2,p:[120,500,20,0],est:1,cost:[500,3000]},
+ {r:"o-stand",c:"Crafts & Office",n:"Standing desk",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[400,2000]},
+ {r:"o-conf",c:"Crafts & Office",n:"Conference table, seats 8",w:8,d:4,cl:3,p:[120,200,20,0],cost:[1000,5000],no:"Clearance is for chairs; add a TV on the end wall for calls."},
+ {r:"o-file",c:"Crafts & Office",n:"Filing cabinet",w:1.5,d:2.5,cl:3,cf:1,cost:[150,800]},
+ {r:"o-copier",c:"Crafts & Office",n:"Printer / copier",w:2,d:2,cl:3,cf:1,p:[120,1200,20,0],est:1,cost:[300,4000]},
+ {r:"o-books",c:"Crafts & Office",n:"Bookshelf (3 ft)",w:3,d:1,cl:3,cf:1,cost:[100,800]},
+ {r:"cr-sew",c:"Crafts & Office",n:"Sewing table + machine",w:4,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[300,2500]},
+ {r:"cr-serger",c:"Crafts & Office",n:"Serger / overlocker station",w:3,d:2,cl:3,cf:1,p:[120,150,20,0],cost:[300,1500]},
+ {r:"cr-quilt",c:"Crafts & Office",n:"Long-arm quilting frame (12 ft)",w:12,d:4,cl:2.5,p:[120,400,20,0],est:1,cost:[8000,25000],no:"You walk along both long sides while quilting."},
+ {r:"cr-cut",c:"Crafts & Office",n:"Craft cutting table (counter height)",w:6,d:3,cl:3,cost:[300,1500]},
+ {r:"cr-wheel",c:"Crafts & Office",n:"Pottery wheel",w:2,d:3,cl:2,cf:1,p:[120,400,20,0],a:["plumbing"],cost:[600,2000],no:"Messy: a utility sink with a clay trap nearby helps."},
+ {r:"cr-kiln1",c:"Crafts & Office",n:"Kiln — small (120V)",w:2,d:2,cl:2,p:[120,1800,20,1],a:["fumes"],cost:[800,2000],no:"Keep 1–1.5 ft from walls and vent the fumes."},
+ {r:"cr-kiln2",c:"Crafts & Office",n:"Kiln — medium (240V)",w:3,d:3,cl:2,p:[240,11500,60,1],est:1,a:["fumes"],cost:[2500,6000],no:"Usually a 48 A load on a 60 A circuit. Vent it."},
+ {r:"cr-easel",c:"Crafts & Office",n:"Art easel / painting station",w:4,d:4,cl:1,cost:[100,800]},
+ // Storage & Utility
+ {r:"s-shelf",c:"Storage & Utility",n:"Steel shelving unit (4 ft)",w:4,d:2,cl:3,cf:1,cost:[100,400]},
+ {r:"s-heavy",c:"Storage & Utility",n:"Heavy-duty rack (8 ft)",w:8,d:3,cl:3,cf:1,cost:[300,1200]},
+ {r:"s-pallet",c:"Storage & Utility",n:"Pallet racking bay",w:9,d:4,cl:4,cf:1,a:["ceiling"],cost:[500,1500],no:"Aisle shown is for a hand-pallet jack; a forklift needs 10–12 ft."},
+ {r:"s-cab",c:"Storage & Utility",n:"Locking storage cabinet",w:3,d:2,cl:3,cf:1,cost:[200,900]},
+ {r:"s-bins",c:"Storage & Utility",n:"Wall bin / pegboard rack",w:6,d:1,cl:3,cf:1,cost:[100,500]},
+ {r:"s-overhead",c:"Storage & Utility",n:"Overhead ceiling rack (4×8)",w:4,d:8,cl:0,ov:1,a:["ceiling"],cost:[200,600]},
+ {r:"s-safe",c:"Storage & Utility",n:"Safe / gun safe",w:3,d:2.5,cl:3,cf:1,cost:[800,4000],no:"Heavy: bolt it to the slab."},
+ {r:"s-flam",c:"Storage & Utility",n:"Flammables cabinet",w:3.5,d:1.5,cl:3,cf:1,cost:[600,2000],no:"For paints, solvents and fuel. Keep it away from heat and lasers."},
+ {r:"s-laundry",c:"Storage & Utility",n:"Washer + dryer",w:5.5,d:2.5,cl:3.5,cf:1,p:[240,5600,30,1],est:1,a:["plumbing"],cost:[1500,4000],no:"Electric dryer on a 30 A 240V circuit, washer on its own 20 A, plus a dryer vent to outside."},
+ {r:"s-heater",c:"Storage & Utility",n:"Water heater (tank)",w:2,d:2,cl:2.5,cf:1,p:[240,4500,30,1],est:1,a:["plumbing"],cost:[1000,3000],no:"Electric tank shown; a heat pump model is larger and pulls heat from the room."},
+ {r:"s-mini",c:"Storage & Utility",n:"Mini fridge",w:1.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],cost:[150,400]},
+ {r:"s-recycle",c:"Storage & Utility",n:"Trash & recycling station",w:3,d:2,cl:2.5,cf:1,cost:[100,600]}
 ];
 var BY={};CATALOG.forEach(function(i){BY[i.r]=i;i.cl=i.z?0:(i.cl||0)});
+/* retired ids → the generic object that replaced them (saved layouts are moved over when they load) */
+var ALIAS={"m-mf1200":"m-weld2","m-mf800":"m-weld2","m-ap2":"m-fume","m-x1co2":"m-laser2","m-x1diode":"m-laser2","m-x1fiber":"m-laser2","m-x1uv":"m-laser2","m-x1mopa":"m-laser2","m-o1":"m-dtf","m-se1":"m-emb2","m-prusa":"m-print2"};
+function realR(r){return ALIAS[r]||r}
 
 
 /* ---- top-down symbols: drawn in local space, centered, front = +y (bottom) ---- */
@@ -633,21 +744,17 @@ Object.assign(ICONS,{
   s+=iC(0,0,Math.min(W,D)*0.32,{fill:'#5d5a54'});for(var i=0;i<7;i++){var a2=i*0.9;s+=iC(Math.cos(a2)*0.28*(i%2+0.3),Math.sin(a2)*0.28*(i%2+0.3),0.08,{fill:'#f6a04d',stroke:'none'})}return s+bx(-0.2,D*0.25,0.4,0.3,SCR,{rx:0.06})},
  'c-hoop':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'rgba(232,135,62,.08)','stroke-dasharray':'0.3 0.2',stroke:'#c98d78'})+bx(-W*0.3,-D/2,W*0.6,0.25,WHITE)+iL(-W*0.1,-D/2+0.12,W*0.1,-D/2+0.12,{stroke:RED,'stroke-width':0.06})+iC(0,-D/2+1.0,0.75,{stroke:'#e07a3a','stroke-width':0.14})+iC(0,-D/2+1.0,0.5,{stroke:'#c9c4b8','stroke-dasharray':'0.1 0.1'})},
  'c-net':function(W,D){var s=iL(-W/2+0.3,0,W/2-0.3,0,{stroke:'#8a877f','stroke-width':0.12,'stroke-dasharray':'0.4 0.15'});for(var i=0;i<=5;i++)s+=dot(-W/2+0.3+i*(W-0.6)/5,0,0.25,SCR);return s},
- 'm-mf1200':function(W,D){var s=body(W,D,STEEL)+bx(-W/2+0.25,-D/2+0.25,W*0.62,D-0.5,'#cfd3d6')+grid(-W/2+0.25,-D/2+0.25,W*0.62,D-0.5,10,8,{stroke:'#a9afb4','stroke-width':0.03});
+ 'm-weld2':function(W,D){var s=body(W,D,STEEL)+bx(-W/2+0.25,-D/2+0.25,W*0.62,D-0.5,'#cfd3d6')+grid(-W/2+0.25,-D/2+0.25,W*0.62,D-0.5,10,8,{stroke:'#a9afb4','stroke-width':0.03});
   s+=bx(-W/2+0.15,-0.2,W*0.68,0.4,'#3f3d38',{rx:0.05})+bx(-W/2+W*0.3,-0.35,0.45,0.7,'#5d5a54',{rx:0.08});
   return s+bx(W/2-W*0.32,-D/2+0.25,W*0.3-0.15,D*0.45,'#3a6fb0',{rx:0.08})+bx(W/2-W*0.32,D*0.02,W*0.3-0.15,D*0.42,DARK,{rx:0.08})+iC(W/2-W*0.17-0.07,D*0.22,0.25,{fill:'#5d5a54'})},
  'm-comp':function(W,D){return iC(0,0,Math.min(W,D)*0.42,{fill:'#3a6fb0'})+bx(-W*0.25,-D*0.2,W*0.5,D*0.4,'#5d5a54',{rx:0.08})+iC(W*0.25,-D*0.3,0.14,{fill:WHITE})},
  'm-dryer':function(W,D){return body(W,D,STEEL)+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.35,'#3a6fb0',{rx:0.05})+iC(0,D*0.18,0.25,{fill:WHITE})+iL(0,D*0.18,0.15,D*0.08,{'stroke-width':0.05})},
- 'm-ap2':function(W,D){var r=Math.min(W,D)*0.36;return body(W,D,'#e3e1dc')+iC(0,0,r,{fill:STEEL})+iC(0,0,r*0.7,{stroke:DARK})+iC(0,0,r*0.4,{stroke:DARK})+iC(0,0,r*0.12,{fill:'#3a6fb0',stroke:'none'})+iL(-W/2,D/2-0.2,W/2,D/2-0.2,{stroke:DARK})},
- 'm-x1co2':function(W,D){return laserCab(W,D,null)},
- 'm-x1diode':function(W,D){return laserCab(W,D,BLUE)},
- 'm-x1fiber':function(W,D){return laserCab(W,D,GREEN)},
- 'm-x1uv':function(W,D){return laserCab(W,D,'#9b7ad1')},
- 'm-x1mopa':function(W,D){return laserCab(W,D,'#e8873e')},
- 'm-o1':function(W,D){var s=body(W*0.55,D,STEEL);s=rot(-W*0.22,0,0,body(W*0.55,D,STEEL)+bx(-W*0.22,-D/2+0.25,W*0.44,D*0.4,GLASS,{rx:0.06})+iL(-W*0.2,D*0.15,W*0.2,D*0.15,{'stroke-width':0.1})+dot(W*0.18,D/2-0.3,0.08,GREEN));
+ 'm-fume':function(W,D){var r=Math.min(W,D)*0.36;return body(W,D,'#e3e1dc')+iC(0,0,r,{fill:STEEL})+iC(0,0,r*0.7,{stroke:DARK})+iC(0,0,r*0.4,{stroke:DARK})+iC(0,0,r*0.12,{fill:'#3a6fb0',stroke:'none'})+iL(-W/2,D/2-0.2,W/2,D/2-0.2,{stroke:DARK})},
+ 'm-laser2':function(W,D){return laserCab(W,D,null)},
+ 'm-dtf':function(W,D){var s=body(W*0.55,D,STEEL);s=rot(-W*0.22,0,0,body(W*0.55,D,STEEL)+bx(-W*0.22,-D/2+0.25,W*0.44,D*0.4,GLASS,{rx:0.06})+iL(-W*0.2,D*0.15,W*0.2,D*0.15,{'stroke-width':0.1})+dot(W*0.18,D/2-0.3,0.08,GREEN));
   return s+rot(W*0.3,0,0,body(W*0.38,D*0.8,'#e3e1dc')+bx(-W*0.15,-D*0.3,W*0.3,D*0.45,'#5d5a54',{rx:0.06})+iL(-W*0.1,D*0.25,W*0.1,D*0.25,{'stroke-width':0.12}))},
- 'm-se1':function(W,D){return body(W,D,WHITE)+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.35,'#e3e1dc',{rx:0.06})+bx(-W*0.32,-D*0.05,W*0.64,D*0.45,'#efe7dc',{rx:0.2})+iC(0,D*0.17,0.3,{stroke:'#c9a26b','stroke-width':0.08})+dot(0,-D/2+0.4,0.07,RED)},
- 'm-prusa':function(W,D){var s=body(W,D,'#3f3d38')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.3,GLASS,{rx:0.06})+bx(-W*0.3,-D*0.25,W*0.6,D*0.55,'#2b2a27',{rx:0.04})+grid(-W*0.3,-D*0.25,W*0.6,D*0.55,5,5,{stroke:'#5d5a54','stroke-width':0.02});
+ 'm-emb2':function(W,D){return body(W,D,WHITE)+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.35,'#e3e1dc',{rx:0.06})+bx(-W*0.32,-D*0.05,W*0.64,D*0.45,'#efe7dc',{rx:0.2})+iC(0,D*0.17,0.3,{stroke:'#c9a26b','stroke-width':0.08})+dot(0,-D/2+0.4,0.07,RED)},
+ 'm-print2':function(W,D){var s=body(W,D,'#3f3d38')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.3,GLASS,{rx:0.06})+bx(-W*0.3,-D*0.25,W*0.6,D*0.55,'#2b2a27',{rx:0.04})+grid(-W*0.3,-D*0.25,W*0.6,D*0.55,5,5,{stroke:'#5d5a54','stroke-width':0.02});
   for(var i=0;i<8;i++)s+=bx(-W/2+0.25+i*(W-0.5)/8,-D/2+0.2,(W-0.5)/8-0.04,0.18,['#e8873e','#3a6fb0','#7fbf8e','#e07a6a','#f2cf6b','#9b7ad1','#fbfaf7','#5d5a54'][i],{'stroke-width':0.02});
   return s+iL(-W/2+0.2,-D*0.05,W/2-0.2,-D*0.05,{stroke:'#e3e1dc','stroke-width':0.08})+bx(-0.12,-D*0.12,0.24,0.2,'#e8873e',{stroke:'none'})+dot(W/2-0.3,D/2-0.3,0.07,'#e8873e')},
  'm-bench':function(W,D){var s=bx(-W/2,-D/2,W,D*0.62,WOOD,{rx:0.06})+bx(-W/2+0.4,-D/2+0.25,W*0.45,D*0.4,'#7fb7a8',{rx:0.05})+bx(W*0.12,-D/2+0.2,0.9,0.6,'#5d5a54',{rx:0.06})+iL(W*0.12+0.45,-D/2+0.5,W*0.12+1.2,-D/2+0.9,{stroke:'#e8873e','stroke-width':0.08});
@@ -719,8 +826,144 @@ Object.assign(ICONS,{
  'b-stage':function(W,D){var s=bx(-W/2,-D/2,W,D,'#c8a97a',{rx:0.15})+hatchY(-W/2,-D/2,W,D,Math.max(2,Math.round(D/0.6)),{stroke:'#a8895d','stroke-width':0.05});
   return s+bx(-W/2+0.4,D/2-1.2,1.2,0.9,SCR,{rx:0.1})+bx(W/2-1.6,D/2-1.2,1.2,0.9,SCR,{rx:0.1})+iC(0,-D*0.1,0.35,{fill:'#5d5a54'})+iL(0,-D*0.1+0.35,0,D*0.15,{stroke:'#5d5a54','stroke-width':0.08})}
 });
+/* ---- generic tiers and the newer categories ---- */
+var CHAR='#3f3d38',GREY='#5d5a54',ORNG='#e8873e',TURF='#8cc79a',CLAY='#c98a63',LEATH='#6b5444';
+function wheelTop(cx,cy,w,h){return bx(cx-w/2,cy-h/2,w,h,'#2b2a27',{rx:Math.min(w,h)*0.3})}
+function car(W,D,col){var s=bx(-W/2,-D/2,W,D,col,{rx:Math.min(W,D)*0.25});s+=bx(-W/2+W*0.12,-D/2+D*0.24,W*0.76,D*0.16,GLASS,{rx:0.2})+bx(-W/2+W*0.14,D/2-D*0.3,W*0.72,D*0.12,GLASS,{rx:0.2})+bx(-W/2+W*0.12,-D/2+D*0.42,W*0.76,D*0.27,col,{stroke:'rgba(0,0,0,.25)',rx:0.15});
+ return s+wheelTop(-W/2-0.05,-D/2+D*0.2,0.35,D*0.14)+wheelTop(W/2+0.05,-D/2+D*0.2,0.35,D*0.14)+wheelTop(-W/2-0.05,D/2-D*0.2,0.35,D*0.14)+wheelTop(W/2+0.05,D/2-D*0.2,0.35,D*0.14)}
+function bay(W,D,cw,cd,col){return iR(-W/2,-D/2,W,D,{fill:'rgba(229,83,61,.05)',stroke:'#c9c4b8','stroke-dasharray':'0.5 0.3'})+iL(-W/2,D/2-0.4,W/2,D/2-0.4,{stroke:YEL,'stroke-width':0.15,'stroke-dasharray':'0.6 0.4'})+car(cw,cd,col)}
+function recliner(x,y,w,d){return bx(x,y,w,d,LEATH,{rx:0.3})+bx(x+0.35,y+0.55,w-0.7,d-0.75,'#87705f',{rx:0.2})+iL(x+0.35,y+d-0.55,x+w-0.35,y+d-0.55,{stroke:'#5a463a','stroke-width':0.05})}
+function chestTop(W,D,col){var s=body(W,D,col)+bx(-W/2+0.1,-D/2+0.1,W-0.2,D-0.4,'#e9e7e2',{rx:0.05});for(var i=0;i<3;i++)s+=iL(-W/2+0.25,-D/2+0.35+i*(D-0.7)/3,W/2-0.25,-D/2+0.35+i*(D-0.7)/3,{stroke:DARK,'stroke-width':0.04});return s+iL(-W/2+0.2,D/2-0.12,W/2-0.2,D/2-0.12,{'stroke-width':0.12})}
+function shelfTop(W,D,f,n){var s=bx(-W/2,-D/2,W,D,f||'#e3e1dc',{rx:0.04}),c=['#c88a4a','#8fb6e0','#7fae7f','#e8c86a','#e07a6a','#b7a08a'];n=n||Math.max(2,Math.round(W/1.3));for(var i=0;i<n;i++){var w=(W-0.2)/n;s+=bx(-W/2+0.1+i*w+0.05,-D/2+0.12,w-0.1,D-0.24,c[i%c.length],{rx:0.05,'stroke-width':0.03})}return s+iL(-W/2,D/2,W/2,D/2,{'stroke-width':0.1})}
+function deskTop(W,D,f){return bx(-W/2,-D/2,W,D*0.75,f||WOOD,{rx:0.06})}
+function chair(cx,cy,a){return rot(cx,cy,a||0,iC(0,0,0.85,{fill:'none',stroke:DARK,'stroke-dasharray':'0.1 0.1'})+bx(-0.7,-0.6,1.4,1.3,'#4c4a45',{rx:0.3})+bx(-0.6,-0.8,1.2,0.35,'#3a3834',{rx:0.15}))}
+function monitor(cx,cy,w){return iL(cx-w/2,cy,cx+w/2,cy,{stroke:SCR,'stroke-width':0.16})}
+function speakerTop(cx,cy,w,d){return bx(cx-w/2,cy-d/2,w,d,CHAR,{rx:0.08})+iC(cx,cy+d*0.1,Math.min(w,d)*0.3,{fill:GREY})}
+function kilnTop(W,D,f){var r=Math.min(W,D)*0.45,pts=[];for(var i=0;i<8;i++){var t=(i+0.5)*Math.PI/4;pts.push((Math.cos(t)*r).toFixed(3)+' '+(Math.sin(t)*r).toFixed(3))}
+ return iP('M'+pts.join(' L')+' Z',{fill:f||STEEL})+iC(0,0,r*0.62,{stroke:DARK})+iC(0,0,r*0.15,{fill:GREY})+bx(r*0.55,-0.2,0.45,0.4,CHAR,{rx:0.05})}
+function court(W,D,col,lines){return bx(-W/2,-D/2,W,D,col,{stroke:'#8a877f',rx:0.1})+lines}
+function shelfRack(W,D,n){var s=bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.04});for(var i=0;i<n;i++){var x=-W/2+0.2+i*(W-0.4)/n;s+=bx(x+0.05,-D/2+0.15,(W-0.4)/n-0.1,D-0.3,i%2?'#b7a08a':'#c9b18c',{rx:0.04})}return s+dot(-W/2+0.05,-D/2+0.05,0.08,GREY)+dot(W/2-0.05,-D/2+0.05,0.08,GREY)+dot(-W/2+0.05,D/2-0.05,0.08,GREY)+dot(W/2-0.05,D/2-0.05,0.08,GREY)}
+Object.assign(ICONS,{
+ /* creator tiers */
+ 'm-laser1':function(W,D){return body(W,D,'#3f3d38')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.5,'rgba(232,135,62,.55)',{rx:0.08})+grid(-W/2+0.3,-D/2+0.3,W-0.6,D-0.8,6,4,{stroke:'#c26b2b','stroke-width':0.02})+dot(W/2-0.3,D/2-0.17,0.07,GREEN)},
+ 'm-laser3':function(W,D){var s=body(W,D,STEEL)+bx(-W/2+0.3,-D/2+0.3,W*0.74,D-0.6,GLASS,{rx:0.1})+grid(-W/2+0.5,-D/2+0.5,W*0.74-0.4,D-1,12,7,{stroke:'#b9c9d6','stroke-width':0.03});
+  return s+bx(W/2-W*0.2,-D/2+0.3,W*0.2-0.25,D-0.6,DARK,{rx:0.08})+iC(W/2-W*0.1-0.12,-D/2+0.8,0.2,{fill:RED})+bx(W/2-W*0.2,D/2-1.2,W*0.2-0.25,0.8,'#8fb6e0',{rx:0.06})},
+ 'm-fiber':function(W,D){return body(W,D,'#e3e1dc')+bx(-W/2+0.2,-D/2+0.2,W-0.4,D*0.35,'#3f3d38',{rx:0.06})+iC(0,-D/2+0.2+D*0.175,0.18,{fill:GREEN})+bx(-W*0.32,D*0.02,W*0.64,D*0.38,'#cfd3d6',{rx:0.04})+iC(0,D*0.21,0.12,{stroke:GREEN,'stroke-dasharray':'0.06 0.05'})},
+ 'm-weld1':function(W,D){return body(W,D,STEEL)+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.55,'#3a6fb0',{rx:0.08})+iC(-W*0.2,-D*0.05,0.22,{fill:WHITE})+dot(W*0.2,-D*0.08,0.08,GREEN)+iP('M'+(W*0.3)+' '+(D*0.2)+' q0.5 0.4 0 0.9',{stroke:CHAR,'stroke-width':0.08})+bx(-0.2,D/2-0.45,0.4,0.3,GREY,{rx:0.06})},
+ 'm-weld3':function(W,D){return body(W,D,'#e3e1dc')+bx(-W/2+0.15,-D/2+0.15,W*0.55,D-0.3,'#3a6fb0',{rx:0.08})+fan(W*0.22,-D*0.15,Math.min(W,D)*0.18)+bx(W*0.05,D*0.1,W*0.35,D*0.3,DARK,{rx:0.05})+dot(-W*0.15,-D*0.2,0.1,GREEN)+iP('M'+(-W*0.1)+' '+(D/2-0.15)+' q0.6 0.5 0 1',{stroke:CHAR,'stroke-width':0.08})},
+ 'm-emb1':function(W,D){return body(W,D,WHITE)+bx(-W/2+0.1,-D/2+0.1,W*0.35,D-0.2,'#e3e1dc',{rx:0.1})+bx(-W/2+0.1,-D/2+0.1,W-0.2,D*0.3,'#e3e1dc',{rx:0.08})+iC(W*0.15,D*0.15,Math.min(W,D)*0.22,{stroke:'#c9a26b','stroke-width':0.06})+dot(-W/2+0.3,-D/2+0.25,0.06,RED)},
+ 'm-emb3':function(W,D){var s=body(W,D,'#e3e1dc')+bx(-W/2+0.1,-D/2+0.1,W-0.2,D*0.4,'#3f3d38',{rx:0.06}),n=Math.max(2,Math.round(W/1.6));for(var i=0;i<n;i++){var x=-W/2+W*(i+0.5)/n;s+=iC(x,D*0.12,Math.min(W/n,D)*0.25,{stroke:'#c9a26b','stroke-width':0.06})+dot(x,-D/2+0.3,0.07,['#e07a6a','#3a6fb0','#7fbf8e','#f2cf6b','#9b7ad1','#e8873e'][i%6])}return s},
+ 'm-print1':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'none',stroke:'#c9c4b8','stroke-dasharray':'0.2 0.15'})+bx(-W*0.38,-D*0.3,W*0.76,D*0.6,'#2b2a27',{rx:0.04})+grid(-W*0.38,-D*0.3,W*0.76,D*0.6,5,5,{stroke:GREY,'stroke-width':0.02})+bx(-W/2+0.05,-D/2+0.1,W-0.1,0.18,GREY)+bx(-0.15,-D/2+0.04,0.3,0.3,ORNG,{stroke:'none'})+spool(W/2-0.3,D/2-0.3,0.22,'#7fbf8e')},
+ 'm-print3':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.04}),n=Math.max(2,Math.round(W/1.6));for(var i=0;i<n;i++){var x=-W/2+0.1+i*(W-0.2)/n,w=(W-0.2)/n-0.12;s+=bx(x+0.06,-D/2+0.15,w,D-0.3,'#3f3d38',{rx:0.04})+bx(x+0.18,-D/2+0.3,w-0.24,D-0.75,GLASS,{rx:0.03})+dot(x+0.06+w/2,D/2-0.32,0.06,i%3?GREEN:ORNG)}return s+iL(-W/2,D/2,W/2,D/2,{'stroke-width':0.1})},
+ 'm-resin':function(W,D){return bx(-W/2,-D/2,W,D,WOOD,{rx:0.06})+rot(-W*0.22,-D*0.05,0,body(W*0.38,D*0.7,'#3f3d38')+bx(-W*0.15,-D*0.28,W*0.3,D*0.5,'rgba(232,135,62,.55)',{rx:0.06}))+rot(W*0.22,-D*0.05,0,iC(0,0,Math.min(W*0.18,D*0.33),{fill:'#3f3d38'})+iC(0,0,Math.min(W*0.18,D*0.33)*0.7,{fill:'rgba(155,122,209,.5)'}))},
+ 'm-vinyl':function(W,D){return bx(-W/2,-D/2,W,D*0.55,'#e3e1dc',{rx:0.12})+bx(-W/2+0.2,-D/2+0.1,W-0.4,D*0.2,GREY,{rx:0.05})+bx(-W/2+0.4,D*0.05,W-0.8,D*0.42,'#8fb6e0',{rx:0.02})+iL(-W/2,D*0.05,-W/2,D/2,{'stroke-width':0.1})+iL(W/2,D*0.05,W/2,D/2,{'stroke-width':0.1})+dot(W/2-0.4,-D/2+0.2,0.06,GREEN)},
+ 'm-mill':function(W,D){return body(W,D,'#e3e1dc')+bx(-W/2+0.2,-D/2+0.2,W-0.4,D-0.4,'#cfccc4',{rx:0.05})+hatchY(-W/2+0.2,-D/2+0.2,W-0.4,D-0.4,6,{stroke:'#b9b4a8'})+bx(-W/2+0.1,-0.25,W-0.2,0.5,GREY,{rx:0.05})+iC(0,0,0.28,{fill:'#2b2a27'})+iC(0,0,0.1,{fill:STEEL})},
+ /* arcade & gaming */
+ 'g-vr':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'rgba(143,182,224,.12)',stroke:'#8fb6e0','stroke-dasharray':'0.4 0.25',rx:0.2});return s+iC(0,0,Math.min(W,D)*0.38,{stroke:'#b9cfe6','stroke-dasharray':'0.15 0.15'})+bx(-0.45,-0.25,0.9,0.5,CHAR,{rx:0.2})+dot(-0.2,0,0.08,'#8fb6e0')+dot(0.2,0,0.08,'#8fb6e0')+dot(-W/2+0.4,-D/2+0.4,0.15,GREY)+dot(W/2-0.4,D/2-0.4,0.15,GREY)},
+ 'g-poker':function(W,D){var s='',n=3;for(var i=0;i<n;i++){var x=-W/2+W*(i+0.5)/n;s+=bx(x-0.65,-D/2-0.6,1.3,1.1,MAT,{rx:0.2})+bx(x-0.65,D/2-0.5,1.3,1.1,MAT,{rx:0.2})}s+=bx(-W/2-0.6,-0.65,1.1,1.3,MAT,{rx:0.2})+bx(W/2-0.5,-0.65,1.1,1.3,MAT,{rx:0.2});
+  return s+bx(-W/2,-D/2,W,D,LEATH,{rx:D/2})+bx(-W/2+0.45,-D/2+0.45,W-0.9,D-0.9,'#4c8a5c',{rx:(D-0.9)/2})+iC(-0.3,0,0.12,{fill:RED})+iC(0,0,0.12,{fill:'#2f5e8f'})+iC(0.3,0,0.12,{fill:WHITE})},
+ 'g-claw':function(W,D){return body(W,D,'#e07a6a')+bx(-W/2+0.2,-D/2+0.2,W-0.4,D*0.6,GLASS,{rx:0.08})+iL(-W/2+0.3,-D/2+0.4,W/2-0.3,-D/2+0.4,{stroke:GREY,'stroke-width':0.05})+iC(0.1,-D*0.05,0.2,{stroke:GREY,'stroke-width':0.07})+dot(-W*0.2,D*0.05,0.14,YEL)+dot(W*0.25,0,0.14,'#8fb6e0')+bx(-W/2+0.2,D/2-D*0.3,W-0.4,D*0.22,CHAR,{rx:0.06})+dot(0,D/2-D*0.19,0.1,RED)},
+ 'g-bubble':function(W,D){return body(W,D,'#3f3d38')+bx(-W/2+0.3,-D/2+0.5,W-0.6,D-1,'#e9eef2',{rx:Math.min(W,D)*0.35})+bx(-W/2+0.5,-D/2+0.8,W-1,D-1.6,'rgba(143,182,224,.5)',{rx:Math.min(W,D)*0.25})+iC(0,0,0.12,{fill:CHAR})+dot(0,-D/2+0.25,0.1,RED)+dot(0,D/2-0.25,0.1,'#2f5e8f')},
+ 'g-cocktail':function(W,D){return body(W,D,'#5d5a54')+bx(-W/2+0.25,-D/2+0.35,W-0.5,D-0.7,'#1f2a35',{rx:0.05})+dot(-W*0.25,-D/2+0.18,0.07,RED)+dot(W*0.25,D/2-0.18,0.07,'#2f5e8f')+seat(0,-D/2-0.8,1.1,180)+seat(0,D/2+0.8,1.1,0)},
+ 'g-cornhole':function(W,D){var b=function(y,a){return rot(0,y,a,bx(-1,-2,2,4,WOOD,{rx:0.08})+iC(0,-1.1,0.3,{fill:'#3f3d38'}))};return iR(-W/2,-D/2,W,D,{fill:'rgba(140,199,154,.12)',stroke:'#c9c4b8','stroke-dasharray':'0.5 0.3'})+b(-D/2+4,180)+b(D/2-4,0)+dot(-0.4,0,0.25,RED)+dot(0.3,1.2,0.25,'#2f5e8f')+iL(-W/2,-D/2+6.5,W/2,-D/2+6.5,{stroke:DARK,'stroke-dasharray':'0.2 0.2'})+iL(-W/2,D/2-6.5,W/2,D/2-6.5,{stroke:DARK,'stroke-dasharray':'0.2 0.2'})},
+ /* court & rink */
+ 'c-golf1':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'rgba(140,199,154,.08)',stroke:'#c9c4b8','stroke-dasharray':'0.5 0.3'});return s+iL(-W/2+0.5,-D/2+0.6,W/2-0.5,-D/2+0.6,{stroke:SCR,'stroke-width':0.12,'stroke-dasharray':'0.2 0.1'})+bx(-2,D*0.05,4,5,TURF,{rx:0.1})+iC(0.4,D*0.05+1.2,0.12,{fill:WHITE})+bx(1.3,D*0.05+2.2,0.6,0.4,CHAR,{rx:0.06})},
+ 'c-golf2':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e9e7e2',{stroke:'#8a877f'})+bx(-W/2+0.2,-D/2+0.2,W-0.4,0.35,'#f4f6f8')+bx(-W/2+0.2,-D/2+0.55,W-0.4,D-0.75,TURF,{rx:0.05});return s+bx(-2.5,D*0.05,5,5,'#7ab98a',{rx:0.05})+iC(0.5,D*0.05+1.3,0.13,{fill:WHITE})+dot(0,D/2-1.5,0.3,CHAR)+iL(0,D/2-1.5,0,-D/2+0.5,{stroke:'rgba(255,255,255,.6)','stroke-dasharray':'0.3 0.3'})},
+ 'c-golf3':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e9e7e2',{stroke:'#8a877f'})+bx(-W/2+0.2,-D/2+0.2,W-0.4,0.4,'#f4f6f8')+bx(-W/2+0.2,-D/2+0.6,W-0.4,D-0.8,TURF,{rx:0.05});s+=bx(-W/2+0.8,-D/2+1.6,W*0.45,D*0.3,'#9fd3a9',{rx:2})+iC(-W/2+0.8+W*0.32,-D/2+1.6+D*0.12,0.2,{fill:CHAR});return s+bx(-3,D*0.15,6,5,'#7ab98a',{rx:0.05})+iC(0.6,D*0.15+1.3,0.13,{fill:WHITE})+bx(W/2-3.5,D/2-2.5,3,1.8,MAT,{rx:0.3})},
+ 'c-bowl':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3d4b4',{rx:0.05})+bx(-W/2+1.2,-D/2+6,W-2.4,D-22,WOOD)+bx(-W/2+0.3,-D/2+6,0.8,D-22,'#cfccc4')+bx(W/2-1.1,-D/2+6,0.8,D-22,'#cfccc4')+bx(-W/2,-D/2,W,6,'#3f3d38');
+  var tri=[[0,0],[-0.3,-0.5],[0.3,-0.5],[-0.6,-1],[0,-1],[0.6,-1],[-0.9,-1.5],[-0.3,-1.5],[0.3,-1.5],[0.9,-1.5]];tri.forEach(function(p){s+=dot(p[0],-D/2+8+p[1]*-1-1.5+3,0.12,WHITE)});
+  return s+iL(-W/2+1.2,D/2-16,W/2-1.2,D/2-16,{stroke:RED,'stroke-width':0.08})+dot(0,D/2-20,0.4,'#2f5e8f')},
+ 'c-bowlmini':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3d4b4',{rx:0.05})+bx(-W/2+0.7,-D/2+3,W-1.4,D-10,WOOD)+bx(-W/2,-D/2,W,3,'#3f3d38');[[0,0],[-0.25,0.4],[0.25,0.4],[-0.5,0.8],[0,0.8],[0.5,0.8]].forEach(function(p){s+=dot(p[0],-D/2+4.4-p[1],0.1,WHITE)});return s+iL(-W/2+0.7,D/2-7,W/2-0.7,D/2-7,{stroke:RED,'stroke-width':0.08})},
+ 'c-pickle':function(W,D){var cw=20,cd=44,x=-cw/2,y=-cd/2,L='#fff',o={stroke:L,'stroke-width':0.12};return bx(-W/2,-D/2,W,D,'#7aa6c9',{rx:0.1})+bx(x,y,cw,cd,'#3f7fb0',{stroke:L,'stroke-width':0.15})+iL(x,-7,x+cw,-7,o)+iL(x,7,x+cw,7,o)+iL(0,y,0,-7,o)+iL(0,7,0,cd/2,o)+iL(x-0.8,0,x+cw+0.8,0,{stroke:SCR,'stroke-width':0.25})+dot(x-0.8,0,0.2,SCR)+dot(x+cw+0.8,0,0.2,SCR)},
+ 'c-half':function(W,D){var o={stroke:'#fff','stroke-width':0.15},s=bx(-W/2,-D/2,W,D,'#d9a86c',{rx:0.1});s+=bx(-6,-D/2,12,19,'#c9874a',{stroke:'#fff','stroke-width':0.15})+iC(0,-D/2+19,6,o)+iP('M'+(-22)+' '+(-D/2)+' v4.5 A23.75 23.75 0 0 0 22 '+(-D/2+4.5)+' v-4.5',o);return s+bx(-3,-D/2+0.3,6,0.25,WHITE)+iC(0,-D/2+5.25-0.5,0.75,{stroke:'#e07a3a','stroke-width':0.14})+iL(-W/2,D/2-0.1,W/2,D/2-0.1,o)},
+ 'c-climb':function(W,D){var s=bx(-W/2,-D/2,W,1.2,'#a39e8f',{rx:0.05})+bx(-W/2,-D/2+1.2,W,D-1.2,'#4f6d8c',{rx:0.1})+hatch(-W/2,-D/2+1.2,W,D-1.2,3,{stroke:'#3c5670','stroke-width':0.06}),c=[RED,YEL,GREEN,'#8fb6e0',ORNG,'#9b7ad1'];for(var i=0;i<14;i++)s+=dot(-W/2+0.6+((i*2.3)%(W-1.2)),-D/2+0.3+((i*0.37)%0.7),0.18,c[i%6]);return s},
+ 'c-ninja':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'rgba(79,109,140,.08)',stroke:'#c9c4b8','stroke-dasharray':'0.4 0.25'});[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(p){s+=bx(p[0]*(W/2-0.6)-0.3,p[1]*(D/2-0.6)-0.3,0.6,0.6,CHAR)});s+=iL(-W/2+0.6,-D/2+0.6,W/2-0.6,-D/2+0.6,{stroke:GREY,'stroke-width':0.2})+iL(-W/2+0.6,D/2-0.6,W/2-0.6,D/2-0.6,{stroke:GREY,'stroke-width':0.2});for(var i=1;i<6;i++){var x=-W/2+0.6+i*(W-1.2)/6;s+=iL(x,-D/2+0.6,x,D/2-0.6,{stroke:ORNG,'stroke-width':0.07,'stroke-dasharray':'0.3 0.4'})}return s},
+ /* fitness */
+ 'f-rack':function(W,D){var s=bx(-W/2,-D/2,W,D,'#4c4a45',{rx:0.05})+bx(-W/2+2,-D/2,W-4,D,WOOD,{rx:0.03})+hatch(-W/2+2,-D/2,W-4,D,4,{stroke:WOODD,'stroke-width':0.04});[[-1.6,-1.8],[1.6,-1.8],[-1.6,0.6],[1.6,0.6]].forEach(function(p){s+=bx(p[0]-0.2,p[1]-0.2,0.4,0.4,CHAR)});return s+iL(-3,-0.6,3,-0.6,{stroke:STEEL,'stroke-width':0.12})+iC(-2.7,-0.6,0.6,{fill:GREY})+iC(2.7,-0.6,0.6,{fill:GREY})},
+ 'f-cable':function(W,D){return bx(-W/2,-D/2,0.9,D*0.7,CHAR,{rx:0.06})+bx(W/2-0.9,-D/2,0.9,D*0.7,CHAR,{rx:0.06})+bx(-W/2,-D/2,W,0.4,GREY,{rx:0.05})+bx(-W/2+0.15,-D/2+0.5,0.6,D*0.5,'#7a7770',{rx:0.04})+bx(W/2-0.75,-D/2+0.5,0.6,D*0.5,'#7a7770',{rx:0.04})+iL(-W/2+0.45,D*0.1,-0.5,D*0.35,{stroke:SCR,'stroke-width':0.05})+iL(W/2-0.45,D*0.1,0.5,D*0.35,{stroke:SCR,'stroke-width':0.05})+bx(-0.7,D*0.2,1.4,0.5,MAT,{rx:0.1})},
+ 'f-ellip':function(W,D){return body(W,D,'#e3e1dc')+bx(-W/2+0.3,-D/2+0.6,W*0.25,D-1.6,'#4c4a45',{rx:0.15})+bx(W/2-0.3-W*0.25,-D/2+0.6,W*0.25,D-1.6,'#4c4a45',{rx:0.15})+bx(-W/2+0.2,D/2-1.0,W-0.4,0.8,GREY,{rx:0.2})+scr(-0.4,D/2-0.6,0.4,D/2-0.6,0.22)+iL(-W/2+0.15,D/2-1.2,-W/2+0.15,-D/2+1,{'stroke-width':0.12})+iL(W/2-0.15,D/2-1.2,W/2-0.15,-D/2+1,{'stroke-width':0.12})},
+ 'f-stair':function(W,D){var s=body(W,D,'#e3e1dc')+bx(-W/2+0.3,-D/2+0.3,W-0.6,D-1.4,'#4c4a45',{rx:0.1});for(var i=1;i<6;i++)s+=iL(-W/2+0.3,-D/2+0.3+i*(D-1.4)/6,W/2-0.3,-D/2+0.3+i*(D-1.4)/6,{stroke:'#7a7770','stroke-width':0.06});return s+bx(-W/2+0.1,D/2-1,W-0.2,0.8,GREY,{rx:0.2})+scr(-0.4,D/2-0.6,0.4,D/2-0.6,0.22)},
+ 'f-turf':function(W,D){var s=bx(-W/2,-D/2,W,D,TURF,{rx:0.05});for(var i=1;i<6;i++)s+=iL(-W/2,-D/2+i*D/6,W/2,-D/2+i*D/6,{stroke:'#fff','stroke-width':0.1});return s+bx(-1.2,D/2-3,2.4,1.6,GREY,{rx:0.1})+iL(-0.6,D/2-1.4,-0.6,D/2-0.2,{stroke:STEEL,'stroke-width':0.12})+iL(0.6,D/2-1.4,0.6,D/2-0.2,{stroke:STEEL,'stroke-width':0.12})},
+ 'f-sauna':function(W,D){var s=bx(-W/2,-D/2,W,D,'#c9a26b',{rx:0.1})+bx(-W/2+0.25,-D/2+0.25,W-0.5,D-0.5,'#e8d0a6',{rx:0.06})+bx(-W/2+0.25,-D/2+0.25,W-0.5,1.6,'#dcbf8e')+hatch(-W/2+0.25,-D/2+0.25,W-0.5,1.6,6,{stroke:'#c9a26b','stroke-width':0.04});return s+bx(W/2-1.4,D/2-1.4,1.1,1.1,GREY,{rx:0.1})+dot(W/2-0.85,D/2-0.85,0.25,'#e8873e')+bx(-W*0.15,D/2-0.12,W*0.3,0.12,GLASS)},
+ 'f-plunge':function(W,D){return bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:Math.min(W,D)*0.35})+bx(-W/2+0.3,-D/2+0.3,W-0.6,D-0.6,'#b9d9ea',{rx:Math.min(W,D)*0.28})+iP('M'+(-W/4)+' 0 q0.3 -0.2 0.6 0 t0.6 0',{stroke:'#8ab8d1','stroke-width':0.06})+bx(-0.45,D/2-0.25,0.9,0.5,GREY,{rx:0.1})},
+ /* woodworking */
+ 'w-tsawj':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'none',stroke:'#c9c4b8','stroke-dasharray':'0.2 0.15'})+bx(-W*0.42,-D*0.38,W*0.84,D*0.76,'#c8ccd0',{rx:0.05})+bx(-0.05,-D*0.25,0.1,D*0.3,'#d43a3a',{stroke:'none'})+bx(-W*0.42,D*0.38-0.35,W*0.84,0.35,'#d43a3a',{rx:0.04})+iL(W*0.15,-D*0.38,W*0.15,D*0.38-0.35,{stroke:'#9aa0a6','stroke-width':0.05})},
+ 'w-lathe':function(W,D){return bx(-W/2,-D/2+0.2,W,D*0.55,'#5d5a54',{rx:0.06})+bx(-W/2,-D/2,W*0.22,D*0.85,'#3a6fb0',{rx:0.08})+bx(W/2-W*0.12,-D/2+0.1,W*0.12,D*0.7,'#3a6fb0',{rx:0.06})+bx(-W/2+W*0.24,-D/2+0.45,W*0.6,0.35,WOOD,{rx:0.15})+bx(-0.2,-D/2+0.9,0.4,0.25,GREY)},
+ 'w-scroll':function(W,D){return body(W,D*0.8,'#c8ccd0')+bx(-W/2+0.1,-D/2+0.25,W*0.8,0.3,GREY,{rx:0.1})+iL(W*0.25,-D/2+0.1,W*0.25,D*0.3,{stroke:CHAR,'stroke-width':0.04})+bx(-W/2,D*0.3,W,D*0.2,'#3a6fb0',{rx:0.05})},
+ 'w-panel':function(W,D){return bx(-W/2,-D/2,W,D*0.45,'#5d5a54',{rx:0.05})+bx(-W/2,-D/2+D*0.45,W,0.25,'#3a6fb0')+bx(-W/2+0.3,-D/2+0.1,W-0.6,D*0.32,WOOD,{rx:0.02})+bx(-0.4,-D/2+0.05,0.8,D*0.4,'#d43a3a',{rx:0.06})+iL(0,-D/2,0,D/2-0.2,{stroke:'#9aa0a6','stroke-width':0.05,'stroke-dasharray':'0.2 0.15'})},
+ /* home theater & music */
+ 'ht-row3':function(W,D){var s='',n=3,w=W/n;for(var i=0;i<n;i++)s+=recliner(-W/2+i*w+0.05,-D/2,w-0.1,D);return s},
+ 'ht-row4':function(W,D){var s='',n=4,w=W/n;for(var i=0;i<n;i++)s+=recliner(-W/2+i*w+0.05,-D/2,w-0.1,D);return s},
+ 'ht-riser':function(W,D){return bx(-W/2,-D/2,W,D,'#4a4054',{rx:0.06})+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.3,'#5b506a',{rx:0.04})+iL(-W/2,D/2-0.12,W/2,D/2-0.12,{stroke:YEL,'stroke-width':0.06,'stroke-dasharray':'0.15 0.15'})},
+ 'ht-screen':function(W,D){return bx(-W/2,-D/2,W,D,'#3f3d38',{rx:0.05})+bx(-W/2+1.4,-D/2+0.15,W-2.8,0.3,'#f4f6f8')+speakerTop(-W/2+0.65,0,1,D-0.3)+speakerTop(W/2-0.65,0,1,D-0.3)+iL(-W/2+1.4,-D/2+0.45,W/2-1.4,-D/2+0.45,{stroke:'#8fb6e0','stroke-width':0.04})},
+ 'ht-proj':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'rgba(230,228,223,.5)','stroke-dasharray':'0.15 0.1',rx:0.1})+bx(-W*0.35,-D*0.3,W*0.7,D*0.55,'#3f3d38',{rx:0.08})+iC(0,-D*0.32,0.18,{fill:'#8fb6e0'})+iP('M-0.15 '+(-D*0.42)+' L'+(-W*0.45)+' '+(-D/2)+' M0.15 '+(-D*0.42)+' L'+(W*0.45)+' '+(-D/2),{stroke:'#8fb6e0','stroke-width':0.04})},
+ 'ht-sub':function(W,D){return body(W,D,CHAR)+iC(0,0,Math.min(W,D)*0.36,{fill:GREY})+iC(0,0,Math.min(W,D)*0.2,{fill:'#2b2a27'})},
+ 'ht-speaker':function(W,D){return speakerTop(0,0,W,D)},
+ 'ht-rack':function(W,D){var s=body(W,D,'#2b2a27');for(var i=0;i<4;i++)s+=bx(-W/2+0.15,-D/2+0.2+i*(D-0.6)/4,W-0.3,(D-0.6)/4-0.08,'#4c4a45',{rx:0.03})+dot(W/2-0.3,-D/2+0.3+i*(D-0.6)/4,0.05,i%2?'#8fb6e0':GREEN);return s+iL(-W/2,D/2-0.15,W/2,D/2-0.15,{'stroke-width':0.1})},
+ 'mu-drums':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'#b8a18a',rx:0.2,stroke:'#8a7560'});s+=iC(0,-D*0.15,1.0,{fill:'#e9e7e2',stroke:CHAR})+iC(-1.1,0.2,0.65,{fill:'#e9e7e2',stroke:CHAR})+iC(-0.5,-D*0.35,0.45,{fill:'#e9e7e2',stroke:CHAR})+iC(0.5,-D*0.35,0.45,{fill:'#e9e7e2',stroke:CHAR})+iC(1.3,0.1,0.75,{fill:'#e9e7e2',stroke:CHAR});
+  s+=iC(-1.9,-0.8,0.7,{fill:'rgba(242,207,107,.7)',stroke:'#c9a43a'})+iC(1.9,-1.0,0.8,{fill:'rgba(242,207,107,.7)',stroke:'#c9a43a'})+iC(-1.8,0.9,0.55,{fill:'rgba(242,207,107,.7)',stroke:'#c9a43a'});return s+stool(0,D*0.3,0.5)},
+ 'mu-edrums':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'#d8d4cb',rx:0.2,stroke:'#b0aa9e'})+iP('M'+(-W*0.4)+' '+(D*0.1)+' Q0 '+(-D*0.55)+' '+(W*0.4)+' '+(D*0.1),{stroke:GREY,'stroke-width':0.1});[[-1.1,0.1,0.45],[-0.5,-0.9,0.4],[0.5,-0.9,0.4],[1.1,0.1,0.5],[0,-0.3,0.55],[-1.6,-0.6,0.5],[1.6,-0.7,0.55]].forEach(function(p){s+=iC(p[0],p[1],p[2],{fill:'#2b2a27'})});return s+stool(0,D*0.3,0.45)},
+ 'mu-upright':function(W,D){var s=bx(-W/2,-D/2,W,D*0.75,'#2b2a27',{rx:0.06})+bx(-W/2+0.25,D*0.75-D/2-0.45,W-0.5,0.4,'#f4f2ee');for(var i=1;i<26;i++){var x=-W/2+0.25+i*(W-0.5)/26;s+=iL(x,D*0.25-0.45,x,D*0.25-0.05,{stroke:'#bdb8ad','stroke-width':0.015})}return s+bx(-1.3,D/2-0.4,2.6,0.4,'#3f3d38',{rx:0.06})},
+ 'mu-grand':function(W,D){var s=iP('M'+(-W/2)+' '+(D/2-0.6)+' V'+(-D/2+1.2)+' Q'+(-W/2)+' '+(-D/2)+' '+(-W/2+1.3)+' '+(-D/2)+' Q'+(W/2-0.2)+' '+(-D/2+0.4)+' '+(W/2-0.4)+' '+(-D/2+2.4)+' Q'+(W/2)+' '+(D/2-1.4)+' '+(W/2)+' '+(D/2-0.6)+' Z',{fill:'#2b2a27',stroke:'#1f1e1c'});
+  s+=bx(-W/2,D/2-0.85,W,0.4,'#f4f2ee');for(var i=1;i<26;i++){var x=-W/2+i*W/26;s+=iL(x,D/2-0.85,x,D/2-0.45,{stroke:'#bdb8ad','stroke-width':0.015})}return s+bx(-1.2,D/2-0.35,2.4,0.35,'#3f3d38',{rx:0.06})},
+ 'mu-keys':function(W,D){var s=bx(-W/2,-D/2,W,D*0.55,'#3f3d38',{rx:0.08})+bx(-W/2+0.15,-D/2+D*0.18,W-0.3,D*0.32,'#f4f2ee');for(var i=1;i<22;i++){var x=-W/2+0.15+i*(W-0.3)/22;s+=iL(x,-D/2+D*0.18,x,-D/2+D*0.5,{stroke:'#bdb8ad','stroke-width':0.015})}return s+knobs(W*0.6,-D/2+0.1,5,0.04)+stool(0,D/2-0.25,0.3)},
+ 'mu-guitar':function(W,D){return bx(-W/2,-D/2,2,D*0.75,CHAR,{rx:0.08})+bx(-W/2+0.15,-D/2+0.15,1.7,D*0.75-0.3,'#4c4a45',{rx:0.05})+bx(W/2-2,-D/2,2,D*0.75,CHAR,{rx:0.08})+bx(W/2-1.85,-D/2+0.15,1.7,D*0.75-0.3,'#4c4a45',{rx:0.05})+rot(-0.4,0,-20,bx(-0.35,-0.6,0.7,0.9,'#c98a63',{rx:0.3})+bx(-0.06,-1.5,0.12,0.9,WOODD))+rot(0.5,0.1,15,bx(-0.32,-0.55,0.64,0.85,'#3a6fb0',{rx:0.28})+bx(-0.06,-1.45,0.12,0.9,WOODD))},
+ 'mu-desk':function(W,D){var s=deskTop(W,D,'#3f3d38')+bx(-W*0.3,-D/2+0.45,W*0.6,D*0.3,'#4c4a45',{rx:0.04});for(var i=0;i<12;i++)s+=iL(-W*0.28+i*W*0.05,-D/2+0.55,-W*0.28+i*W*0.05,-D/2+0.45+D*0.25,{stroke:'#8a877f','stroke-width':0.04});return s+monitor(0,-D/2+0.2,W*0.45)+speakerTop(-W/2+0.45,-D/2+0.45,0.6,0.7)+speakerTop(W/2-0.45,-D/2+0.45,0.6,0.7)+chair(0,D/2-0.6,0)},
+ 'mu-booth':function(W,D){return bx(-W/2,-D/2,W,D,'#7a7770',{rx:0.08})+bx(-W/2+0.3,-D/2+0.3,W-0.6,D-0.6,'#9c978c',{rx:0.04})+grid(-W/2+0.3,-D/2+0.3,W-0.6,D-0.6,6,4,{stroke:'#8a857a','stroke-width':0.04})+bx(W*0.1,D/2-0.3,W*0.3,0.3,GLASS)+iC(-W*0.1,-D*0.05,0.25,{fill:CHAR})+iL(-W*0.1,-D*0.05,-W*0.1,D*0.25,{stroke:CHAR,'stroke-width':0.05})},
+ 'mu-dj':function(W,D){var s=bx(-W/2,-D/2,W,D*0.8,'#2b2a27',{rx:0.06});return s+iC(-W*0.25,-D*0.08,0.5,{fill:GREY})+iC(-W*0.25,-D*0.08,0.12,{fill:STEEL})+iC(W*0.25,-D*0.08,0.5,{fill:GREY})+iC(W*0.25,-D*0.08,0.12,{fill:STEEL})+bx(-0.5,-D*0.35,1,D*0.55,'#4c4a45',{rx:0.04})+knobs(0.9,-D*0.25,3,0.06)+dot(-W/2+0.3,-D/2+0.25,0.08,'#9b7ad1')+dot(W/2-0.3,-D/2+0.25,0.08,'#8fb6e0')},
+ 'mu-karaoke':function(W,D){return bx(-W/2,-D/2,W,D*0.45,'#3f3d38',{rx:0.05})+scr(-W*0.3,-D/2+0.2,W*0.3,-D/2+0.2,0.2)+speakerTop(-W/2+0.5,-D/2+0.5,0.8,0.8)+speakerTop(W/2-0.5,-D/2+0.5,0.8,0.8)+iC(0,D*0.2,0.18,{fill:CHAR})+iL(0,D*0.2,0,D/2-0.1,{stroke:CHAR,'stroke-width':0.05})},
+ /* auto & garage */
+ 'a-car':function(W,D){return bay(W,D,6.2,15.5,'#9fb6cc')},
+ 'a-pickup':function(W,D){var s=iR(-W/2,-D/2,W,D,{fill:'rgba(229,83,61,.05)',stroke:'#c9c4b8','stroke-dasharray':'0.5 0.3'})+iL(-W/2,D/2-0.4,W/2,D/2-0.4,{stroke:YEL,'stroke-width':0.15,'stroke-dasharray':'0.6 0.4'});return s+car(6.7,19,'#b9a58c')+bx(-2.9,-9.5+0.6,5.8,6,'#a8937a',{rx:0.1})},
+ 'a-moto':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'none',stroke:'#c9c4b8','stroke-dasharray':'0.3 0.2'})+bx(-0.18,-D/2+0.6,0.36,1.5,'#2b2a27',{rx:0.15})+bx(-0.18,D/2-2.1,0.36,1.5,'#2b2a27',{rx:0.15})+bx(-0.55,-D*0.15,1.1,D*0.35,'#c0392b',{rx:0.4})+bx(-0.35,D*0.15,0.7,D*0.12,CHAR,{rx:0.25})+iL(-1.1,-D/2+2.1,1.1,-D/2+2.1,{stroke:CHAR,'stroke-width':0.12})},
+ 'a-lift2':function(W,D){var s=bay(W,D,6.2,15.5,'#9fb6cc');return s+bx(-W/2+0.1,-1.2,0.9,1.4,'#c0392b',{rx:0.08})+bx(W/2-1,-1.2,0.9,1.4,'#c0392b',{rx:0.08})+iL(-W/2+1,-0.5,-1.5,-3,{stroke:GREY,'stroke-width':0.18})+iL(-W/2+1,-0.5,-1.5,2.5,{stroke:GREY,'stroke-width':0.18})+iL(W/2-1,-0.5,1.5,-3,{stroke:GREY,'stroke-width':0.18})+iL(W/2-1,-0.5,1.5,2.5,{stroke:GREY,'stroke-width':0.18})},
+ 'a-lift4':function(W,D){var s=bx(-W/2+0.6,-D/2+1,1.2,D-2,'#c0392b',{rx:0.05})+bx(W/2-1.8,-D/2+1,1.2,D-2,'#c0392b',{rx:0.05});s=car(6,15.5,'#9fb6cc')+iR(-W/2+0.6,-D/2+1,1.2,D-2,{fill:'rgba(192,57,43,.55)'})+iR(W/2-1.8,-D/2+1,1.2,D-2,{fill:'rgba(192,57,43,.55)'});[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(p){s+=bx(p[0]*(W/2-0.35)-0.35,p[1]*(D/2-0.35)-0.35,0.7,0.7,CHAR)});return s+iL(-W/2,-D/2+0.7,W/2,-D/2+0.7,{stroke:GREY,'stroke-width':0.2})+iL(-W/2,D/2-0.7,W/2,D/2-0.7,{stroke:GREY,'stroke-width':0.2})},
+ 'a-scissor':function(W,D){return bx(-W/2+0.3,-D/2,1.4,D,'#c0392b',{rx:0.1})+bx(W/2-1.7,-D/2,1.4,D,'#c0392b',{rx:0.1})+iL(-W/2+1,-D/2+0.5,W/2-1,D/2-0.5,{stroke:GREY,'stroke-width':0.15})+iL(-W/2+1,D/2-0.5,W/2-1,-D/2+0.5,{stroke:GREY,'stroke-width':0.15})+bx(-0.5,D/2-0.6,1,0.6,CHAR,{rx:0.1})},
+ 'a-chest1':function(W,D){return chestTop(W,D,'#c0392b')},
+ 'a-chest2':function(W,D){return chestTop(W,D,'#2f5e8f')+bx(W/2-1.3,-D/2+0.2,1,0.35,CHAR,{rx:0.04})},
+ 'a-tire':function(W,D){return body(W,D,'#e3e1dc')+iC(0,0,Math.min(W,D)*0.36,{fill:'#2b2a27'})+iC(0,0,Math.min(W,D)*0.22,{fill:STEEL})+iC(0,0,Math.min(W,D)*0.06,{fill:GREY})+bx(-W/2+0.15,-D/2+0.15,0.6,D*0.35,'#c0392b',{rx:0.06})+iL(-W/2+0.45,-D/2+0.4,0,-0.2,{stroke:GREY,'stroke-width':0.12})},
+ 'a-balance':function(W,D){return body(W,D,'#e3e1dc')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.3,'#3f3d38',{rx:0.06})+scr(-W*0.25,-D/2+0.3,W*0.25,-D/2+0.3,0.18)+bx(-0.15,-D*0.1,0.3,D*0.35,STEEL)+iC(0,D*0.2,Math.min(W,D)*0.28,{fill:'#2b2a27'})+iC(0,D*0.2,Math.min(W,D)*0.15,{fill:STEEL})},
+ 'a-press':function(W,D){return bx(-W/2,-D/2,W,D,'rgba(230,228,223,.5)',{'stroke-dasharray':'0.15 0.1'})+bx(-W/2,-0.25,0.45,0.5,'#c0392b')+bx(W/2-0.45,-0.25,0.45,0.5,'#c0392b')+bx(-W/2,-0.12,W,0.24,'#c0392b')+iC(0,0,0.3,{fill:GREY})+iL(W*0.15,0,W*0.4,D*0.35,{stroke:CHAR,'stroke-width':0.07})},
+ 'a-mig1':function(W,D){return bx(-W/2,-D/2+0.4,W,D-0.4,GREY,{rx:0.06})+bx(-W/2+0.1,-D/2+0.5,W-0.2,D*0.45,'#3a6fb0',{rx:0.06})+dot(0,-D/2+0.5+D*0.22,0.1,YEL)+iC(0,-D/2+0.35,0.32,{fill:'#c8d8e6'})+iC(0,-D/2+0.35,0.12,{fill:DARK})+iP('M'+(W/2)+' '+(D*0.2)+' q0.4 0.4 0 0.8',{stroke:CHAR,'stroke-width':0.07})},
+ 'a-mig2':function(W,D){return bx(-W/2,-D/2+0.6,W,D-0.6,GREY,{rx:0.06})+bx(-W/2+0.1,-D/2+0.7,W-0.2,D*0.5,'#c0392b',{rx:0.06})+scr(-W*0.2,-D/2+1,W*0.2,-D/2+1,0.15)+iC(-W*0.22,-D/2+0.35,0.32,{fill:'#c8d8e6'})+iC(W*0.22,-D/2+0.35,0.32,{fill:'#d5e3d0'})+iP('M'+(W/2)+' '+(D*0.2)+' q0.4 0.4 0 0.8',{stroke:CHAR,'stroke-width':0.07})},
+ 'a-blast':function(W,D){return body(W,D,'#3a6fb0')+bx(-W/2+0.3,-D/2+0.2,W-0.6,D*0.55,'#d6dde4',{rx:0.1})+iC(-W*0.18,D*0.25,0.28,{fill:CHAR})+iC(W*0.18,D*0.25,0.28,{fill:CHAR})+bx(-W*0.3,-D/2+0.3,W*0.6,D*0.3,GLASS,{rx:0.06})},
+ 'a-parts':function(W,D){return body(W,D,'#c0392b')+bx(-W/2+0.2,-D/2+0.2,W-0.4,D-0.5,'#5e6b73',{rx:0.08})+grid(-W/2+0.3,-D/2+0.3,W-0.6,D-0.7,6,3,{stroke:'#7d8a92','stroke-width':0.03})+iP('M'+(W*0.2)+' '+(-D*0.25)+' q-0.3 0.2 -0.6 0',{stroke:STEEL,'stroke-width':0.08})},
+ 'a-hoist':function(W,D){return iL(-W/2+0.3,D/2-0.3,-W/2+0.3,-D/2+1,{stroke:'#c0392b','stroke-width':0.2})+iL(W/2-0.3,D/2-0.3,W/2-0.3,-D/2+1,{stroke:'#c0392b','stroke-width':0.2})+iL(-W/2+0.3,-D/2+1,W/2-0.3,-D/2+1,{stroke:'#c0392b','stroke-width':0.2})+iL(0,-D/2+1,0,D*0.15,{stroke:'#c0392b','stroke-width':0.25})+iL(0,D*0.15,0,D/2-0.6,{stroke:GREY,'stroke-width':0.15})+dot(-W/2+0.3,D/2-0.3,0.18,CHAR)+dot(W/2-0.3,D/2-0.3,0.18,CHAR)+dot(0,D/2-0.6,0.15,CHAR)},
+ 'a-ev':function(W,D){return bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.1})+bx(-W*0.3,-D/2+0.05,W*0.6,D*0.5,'#3f3d38',{rx:0.05})+dot(0,-D/2+0.17,0.05,GREEN)+iP('M'+(W*0.3)+' 0 q0.4 0.4 0.2 0.9',{stroke:CHAR,'stroke-width':0.06})},
+ /* crafts & office */
+ 'o-desk':function(W,D){return deskTop(W,D)+monitor(0,-D/2+0.2,W*0.35)+bx(-0.6,-D/2+0.7,1.2,0.35,'#e3e1dc',{rx:0.05})+chair(0,D/2-0.3,0)},
+ 'o-stand':function(W,D){return deskTop(W,D,'#e9e7e2')+monitor(-W*0.15,-D/2+0.2,W*0.25)+monitor(W*0.15,-D/2+0.2,W*0.25)+bx(-W/2+0.1,-D/2+0.1,0.3,D*0.75-0.2,DARK,{rx:0.04})+bx(W/2-0.4,-D/2+0.1,0.3,D*0.75-0.2,DARK,{rx:0.04})+bx(-0.8,D/2-0.6,1.6,0.5,MAT,{rx:0.15})},
+ 'o-ldesk':function(W,D){var t=2.5;return iP('M'+(-W/2)+' '+(-D/2)+' H'+(W/2)+' V'+(-D/2+t)+' H'+(-W/2+t)+' V'+(D/2)+' H'+(-W/2)+' Z',{fill:WOOD})+monitor(0,-D/2+0.25,W*0.35)+monitor(-W/2+0.25,0.8,0)+iL(-W/2+0.25,0,-W/2+0.25,1.6,{stroke:SCR,'stroke-width':0.16})+chair(-W/2+t+0.9,-D/2+t+0.9,-45)},
+ 'o-conf':function(W,D){var s='',n=3;for(var i=0;i<n;i++){var x=-W/2+W*(i+0.5)/n;s+=chair(x,-D/2-0.55,180)+chair(x,D/2+0.55,0)}return s+chair(-W/2-0.55,0,90)+chair(W/2+0.55,0,-90)+bx(-W/2,-D/2,W,D,WOOD,{rx:D*0.25})+iC(0,0,0.3,{fill:CHAR})},
+ 'o-file':function(W,D){var s=body(W,D,'#c8ccd0');for(var i=1;i<4;i++)s+=iL(-W/2+0.1,-D/2+i*D/4,W/2-0.1,-D/2+i*D/4,{stroke:'#9aa0a6','stroke-width':0.04});return s+iL(-W*0.2,D/2-0.1,W*0.2,D/2-0.1,{'stroke-width':0.1})},
+ 'o-copier':function(W,D){return body(W,D,'#e9e7e2')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D*0.45,'#cfd3d6',{rx:0.05})+bx(-W*0.3,-D/2+0.25,W*0.6,D*0.3,WHITE,{rx:0.03})+bx(W/2-0.7,D*0.1,0.5,0.35,'#3f3d38',{rx:0.05})+dot(W/2-0.45,D*0.1+0.17,0.05,GREEN)+iL(-W*0.3,D/2-0.12,W*0.2,D/2-0.12,{'stroke-width':0.1})},
+ 'o-books':function(W,D){return shelfTop(W,D,WOODD,6)},
+ 'cr-sew':function(W,D){return deskTop(W,D,'#f1eee8')+rot(0,-D/2+0.55,0,bx(-0.8,-0.3,1.6,0.6,WHITE,{rx:0.15})+bx(-0.8,-0.3,0.35,0.6,'#e3e1dc',{rx:0.1})+dot(0.55,0,0.06,INK))+iC(W/2-0.6,-D/2+0.5,0.2,{fill:'#e07a6a'})+chair(0,D/2-0.3,0)},
+ 'cr-serger':function(W,D){return deskTop(W,D,'#f1eee8')+rot(0,-D/2+0.55,0,bx(-0.55,-0.3,1.1,0.6,WHITE,{rx:0.12})+iC(-0.35,-0.42,0.08,{fill:'#e07a6a'})+iC(-0.1,-0.42,0.08,{fill:'#8fb6e0'})+iC(0.15,-0.42,0.08,{fill:GREEN})+iC(0.4,-0.42,0.08,{fill:YEL}))+chair(0,D/2-0.3,0)},
+ 'cr-quilt':function(W,D){return bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.08})+bx(-W/2+0.3,-D/2+0.5,W-0.6,D-1,'#f4e8d4')+grid(-W/2+0.3,-D/2+0.5,W-0.6,D-1,10,3,{stroke:'#e0c9a6','stroke-width':0.04})+bx(-W*0.15,-D/2+0.35,1.6,D-0.7,WHITE,{rx:0.15})+bx(-W*0.15,-D/2+0.35,1.6,0.6,'#e3e1dc',{rx:0.1})+iL(-W/2,-D/2+0.35,W/2,-D/2+0.35,{stroke:GREY,'stroke-width':0.1})+iL(-W/2,D/2-0.35,W/2,D/2-0.35,{stroke:GREY,'stroke-width':0.1})},
+ 'cr-cut':function(W,D){return bx(-W/2,-D/2,W,D,'#6fa88d',{rx:0.06})+grid(-W/2+0.2,-D/2+0.2,W-0.4,D-0.4,Math.round(W*2),Math.round(D*2),{stroke:'#8cc0a6','stroke-width':0.02})+bx(-W*0.2,-D*0.1,W*0.4,D*0.25,'#f2cf6b',{rx:0.02})+iL(W*0.1,-D*0.3,W*0.35,D*0.2,{stroke:'#c0c4c8','stroke-width':0.08})},
+ 'cr-wheel':function(W,D){return bx(-W/2,-D/2,W,D*0.75,'#a39e8f',{rx:0.25})+iC(0,-D*0.08,Math.min(W,D)*0.3,{fill:'#d8d4cb'})+iC(0,-D*0.08,Math.min(W,D)*0.16,{fill:CLAY})+stool(0,D/2-0.4,0.35)},
+ 'cr-kiln1':function(W,D){return kilnTop(W,D)},
+ 'cr-kiln2':function(W,D){return kilnTop(W,D,'#d6d9dc')},
+ 'cr-easel':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'rgba(232,135,62,.05)',stroke:'#e0d6c8','stroke-dasharray':'0.2 0.15'})+iL(-0.9,-D*0.15,0.9,-D*0.15,{stroke:WOODD,'stroke-width':0.18})+iL(0,-D*0.15,0,D*0.15,{stroke:WOODD,'stroke-width':0.12})+bx(-0.8,-D*0.15-0.12,1.6,0.08,'#8fb6e0')+stool(0,D*0.25,0.35)+iC(W*0.3,D*0.05,0.3,{fill:WOOD})+dot(W*0.25,0,0.06,RED)+dot(W*0.35,0.05,0.06,'#2f5e8f')+dot(W*0.3,0.15,0.06,YEL)},
+ /* storage & utility */
+ 's-shelf':function(W,D){return shelfRack(W,D,Math.max(2,Math.round(W/1.2)))},
+ 's-heavy':function(W,D){return shelfRack(W,D,Math.max(3,Math.round(W/1.3)))+iL(-W/2,-D/2+0.1,W/2,-D/2+0.1,{stroke:'#e8873e','stroke-width':0.12})+iL(-W/2,D/2-0.1,W/2,D/2-0.1,{stroke:'#e8873e','stroke-width':0.12})},
+ 's-pallet':function(W,D){var s=iL(-W/2,-D/2+0.15,W/2,-D/2+0.15,{stroke:'#e8873e','stroke-width':0.2})+iL(-W/2,D/2-0.15,W/2,D/2-0.15,{stroke:'#e8873e','stroke-width':0.2});[-1,0,1].forEach(function(k){s+=bx(k*W/3-W/6+0.2,-D/2+0.35,W/3-0.4,D-0.7,WOOD,{rx:0.03})+hatch(k*W/3-W/6+0.2,-D/2+0.35,W/3-0.4,D-0.7,4,{stroke:WOODD,'stroke-width':0.05})});[-W/2,-W/6,W/6,W/2].forEach(function(x){s+=bx(x-0.12,-D/2,0.24,0.3,'#2f5e8f')+bx(x-0.12,D/2-0.3,0.24,0.3,'#2f5e8f')});return s},
+ 's-cab':function(W,D){return body(W,D,'#8a9099')+iL(0,-D/2+0.1,0,D/2,{stroke:'#6b717a'})+iL(-0.25,D/2-0.02,-0.25,D/2-0.35,{'stroke-width':0.1})+iL(0.25,D/2-0.02,0.25,D/2-0.35,{'stroke-width':0.1})+dot(0,D/2-0.5,0.07,YEL)},
+ 's-bins':function(W,D){var s=bx(-W/2,-D/2,W,D*0.35,'#c8ccd0'),c=['#3a6fb0','#e8873e','#3a6fb0','#7fbf8e','#e07a6a','#3a6fb0'],n=Math.round(W/0.8);for(var i=0;i<n;i++)s+=bx(-W/2+0.1+i*(W-0.2)/n,-D/2+D*0.3,(W-0.2)/n-0.06,D*0.55,c[i%c.length],{rx:0.04,'stroke-width':0.03});return s},
+ 's-overhead':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'rgba(230,228,223,.35)','stroke-dasharray':'0.3 0.2'})+grid(-W/2,-D/2,W,D,4,8,{stroke:'#c9c4b8','stroke-width':0.03})+bx(-W*0.35,-D*0.35,W*0.3,D*0.25,'#b7a08a',{'stroke-width':0.03,opacity:0.7})+bx(W*0.05,0,W*0.3,D*0.3,'#8fb6e0',{'stroke-width':0.03,opacity:0.7})},
+ 's-safe':function(W,D){return body(W,D,'#3f3d38')+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.3,'#4c4a45',{rx:0.05})+iL(-W/2+0.2,D/2-0.08,W/2-0.2,D/2-0.08,{stroke:'#8a877f','stroke-width':0.1})+iC(W*0.15,D/2-0.3,0.12,{fill:STEEL})},
+ 's-flam':function(W,D){return body(W,D,YEL)+iL(0,-D/2+0.05,0,D/2,{stroke:'#c9a43a'})+iP('M-0.25 '+(D/2-0.15)+' l0.25 -0.45 l0.25 0.45 Z',{fill:RED,stroke:'none'})},
+ 's-laundry':function(W,D){var s='';[-1,1].forEach(function(k){var cx=k*W/4;s+=rot(cx,0,0,body(W/2-0.1,D,WHITE)+bx(-W/4+0.2,-D/2+0.15,W/2-0.5,0.4,'#e3e1dc',{rx:0.05})+iC(0,0.1,Math.min(W/4,D/2)*0.65,{fill:'#dbe5ea'})+iC(0,0.1,Math.min(W/4,D/2)*0.4,{stroke:DARK}))});return s},
+ 's-heater':function(W,D){var r=Math.min(W,D)*0.45;return iC(0,0,r,{fill:WHITE})+iC(0,0,r*0.75,{stroke:DARK})+iC(-r*0.3,-r*0.3,0.1,{fill:RED})+iC(r*0.3,-r*0.3,0.1,{fill:'#3a6fb0'})+bx(-0.25,r*0.55,0.5,0.25,DARK,{rx:0.04})},
+ 's-mini':function(W,D){return body(W,D,WHITE)+iL(-W/2,D/2-0.1,W/2,D/2-0.1,{stroke:DARK})+iL(W*0.3,D/2-0.02,W*0.3,D/2-0.3,{'stroke-width':0.1})},
+ 's-recycle':function(W,D){return bx(-W/2,-D/2,W/2-0.05,D,'#5d5a54',{rx:0.1})+bx(0.05,-D/2,W/2-0.05,D,'#2f5e8f',{rx:0.1})+iP('M'+(W/4)+' -0.3 l0.25 0.4 h-0.5 Z',{stroke:WHITE,'stroke-width':0.06})}
+});
+['g-pool7','g-pool9'].forEach(function(k){ICONS[k]=ICONS['g-pool']});['g-shuf12','g-shuf16'].forEach(function(k){ICONS[k]=ICONS['g-shuffle']});
+ICONS['m-laser2']=ICONS['m-laser2']||function(W,D){return laserCab(W,D,null)};
 /* place a symbol on an item: rotate so the drawing's front matches the item's front */
-function iconFor(it){var f=ICONS[it.r];if(!f)return '';var rot=(it.rot||0)%4,W=rot%2?it.d:it.w,D=rot%2?it.w:it.d,cx=it.x+it.w/2,cy=it.y+it.d/2;
+function iconFor(it){var f=ICONS[it.r]||(typeof ALIAS!=='undefined'&&ICONS[ALIAS[it.r]]);if(!f)return '';var rot=(it.rot||0)%4,W=rot%2?it.d:it.w,D=rot%2?it.w:it.d,cx=it.x+it.w/2,cy=it.y+it.d/2;
  return '<g transform="translate('+cx+','+cy+') rotate('+(rot*90)+')" pointer-events="none">'+f(W,D)+'</g>'}
 
 </script>
@@ -878,7 +1121,7 @@ function wallLen(p,q,s){var a=arc(p,q,s),c=len(sub(q,p));if(!a)return c;var half
 /* ---------- history ---------- */
 function snap(){return JSON.stringify({o:S.outline,b:S.blk,w:S.walls,m:S.marks,d:S.doors,z:S.zones||[],zi:S.zid||1,ob:S.objs||[],oi:S.oid||1,g:S.orig||null,k:!!S.lock})}
 function push(){hist.push(snap());if(hist.length>80)hist.shift();fut=[];btns()}
-function restore(j){var o=JSON.parse(j);S.outline=o.o;S.blk=o.b;S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||S.zid||1;S.objs=o.ob||[];S.oid=o.oi||S.oid||1;if(typeof lSel!=='undefined'&&lSel&&!oById(lSel))lSel=null;if(typeof zSel!=='undefined'&&zSel&&!zById(zSel)){zSel=null;zAdd=null}S.orig=o.g||null;S.lock=!!o.k;sel=null;render();shapeUI()}
+function restore(j){var o=JSON.parse(j);S.outline=o.o;S.blk=o.b;S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||S.zid||1;S.objs=(o.ob||[]).map(function(b){if(b&&b.r&&typeof ALIAS!=='undefined'&&ALIAS[b.r]&&BY[ALIAS[b.r]]){b.r=ALIAS[b.r];if(/xTool|Prusa/.test(b.name||''))b.name=BY[b.r].n}return b});S.oid=o.oi||S.oid||1;if(typeof lSel!=='undefined'&&lSel&&!oById(lSel))lSel=null;if(typeof zSel!=='undefined'&&zSel&&!zById(zSel)){zSel=null;zAdd=null}S.orig=o.g||null;S.lock=!!o.k;sel=null;render();shapeUI()}
 $('#undo').onclick=function(){if(!hist.length)return;fut.push(snap());restore(hist.pop());btns()};
 $('#redo').onclick=function(){if(!fut.length)return;hist.push(snap());restore(fut.pop());btns()};
 function btns(){$('#undo').disabled=!hist.length;$('#redo').disabled=!fut.length}
@@ -1156,7 +1399,7 @@ window.__cave=Object.assign(window.__cave||{},{objs:{get:function(){return S.obj
    Each placed object belongs to one named zone (it.zone) and stays inside it. Positions are in feet,
    same convention as the app: x,y = top-left, w,d = as placed (already swapped when rotated), rot = 0..3. */
 var CATZ={'Arcade & Gaming':['games','lounge'],'Bar & Lounge':['bar','lounge'],'Kitchen – Residential':['bar'],'Kitchen – Commercial':['bar'],'Fitness':['games'],'Court & Rink':['games'],
- 'Creator / Maker':['shop','office'],'Woodworking':['shop'],'Indoor Garden':['lounge','store','shop'],'Building & Support':['store','shop','office'],'Wishlist':['games','lounge','shop']};
+ 'Creator / Maker':['shop','office'],'Woodworking':['shop'],'Indoor Garden':['lounge','store','shop'],'Building & Support':['store','shop','office'],'Home Theater & Music':['lounge','games','office'],'Auto & Garage':['shop','store'],'Crafts & Office':['office','shop','store'],'Storage & Utility':['store','shop','bar']};
 var lPlace=null,lSel=null,lGhost=null,lQ='',lOpen={};
 function oCat(it){return BY[it.r]||null}
 function oTypes(c){var t=c&&CATZ[c.c];return t||ZT.map(function(z){return z.id})}
@@ -2354,7 +2597,7 @@ var idb=null;function db(){if(idb)return idb;idb=new Promise(function(res){try{v
 async function kvSet(k,v){var d=await db();if(!d)return;try{d.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(_){}}
 async function kvGet(k){var d=await db();if(!d)return null;return new Promise(function(res){try{var q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}}catch(_){res(null)}})}
 var ptimer=null,restored=false;function persistSoon(){if(!restored)return;clearTimeout(ptimer);ptimer=setTimeout(function(){kvSet('state',{s:snap(),trace:trace?{x:trace.x,y:trace.y,w:trace.w,h:trace.h}:null,meta:plan?plan.meta:null});kvSet('file',plan?plan.file:null);kvSet('img',plan?plan.img:null)},400)}
-async function restoreSaved(){try{var st=await kvGet('state');if(st&&st.s){var o=JSON.parse(st.s);S.outline=o.o;S.blk=o.b||[];S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||1;S.objs=o.ob||[];S.oid=o.oi||1;S.orig=o.g||null;S.lock=!!o.k;S.did=Math.max.apply(null,[1].concat(S.doors.map(function(x){return x.id+1})));
+async function restoreSaved(){try{var st=await kvGet('state');if(st&&st.s){var o=JSON.parse(st.s);S.outline=o.o;S.blk=o.b||[];S.walls=o.w||[];S.marks=o.m||[];S.doors=o.d||[];S.zones=o.z||[];S.zid=o.zi||1;S.objs=(o.ob||[]).map(function(b){if(b&&b.r&&typeof ALIAS!=='undefined'&&ALIAS[b.r]&&BY[ALIAS[b.r]]){b.r=ALIAS[b.r];if(/xTool|Prusa/.test(b.name||''))b.name=BY[b.r].n}return b});S.oid=o.oi||1;S.orig=o.g||null;S.lock=!!o.k;S.did=Math.max.apply(null,[1].concat(S.doors.map(function(x){return x.id+1})));
   S.nid=Math.max.apply(null,[1].concat(S.blk.map(function(b){return b.id+1})));S.wid=Math.max.apply(null,[1000].concat(S.walls.map(function(w){return w.id+1})));
   var f=await kvGet('file'),im=await kvGet('img');if(st.meta&&f&&im){plan={file:f,img:im,meta:st.meta};if(st.trace){trace=Object.assign({url:URL.createObjectURL(im)},st.trace);$('#ai-tracewrap').style.display='flex'}}
   planUI();fitView();render();toast('Restored your last floor plan')}}catch(_){}restored=true}
