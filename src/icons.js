@@ -279,7 +279,7 @@ Object.assign(ICONS,{
  'w-scroll':function(W,D){return body(W,D*0.8,'#c8ccd0')+bx(-W/2+0.1,-D/2+0.25,W*0.8,0.3,GREY,{rx:0.1})+iL(W*0.25,-D/2+0.1,W*0.25,D*0.3,{stroke:CHAR,'stroke-width':0.04})+bx(-W/2,D*0.3,W,D*0.2,'#3a6fb0',{rx:0.05})},
  'w-panel':function(W,D){return bx(-W/2,-D/2,W,D*0.45,'#5d5a54',{rx:0.05})+bx(-W/2,-D/2+D*0.45,W,0.25,'#3a6fb0')+bx(-W/2+0.3,-D/2+0.1,W-0.6,D*0.32,WOOD,{rx:0.02})+bx(-0.4,-D/2+0.05,0.8,D*0.4,'#d43a3a',{rx:0.06})+iL(0,-D/2,0,D/2-0.2,{stroke:'#9aa0a6','stroke-width':0.05,'stroke-dasharray':'0.2 0.15'})},
  /* home theater & music */
- 'ht-row3':function(W,D){var s='',n=3,w=W/n;for(var i=0;i<n;i++)s+=recliner(-W/2+i*w+0.05,-D/2,w-0.1,D);return s},
+ 'ht-row3':function(W,D){var s='',n=Math.max(1,Math.round(W/3)),w=W/n;for(var i=0;i<n;i++)s+=recliner(-W/2+i*w+0.05,-D/2,w-0.1,D);return s},
  'ht-row4':function(W,D){var s='',n=4,w=W/n;for(var i=0;i<n;i++)s+=recliner(-W/2+i*w+0.05,-D/2,w-0.1,D);return s},
  'ht-riser':function(W,D){return bx(-W/2,-D/2,W,D,'#4a4054',{rx:0.06})+bx(-W/2+0.15,-D/2+0.15,W-0.3,D-0.3,'#5b506a',{rx:0.04})+iL(-W/2,D/2-0.12,W/2,D/2-0.12,{stroke:YEL,'stroke-width':0.06,'stroke-dasharray':'0.15 0.15'})},
  'ht-screen':function(W,D){return bx(-W/2,-D/2,W,D,'#3f3d38',{rx:0.05})+bx(-W/2+1.4,-D/2+0.15,W-2.8,0.3,'#f4f6f8')+speakerTop(-W/2+0.65,0,1,D-0.3)+speakerTop(W/2-0.65,0,1,D-0.3)+iL(-W/2+1.4,-D/2+0.45,W/2-1.4,-D/2+0.45,{stroke:'#8fb6e0','stroke-width':0.04})},
@@ -347,7 +347,7 @@ Object.assign(ICONS,{
  's-mini':function(W,D){return body(W,D,WHITE)+iL(-W/2,D/2-0.1,W/2,D/2-0.1,{stroke:DARK})+iL(W*0.3,D/2-0.02,W*0.3,D/2-0.3,{'stroke-width':0.1})},
  's-recycle':function(W,D){return bx(-W/2,-D/2,W/2-0.05,D,'#5d5a54',{rx:0.1})+bx(0.05,-D/2,W/2-0.05,D,'#2f5e8f',{rx:0.1})+iP('M'+(W/4)+' -0.3 l0.25 0.4 h-0.5 Z',{stroke:WHITE,'stroke-width':0.06})}
 });
-['g-pool7','g-pool9'].forEach(function(k){ICONS[k]=ICONS['g-pool']});['g-shuf12','g-shuf16'].forEach(function(k){ICONS[k]=ICONS['g-shuffle']});
+
 ICONS['m-laser2']=ICONS['m-laser2']||function(W,D){return laserCab(W,D,null)};
 /* ---- metal & fabrication, finishing, lounge extras ---- */
 function benchTop(W,D){return bx(-W/2,-D/2,W,D,WOOD,{rx:0.06})+iL(-W/2,D/2-0.1,W/2,D/2-0.1,{stroke:WOODD,'stroke-width':0.06})}
