@@ -312,6 +312,11 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=drawPower(k);
  $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length}
+var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
+// "How to use the plan": one line, opens to the controls
+function howTo(){var kb=function(t){return '<span class="kb">'+t+'</span>'},row=function(k,t){return '<span class="hk">'+k+'</span><span>'+t+'</span>'};
+ var rows=row(kb('Click'),'Add an object from the list')+row(kb('Drag'),'Move an object')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('R')+kb('Shift R'),'Turn right / left')+row(kb('Del'),'Remove the selected one')+row(kb('Scroll'),'Zoom (pinch on touch)')+row(kb('Double-click'),'Fit the whole room')+(P.pw?row(kb('Click outlet'),'See its circuit and what it powers'):'')+row(kb('Esc'),'Deselect');
+ return '<details class="howto" id="howto"'+(howOpen?' open':'')+'><summary><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f5b52" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg><span>How to use the plan</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a867c" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="hkeys">'+rows+'</div></details>'}
 function hintTxt(){return P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&P.pw.show!==false?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
@@ -387,7 +392,7 @@ function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).f
  var co=names(function(x){return needs(x.c).cool});if(co)h+='<div class="rq">'+ico('cool')+'<div><b>Cooling</b></div><small>'+esc(co)+'</small></div>';
  var ot={};L.forEach(function(x){needs(x.c).other.forEach(function(k){if(ALERTS[k])(ot[k]=ot[k]||[]).push(x.c.n)})});Object.keys(ot).forEach(function(k){h+='<div class="rq">'+ico('note')+'<div><b>'+esc(ALERTS[k][0])+'</b></div><small>'+esc(Array.from(new Set(ot[k])).join(', '))+'</small></div>'});
  return h||'<p class="muted">Nothing beyond power.</p>'}
-function side(){var W=P.room.w,D=P.room.d,h='<div class="tip">'+ico('note')+'<span>'+esc(hintTxt())+'</span></div>';
+function side(){var W=P.room.w,D=P.room.d,h=howTo();
  h+='<div class="card"><span class="lab">Room</span><div class="big">'+Math.round(W*D).toLocaleString()+' sq ft</div><div class="dims"><input id="r-w" value="'+fmt(W)+'" inputmode="decimal" aria-label="Width in feet"><span>×</span><input id="r-d" value="'+fmt(D)+'" inputmode="decimal" aria-label="Depth in feet"><button class="btn" id="r-set">Set</button></div>';
  h+='<label class="sw"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label><p class="muted">'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'</p>';
  if(lastFail&&lastFail.msg)h+='<div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div>';
@@ -405,6 +410,7 @@ function side(){var W=P.room.w,D=P.room.d,h='<div class="tip">'+ico('note')+'<sp
  var pb=$('#pw-build');if(pb)pb.onclick=function(){push();buildPower();selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
  var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
  var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
+ var ht=$('#howto');if(ht)ht.ontoggle=function(){howOpen=ht.open;try{localStorage.setItem('sp-howto',howOpen?'1':'0')}catch(_){}};
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
  var ps2=$('#pw-show');if(ps2)ps2.onchange=function(){P.pw.show=this.checked;if(!this.checked)selO=null;persist();render()};
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
