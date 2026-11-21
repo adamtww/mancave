@@ -44,8 +44,8 @@ function needs(c){var a=c.a||[],q=c.req||{},o={};
  o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['plumbing','garden','co2','weld','commercial','dust','gas','ceiling','hvac','fumes'].indexOf(k)<0});return o}
 
 /* ---------------- the room ---------------- */
-var P,hist=[],fut=[],sel=null,lastFail=null;
-function blank(){return {id:null,name:'Untitled room',room:{w:7,d:7},dyn:true,items:[],defs:{},uid:1}}
+var P,hist=[],fut=[],sel=null,selO=null,lastFail=null;
+function blank(){return {id:null,name:'Untitled room',room:{w:7,d:7},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
 P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=migrate(Object.assign(blank(),sv0))}catch(_){}
 function snapP(){return JSON.stringify(P)}
 function push(){hist.push(snapP());if(hist.length>60)hist.shift();fut=[]}
@@ -124,7 +124,7 @@ function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size betwee
  if(!r.pos){r=layout(free,w,d);how=2}
  if(!r.pos){toast((w*d<W*D?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}
  push();var moved=0;P.items.forEach(function(it){var q=r.pos[it.u];if(q&&(q.x!==it.x||q.y!==it.y||q.rot!==it.rot))moved++});
- P.room.w=w;P.room.d=d;apply(r);if(how===2)P.items.forEach(function(it){it.pin=false});lastFail=null;persist();render();
+ P.room.w=w;P.room.d=d;apply(r);if(P.pw)P.pw.outlets.forEach(function(o){if(o.s===0||o.s===2)o.a=Math.max(.5,Math.min(w-.5,h2(o.a*w/W)));else if(o.s===1||o.s===3)o.a=Math.max(.5,Math.min(d-.5,h2(o.a*d/D)));else{o.x=h2(o.x*w/W);o.y=h2(o.y*d/D)}});if(how===2)P.items.forEach(function(it){it.pin=false});lastFail=null;persist();render();
  if(w*d<W*D||how)toast(how===2?'Everything was rearranged to fit, and pins were released':how===1?'Things were pushed around to fit':'Resized to '+fmt(w)+' × '+fmt(d)+' ft')}
 function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();persist();render()}
 // turn a quarter left (-1) or right (+1) about its centre; if that spot is blocked, nudge it into the nearest free space close by
@@ -138,7 +138,127 @@ function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop()
 function redo(){if(!fut.length)return;hist.push(snapP());P=JSON.parse(fut.pop());persist();render()}
 document.addEventListener('keydown',function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
- if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;render()}});
+ if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;render()}});
+
+/* ---------------- power: "Build out power" works out the outlets and circuits for what's in the room ----------------
+   Each powered object gets a matching outlet within reach (cord ~6 ft): on the wall behind it when that wall is close,
+   else the nearest wall, else a floor/ceiling drop beside it. Objects that need their own circuit get one; everyday
+   120V loads share duplex outlets (2 sockets) and 20A circuits up to 80% (1,920 W). Big or built-in loads are wired in. */
+var REACH=6,CAP80=.8;
+function pspec(c){if(!c||!c.p)return null;var V=c.p[0]>=208?240:120,W=+c.p[1]||0,A=+c.p[2]||20,a=c.a||[],ded=!!c.p[3]||V===240||W>1920;
+ var ph=c.ph?+c.ph:(a.indexOf('threephase')>=0?3:1);
+ var hw=c.hw!=null?!!c.hw:(A>50||/\bEV\b/.test(c.n)||/water heater|air handler|sauna|walk-in cooler|spray booth|curing oven|high-temp/i.test(c.n));
+ var t=hw?'hw':ph===3?'3p'+(A<=30?30:60):V===240?'240-'+(A<=20?20:A<=30?30:50):'120-'+(A<=15?15:20);
+ var CA=hw?A:ph===3?(A<=30?30:60):V===240?(A<=20?20:A<=30?30:50):(A<=15?15:20);
+ return {V:V,W:W,A:CA,ph:ph,ded:ded||hw||ph===3,hw:hw,t:t}}
+function tName(t,o){if(t==='hw')return (o.ph===3?'3-phase ':o.V+'V ')+o.A+'A wired connection';if(t.slice(0,2)==='3p')return '3-phase '+t.slice(2)+'A outlet';var s=t.split('-');return s[0]+'V '+s[1]+'A outlet'}
+function tShort(t,o){if(t==='hw')return 'wired';if(t.slice(0,2)==='3p')return '3φ·'+t.slice(2);var s=t.split('-');return s[0]==='120'?'120':'240·'+s[1]}
+function tCol(o){return o.gp?'#7aa7e8':o.ty==='hw'?'#5f5b52':o.ty.slice(0,2)==='3p'?'#b42336':o.ty.slice(0,3)==='240'?'#e07b1f':'#2f7de1'}
+function opos(o){var W=P.room.w,D=P.room.d;return o.s===0?{x:o.a,y:0}:o.s===1?{x:W,y:o.a}:o.s===2?{x:o.a,y:D}:o.s===3?{x:0,y:o.a}:{x:o.x,y:o.y}}
+function perim(o){var W=P.room.w,D=P.room.d,p=opos(o),s=o.s;if(s<0){var d=[p.y,W-p.x,D-p.y,p.x];s=d.indexOf(Math.min.apply(null,d))}
+ return s===0?p.x:s===1?W+p.y:s===2?W+D+(W-p.x):2*W+D+(D-p.y)}
+function ibox(it){var m=dims(it,it.rot);return {x:it.x,y:it.y,w:m.w,d:m.d}}
+function rdist(p,b){var dx=Math.max(b.x-p.x,0,p.x-(b.x+b.w)),dy=Math.max(b.y-p.y,0,p.y-(b.y+b.d));return Math.hypot(dx,dy)}
+function h2(v){return Math.round(v*2)/2}
+// where an object's outlet wants to be: the wall behind it if it's close, else the nearest wall in reach, else a drop beside it
+function homeFor(it){var b=ibox(it),W=P.room.w,D=P.room.d,dist=[b.y,W-b.x-b.w,D-b.y-b.d,b.x],back=WALLROT.indexOf(it.rot%4),
+  order=[0,1,2,3].sort(function(a,z){return (dist[a]-(a===back?.5:0))-(dist[z]-(z===back?.5:0))});
+ for(var i=0;i<order.length;i++){var s=order[i];if(dist[s]>REACH-.5)continue;
+  var a=s%2===0?h2(b.x+b.w/2):h2(b.y+b.d/2),L=s%2===0?W:D;return {s:s,a:Math.max(.5,Math.min(L-.5,a))}}
+ var e=[[b.x+b.w/2,b.y],[b.x+b.w,b.y+b.d/2],[b.x+b.w/2,b.y+b.d],[b.x,b.y+b.d/2]][back<0?0:back];return {s:-1,x:h2(e[0]),y:h2(e[1])}}
+// don't stack two outlets on the same spot: slide along the wall while the object can still reach it
+function nudge(sp,list,b){var same=function(q){return list.some(function(o){var p=opos(o),r=opos(q);return o.s===q.s&&Math.hypot(p.x-r.x,p.y-r.y)<.9})};if(!same(sp))return sp;
+ var L=sp.s%2===0?P.room.w:P.room.d;for(var k=1;k<=12;k++)for(var sg=1;sg>=-1;sg-=2){var q=Object.assign({},sp);if(q.s>=0){q.a=sp.a+sg*k;if(q.a<.5||q.a>L-.5)continue}else{q.x=sp.x+sg*k}if(!same(q)&&rdist(opos(q),b)<=REACH)return q}return sp}
+function sigOf(it){return [it.r,it.x,it.y,it.rot].join('|')}
+function buildPower(){var prev=P.pw,out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
+ var mk=function(sp,f){var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
+ var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
+  if(sp.s>=0&&(sp.a<.5||sp.a>(sp.s%2===0?W:D)-.5))return null;return rdist(opos(sp),ibox(it))<=REACH?sp:null};
+ var L=P.items.map(function(it){return {it:it,sp:pspec(defOf(it))}}).filter(function(x){return x.sp});
+ L.forEach(function(x){x.home=prevSpot(x.it,x.sp.t)||homeFor(x.it);x.k=perim(x.home)});L.sort(function(a,b){return a.k-b.k});
+ // own circuits first
+ L.filter(function(x){return x.sp.ded}).forEach(function(x){var s=x.sp,o=mk(nudge(x.home,out,ibox(x.it)),{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W});circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,out:[o.id]});links[x.it.u]=o.id});
+ // everyday 120V loads share duplex outlets
+ var shared=[];L.filter(function(x){return !x.sp.ded}).forEach(function(x){var b=ibox(x.it),s=x.sp,best=null,bd=1e9;
+  shared.forEach(function(o){if(o.ty!==s.t||o.sk>=2||o.w+s.W>s.V*s.A*CAP80)return;var d=rdist(opos(o),b);if(d<=REACH&&d<bd){bd=d;best=o}});
+  if(!best){best=mk(nudge(x.home,out,b),{ty:s.t,V:s.V,A:s.A,ph:1,sk:0,w:0});shared.push(best)}best.sk++;best.w+=s.W;links[x.it.u]=best.id});
+ // ...and shared outlets along a run share a circuit, up to 80% and 10 outlets
+ var group=function(list,gp){list.sort(function(a,b){return perim(a)-perim(b)});var cur=null,last=null;list.forEach(function(o){var cap=o.V*o.A*CAP80,p=opos(o);
+  if(!cur||cur.ty!==o.ty||cur.w+o.w>cap||cur.out.length>=10||Math.hypot(p.x-last.x,p.y-last.y)>30){cur={id:0,ty:o.ty,V:o.V,A:o.A,ph:1,gp:gp?1:0,out:[],w:0};circ.push(cur)}cur.out.push(o.id);cur.w+=o.w;last=p})};
+ group(shared,false);
+ // general-purpose outlets every ~12 ft of wall (chargers, hand tools, vacuums), on their own circuits
+ if(!P.pwo||P.pwo.gp!==false){var gps=[];for(var s=0;s<4;s++){var Ln=s%2===0?W:D,n=Ln<6?0:Math.max(1,Math.round(Ln/12));
+   for(var i=0;i<n;i++){var a=h2((i+.5)*Ln/n),q={s:s,a:a},pq=opos(q);if(out.some(function(o){var p=opos(o);return o.s===s&&!o.gp&&o.ty==='120-20'&&Math.hypot(p.x-pq.x,p.y-pq.y)<3}))continue;
+    gps.push(mk(nudge(q,out,{x:pq.x-REACH,y:pq.y-REACH,w:2*REACH,d:2*REACH}),{ty:'120-20',V:120,A:20,ph:1,sk:0,w:0,gp:1}))}}group(gps,true)}
+ circ.forEach(function(c){c.k=Math.min.apply(null,c.out.map(function(id){return perim(out.filter(function(o){return o.id===id})[0])}))});
+ circ.sort(function(a,b){return a.k-b.k});circ.forEach(function(c,i){c.id=i+1;delete c.k;c.out.forEach(function(id){out.filter(function(o){return o.id===id})[0].c=c.id})});
+ P.items.forEach(function(it){sig[it.u]=sigOf(it)});
+ P.pw={outlets:out,circ:circ,links:links,sig:sig,show:prev?prev.show!==false:true}}
+function outBy(id){var a=P.pw?P.pw.outlets:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
+function circBy(id){var a=P.pw?P.pw.circ:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
+// is this object powered by what was built out?
+function pstat(it){var sp=pspec(defOf(it));if(!sp||!P.pw)return null;var o=outBy(P.pw.links[it.u]);
+ if(!o)return {lv:'red',why:'Added after power was built out. Needs a '+tName(sp.t,sp)+'.'};
+ if(o.ty!==sp.t)return {lv:'red',why:'Needs a '+tName(sp.t,sp)+'.'};
+ var d=rdist(opos(o),ibox(it));if(d>REACH+.01)return {lv:'red',o:o,why:'Moved out of reach of its outlet ('+fmt(d)+' ft away).'};
+ if(sp.ph===3)return {lv:'amber',o:o,why:'Needs 3-phase power. If the building is single-phase, it needs a phase converter.'};
+ return {lv:'ok',o:o}}
+function pwLoad(o){var w=0,names=[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
+function circLoad(c){var w=0;c.out.forEach(function(id){var o=outBy(id);if(o)w+=pwLoad(o).w});return w}
+function pwChanges(){if(!P.pw)return 0;var n=0,used={};P.items.forEach(function(it){var s=pstat(it);if(s&&s.lv==='red')n++;if(P.pw.links[it.u])used[P.pw.links[it.u]]=1});
+ P.pw.outlets.forEach(function(o){if(!o.gp&&!used[o.id])n++});return n}
+var HPS=[3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150];
+function converter(){var hp=P.items.map(function(it){var s=pspec(defOf(it));return s&&s.ph===3?s.W/746:0}).filter(function(v){return v>0});if(!hp.length)return null;
+ var big=Math.max.apply(null,hp),tot=hp.reduce(function(a,b){return a+b},0),need=Math.max(big*1.5,tot),size=HPS.filter(function(v){return v>=need})[0]||Math.ceil(need/25)*25;
+ return {n:hp.length,hp:size,lo:Math.round((500+100*size)/100)*100,hi:Math.round((1000+200*size)/100)*100}}
+var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
+function drawPower(k){if(!P.pw||P.pw.show===false)return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
+ if(selIt){var st=pstat(selIt);if(st&&st.o)hiO[st.o.id]=1}if(selO)hiO[selO]=1;
+ // lines from the selected outlet (or the selected object's outlet) to what it powers
+ Object.keys(hiO).forEach(function(id){var o=outBy(id);if(!o)return;var p=opos(o);
+  if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+REACH+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
+  P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
+ g+=lines;
+ P.pw.outlets.forEach(function(o){var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?9*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=tCol(o),r=6*k,on=!!hiO[o.id];
+  g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
+  if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
+  if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
+  else{g+=(o.s<0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"':'<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(2.5*k)+'"')+' fill="'+(o.gp?'#fff':col)+'" stroke="'+(o.gp?col:'#fff')+'" stroke-width="'+(1.4*k)+'"/>';
+   var dot=o.gp?col:'#fff';if(o.ty.slice(0,3)==='120'){g+='<rect x="'+(cx-2.6*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><rect x="'+(cx+1.3*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><circle cx="'+cx+'" cy="'+(cy+2*k)+'" r="'+(.9*k)+'" fill="'+dot+'"/>'}
+   else if(o.ty.slice(0,2)==='3p'){[[-2.4,-1.6],[2.4,-1.6],[0,2.4]].forEach(function(d){g+='<circle cx="'+(cx+d[0]*k)+'" cy="'+(cy+d[1]*k)+'" r="'+(1.1*k)+'" fill="'+dot+'"/>'})}
+   else g+='<rect x="'+(cx-3*k)+'" y="'+(cy-.8*k)+'" width="'+(6*k)+'" height="'+(1.6*k)+'" fill="'+dot+'"/>'}
+  if(big||on){var lx=cx+n[0]*12*k,ly=cy+n[1]*12*k+(n[1]?3.5*k:3.5*k),anc=n[0]>0?'start':n[0]<0?'end':'middle';if(!n[0]&&!n[1]){ly=cy+r+11*k}else if(!n[0]){lx=cx;ly=n[1]>0?cy+r+11*k:cy-r-5*k}else{lx=cx+n[0]*(r+4*k)}
+   g+='<text x="'+lx+'" y="'+ly+'" text-anchor="'+anc+'" font-size="'+(9.5*k)+'" font-weight="600" fill="'+(o.gp?'#4a76b8':col)+'" stroke="#fff" stroke-width="'+(2.6*k)+'" paint-order="stroke" pointer-events="none">'+(o.gp?'':tShort(o.ty,o)+' ')+'C'+o.c+'</text>'}
+  g+='</g>'});
+ // objects that aren't powered (red) or need attention (amber)
+ P.items.forEach(function(it){var s=pstat(it);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
+  g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(s.lv==='red'?'#d6453d':'#e0a21f')+'" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
+ return g}
+function pwSummary(){var by={},gp={c:0,o:0};P.pw.circ.forEach(function(c){if(c.gp){gp.c++;gp.o+=c.out.length;return}var o=outBy(c.out[0]),key=c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared');
+  (by[key]=by[key]||{t:c.ty,o:o,ded:c.ded,c:0,n:0}).c++;by[key].n+=c.out.length});
+ var rows=Object.keys(by).sort().map(function(k){var b=by[k],nm=b.t==='hw'?tName('hw',b.o).replace(' wired connection',''):tName(b.t,b.o).replace(' outlet','');
+  return '<div class="irow"><span>'+(b.t==='hw'?'Wired in · '+nm:nm+(b.ded?' · own circuit':' · shared'))+'</span><b>'+b.c+' circuit'+(b.c>1?'s':'')+(b.n>b.c?' · '+b.n+' outlets':'')+'</b></div>'});
+ if(gp.c)rows.push('<div class="irow"><span>General-purpose 120V 20A</span><b>'+gp.c+' circuit'+(gp.c>1?'s':'')+' · '+gp.o+' outlets</b></div>');return rows.join('')}
+function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab">Power</span>',gpOn=!P.pwo||P.pwo.gp!==false;
+ if(!P.pw){if(!pw.items&&!P.items.length)return h+'<p class="muted">Add objects, then build out power to see the outlets and circuits they need.</p></div>';
+  h+='<div><b>'+(pw.items?(pw.est?'≈ ':'')+fmtW(pw.w)+'</b> connected · ≈ '+fmtW(pw.peak)+' peak':'No powered objects yet</b>')+'</div>'+(pw.circ.length?'<p class="muted">Roughly '+esc(pw.circ.join(' · '))+'</p>':'');
+  h+='<label class="ck"><input type="checkbox" id="pw-gp"'+(gpOn?' checked':'')+'> General-purpose outlets every ~12 ft of wall</label><button class="btn pri" id="pw-build">Build out power</button></div>';return h}
+ var ch=pwChanges(),cv=converter(),red=P.items.filter(function(it){var s=pstat(it);return s&&s.lv==='red'}).length;
+ h+='<label class="sw"><input type="checkbox" id="pw-show"'+(P.pw.show!==false?' checked':'')+'> Show outlets</label>';
+ h+='<div><b>'+P.pw.circ.length+' circuit'+(P.pw.circ.length===1?'':'s')+'</b> · '+P.pw.outlets.length+' outlet'+(P.pw.outlets.length===1?'':'s')+' and connections · '+(pw.est?'≈ ':'')+fmtW(pw.w)+' connected</div>';
+ h+='<div>'+pwSummary()+'</div>';
+ if(cv)h+='<div class="warn"><b>3-phase:</b> '+cv.n+' machine'+(cv.n>1?'s need':' needs')+' 3-phase power. If the building only has single-phase, plan on a rotary phase converter of about '+cv.hp+' HP (roughly '+money(cv.lo)+'–'+money(cv.hi)+').</div>';
+ if(ch)h+='<div class="warn">'+(red?red+' object'+(red>1?'s aren\'t':' isn\'t')+' powered by the current build-out. ':'')+'Rebuild to update the outlets.</div>';
+ h+='<label class="ck"><input type="checkbox" id="pw-gp"'+(gpOn?' checked':'')+'> General-purpose outlets every ~12 ft of wall</label>';
+ h+='<div class="row"><button class="btn'+(ch?' pri':'')+'" id="pw-build">Rebuild power'+(ch?' · '+ch+' change'+(ch>1?'s':''):'')+'</button><button class="btn" id="pw-clear">Clear power</button></div>';
+ h+='<p class="muted">Click an outlet to see its circuit. A plan for the electrician to price, not a wiring design.</p></div>';return h}
+function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLoad(o),cw=c?circLoad(c):l.w,cap=(o.ph===3?1.732:1)*o.V*o.A*CAP80,pct=Math.min(100,cw/cap*100),many=c&&c.out.length>1;
+ var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>';
+ h+='<div class="irow"><span>Circuit</span><b>C'+o.c+(o.ty==='hw'||!many?' · own circuit':' · '+c.out.length+' outlets')+'</b></div>';
+ h+='<div class="irow"><span>Where</span><b>'+(o.s<0?'Floor box or ceiling drop':'On the wall')+'</b></div>';
+ if(!o.gp||cw){h+='<div><div class="irow" style="border:0;padding-bottom:2px"><span>Circuit load</span><b>'+Math.round(cw).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</b></div><div class="bar"><i style="width:'+pct+'%;background:'+(cw>cap?'#d6453d':cw>cap*.9?'#e0a21f':'#3ba776')+'"></i></div><p class="muted" style="margin-top:4px">80% of '+o.A+'A, the limit for loads that run for hours.</p></div>'}
+ h+=l.names.length?'<div class="irow"><span>Powers</span><b>'+esc(l.names.join(', '))+'</b></div>':o.gp?'<p class="muted">For chargers, hand tools, vacuums and lamps.</p>':'<div class="warn">Nothing uses this any more. Rebuild power to remove it.</div>';
+ return h+'</div>'}
 
 /* ---------------- drawing ---------------- */
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
@@ -168,13 +288,13 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  if(it.pin)h+='<circle cx="'+(m.w-.35)+'" cy=".35" r="'+(6*k)+'" fill="#e07b1f" stroke="#fff" stroke-width="'+(1.5*k)+'"/>';
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
-function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-obj"></g><g id="g-ghost"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.ghost=sv.querySelector('#g-ghost')}
+function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-obj"></g><g id="g-pw"></g><g id="g-ghost"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost')}
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
- $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length;$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom':'Click an object on the left to add it'}
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=drawPower(k);
+ $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length;$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&P.pw.show!==false?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
@@ -185,7 +305,7 @@ sv.addEventListener('wheel',function(e){e.preventDefault();var dy=e.deltaY*(e.de
 var touches={},pinch=null,pan=null;
 function tpts(){return Object.keys(touches).map(function(k){return touches[k]})}
 sv.addEventListener('pointerdown',function(e){if(e.pointerType==='touch'){touches[e.pointerId]={x:e.clientX,y:e.clientY};var t=tpts();if(t.length===2){if(drag){drag.el.classList.remove('drag');drag.el.style.opacity='';drag.el.dataset.k='';ghost(null);drag=null;render()}pan=null;pinch={d:Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx:(t[0].x+t[1].x)/2,my:(t[0].y+t[1].y)/2};return}}
- if(pinch)return;var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+ if(pinch)return;var go=e.target.closest('g.out');if(go){selO=go.dataset.o;sel=null;render();e.preventDefault();return}var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
 // the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
 function others(it){return P.items.filter(function(o){return o!==it}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
@@ -211,10 +331,10 @@ function tEnd(e){delete touches[e.pointerId];if(tpts().length<2)pinch=null}
 sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor=''});
 sv.addEventListener('dblclick',function(e){if(!e.target.closest('g.obj')&&zoomed())fitView()});
 sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType==='touch'&&tpts().length>1);tEnd(e);if(wasPinch)return;
- if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){sel=null;render()}return}
+ if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){sel=null;selO=null;render()}return}
  if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
- if(!d.moved){sel=it.u;render();return}
- var before=snapP();sel=it.u;it.rot=d.rot;d.el.dataset.rot=it.rot;
+ if(!d.moved){sel=it.u;selO=null;render();return}
+ var before=snapP();sel=it.u;selO=null;it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
  if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}hist.push(before);fut=[];persist();render()});
 
@@ -242,29 +362,32 @@ function power(list){var o={w:0,max:0,items:0,est:0,ded:{},sh:{}};list.forEach(f
 function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).filter(function(x){return x.c}),names=function(f){var s={};L.forEach(function(x){if(f(x))s[x.c.n]=(s[x.c.n]||0)+1});return Object.keys(s).map(function(n){return s[n]>1?n+' ×'+s[n]:n}).join(', ')};
  if(!L.length)return '<p class="muted">Add objects and the room\'s needs show up here: power, plumbing, ventilation and more.</p>';
  var h='',pw=power(P.items);
- h+='<div class="rq">'+ico('power')+'<div><b>Power</b> · '+(pw.items?(pw.est?'≈ ':'')+fmtW(pw.w)+' connected, ≈ '+fmtW(pw.peak)+' peak':'none')+'</div>'+(pw.circ.length?'<small>'+esc(pw.circ.join(' · '))+'</small>':'')+'</div>';
  var w=names(function(x){return needs(x.c).water});if(w)h+='<div class="rq">'+ico('water')+'<div><b>Plumbing</b> · water and drain</div><small>'+esc(w)+'</small></div>';
  var vv={};L.forEach(function(x){var n=needs(x.c);if(n.vent)(vv[n.vent]=vv[n.vent]||[]).push(x.c.n)});Object.keys(vv).forEach(function(k){h+='<div class="rq">'+ico('vent')+'<div><b>Ventilation</b> · '+esc(k)+'</div><small>'+esc(Array.from(new Set(vv[k])).join(', '))+'</small></div>'});
  var g=names(function(x){return needs(x.c).gas});if(g)h+='<div class="rq">'+ico('gas')+'<div><b>Compressed gas storage</b></div><small>'+esc(g)+'</small></div>';
  var ce=0,ceq=names(function(x){var n=needs(x.c);if(n.ceil>0)ce=Math.max(ce,n.ceil);return !!n.ceil});if(ceq)h+='<div class="rq">'+ico('ceil')+'<div><b>Ceiling height</b> · '+(ce?'at least '+fmt(ce)+' ft clear':'check clear height')+'</div><small>'+esc(ceq)+'</small></div>';
  var co=names(function(x){return needs(x.c).cool});if(co)h+='<div class="rq">'+ico('cool')+'<div><b>Cooling</b></div><small>'+esc(co)+'</small></div>';
  var ot={};L.forEach(function(x){needs(x.c).other.forEach(function(k){if(ALERTS[k])(ot[k]=ot[k]||[]).push(x.c.n)})});Object.keys(ot).forEach(function(k){h+='<div class="rq">'+ico('note')+'<div><b>'+esc(ALERTS[k][0])+'</b></div><small>'+esc(Array.from(new Set(ot[k])).join(', '))+'</small></div>'});
- return h}
+ return h||'<p class="muted">Nothing beyond power.</p>'}
 function side(){var W=P.room.w,D=P.room.d,h='';
  h+='<div class="card"><span class="lab">Room</span><div class="big">'+Math.round(W*D).toLocaleString()+' sq ft</div><div class="dims"><input id="r-w" value="'+fmt(W)+'" inputmode="decimal" aria-label="Width in feet"><span>×</span><input id="r-d" value="'+fmt(D)+'" inputmode="decimal" aria-label="Depth in feet"><button class="btn" id="r-set">Set</button></div>';
  h+='<label class="sw"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label><p class="muted">'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'</p>';
  if(lastFail&&lastFail.msg)h+='<div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div>';
  h+='</div>';
- var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
-  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+clrTxt(c)+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
+ if(selO)h+=outletCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
+  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+clrTxt(c)+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps?(ps.o?'<div class="irow"><span>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+(ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':''):'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
   '<div class="row"><button class="btn" id="o-rl" title="Turn left (Shift+R)">↺ Turn left</button><button class="btn" id="o-rr" title="Turn right (R)">↻ Turn right</button></div><div class="row"><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div></div>'}
  var lo=0,hi=0,nc=0;P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});if(P.items.length&&hi)h+='<div class="card"><span class="lab">Equipment cost</span><div class="big" style="font-size:20px">'+money(lo)+' – '+money(hi)+'</div><p class="muted">Typical prices for new equipment'+(nc?'; '+nc+' object'+(nc>1?'s have':' has')+' no price':'')+'. Install, wiring and plumbing not included.</p></div>';
- h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
+ h+=powerCard();h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
  if(P.items.length){var cnt={};h+='<div class="card"><span class="lab">In this room · '+P.items.length+'</span><div class="ol">'+P.items.map(function(i){var c=defOf(i),m=dims(i,i.rot);return '<button class="oi'+(sel===i.u?' on':'')+'" data-u="'+i.u+'"><span class="nm">'+esc(c.n)+'</span>'+(i.pin?'<span class="pin">pinned</span>':'')+'<span class="sz">'+fmt(m.w)+'×'+fmt(m.d)+'</span></button>'}).join('')+'</div></div>'}
  var S=$('#side');S.innerHTML=h;
  $('#r-set').onclick=function(){setSize(parseFloat($('#r-w').value),parseFloat($('#r-d').value))};['#r-w','#r-d'].forEach(function(s){$(s).onkeydown=function(e){if(e.key==='Enter')$('#r-set').click()}});
  $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};
  var gb=$('#r-grow');if(gb)gb.onclick=function(){var r=lastFail.r,c=LIB[r],before=snapP(),nit={u:'o'+(P.uid++),r:r,x:0,y:0,rot:0,n:P.uid};P.defs[r]=JSON.parse(JSON.stringify(c));P.items.push(nit);if(!relayout({force:true})){P=JSON.parse(before);toast('Even a much bigger room can\'t fit that');render();return}hist.push(before);fut=[];sel=nit.u;lastFail=null;persist();render()};
+ var pb=$('#pw-build');if(pb)pb.onclick=function(){push();buildPower();selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
+ var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
+ var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
+ var ps2=$('#pw-show');if(ps2)ps2.onchange=function(){P.pw.show=this.checked;if(!this.checked)selO=null;persist();render()};
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
 
@@ -297,17 +420,17 @@ $('#b-newobj').onclick=function(){editObj(null)};
 $('#b-undo').onclick=function(){undo()};$('#b-fit').onclick=function(){fitView()};$('#b-redo').onclick=function(){redo()};
 
 /* ---------------- saving rooms ---------------- */
-function pack(){var defs={};P.items.forEach(function(i){var c=defOf(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,items:P.items.map(function(i){return {u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n}}),defs:defs}}
+function pack(){var defs={};P.items.forEach(function(i){var c=defOf(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,pw:P.pw,pwo:P.pwo,items:P.items.map(function(i){return {u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n}}),defs:defs}}
 $('#rname').onchange=function(){P.name=this.value.trim()||'Untitled room';persist()};
 $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to save rooms to your account');return}P.name=$('#rname').value.trim()||'Untitled room';var b={name:P.name,data:pack()};
  (P.id?api('PUT','/api/spaces/'+P.id,b):api('POST','/api/spaces',b).then(function(j){P.id=j.id})).then(function(){persist();toast('Saved “'+P.name+'”')}).catch(function(e){toast(e.message)})};
-$('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;lastFail=null;persist();render()};
+$('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;selO=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
- d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{}});sel=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};d.showModal()}).catch(function(e){toast(e.message)})};
+ d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true}});sel=null;selO=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};d.showModal()}).catch(function(e){toast(e.message)})};
 function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'</b>'+(me.admin?' · library owner':''):'Not signed in · <a href="index.html">sign in to the test app</a> to save'}
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render()}).catch(function(){tok=null;me=null;showWho()});
 renderLib();render();
-window.__sp={P:function(){return P},layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
+window.__sp={P:function(){return P},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();
