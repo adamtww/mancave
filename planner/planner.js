@@ -163,6 +163,8 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  var art=ICONS[it.r];h+='<rect x="0" y="0" width="'+m.w+'" height="'+m.d+'" rx="0.2" fill="'+(art?'#fff':'#ece9e2')+'" stroke="'+(on?'#2f7de1':'#9d988c')+'" stroke-width="'+((on?2.4:1.2)*k)+'"/>';
  if(art)h+=iconFor({r:it.r,x:0,y:0,w:m.w,d:m.d,rot:it.rot});
  if(kind(c)==='wall'){var R=it.rot%4,x1=R===3?b.w:0,y1=R===0?b.d:0,x2=R===1?0:b.w,y2=R===2?0:b.d;if(R===0)y2=b.d;if(R===3)x2=b.w;h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#5f5b52" stroke-width="'+(2.5*k)+'"/>'}
+ if(on){var pd=4*k,dl=6*k,att='x="'+(-pd)+'" y="'+(-pd)+'" width="'+(m.w+2*pd)+'" height="'+(m.d+2*pd)+'" rx="'+(2*k)+'" fill="none" pointer-events="none"';
+  h+='<rect '+att+' stroke="#fff" stroke-width="'+(2.6*k)+'"/><rect '+att+' stroke="#1d4f91" stroke-width="'+(1.8*k)+'" stroke-dasharray="'+dl+' '+dl+'"><animate attributeName="stroke-dashoffset" from="0" to="'+(-2*dl)+'" dur="0.6s" repeatCount="indefinite"/></rect>'}
  if(it.pin)h+='<circle cx="'+(m.w-.35)+'" cy=".35" r="'+(6*k)+'" fill="#e07b1f" stroke="#fff" stroke-width="'+(1.5*k)+'"/>';
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
