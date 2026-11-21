@@ -1,7 +1,7 @@
 var CATS=[
  ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Built-ins & Counters","#8d7b68"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],
  ["Kitchen – Residential","#ffd166"],["Kitchen – Commercial","#ffb000"],["Fitness","#3ddc97"],["Court & Rink","#34c3ff"],
- ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Home Theater & Music","#6c7cff"],["Auto & Garage","#e5533d"],["Crafts & Office","#3fb5a8"],["Storage & Utility","#a39e8f"],["Indoor Garden","#7bd389"]];
+ ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Home Theater & Music","#6c7cff"],["Auto & Garage","#e5533d"],["Metal & Fabrication","#6f87a6"],["Crafts & Office","#3fb5a8"],["Storage & Utility","#a39e8f"],["Indoor Garden","#7bd389"]];
 var CATCOLOR={};CATS.forEach(function(c){CATCOLOR[c[0]]=c[1]});
 var ALERTS={
  truck:["Truck parked inside","A space where vehicles park is usually classed as Group S-2 (parking) under the California Building Code, which can mean a fire-rated wall between it and other uses, plus other fire-code steps. The city/fire marshal decides. Look for units that already have a grade-level roll-up door, ask the broker/city early whether parking inside is allowed, and keep the bay away from welding and lasers."],
@@ -17,8 +17,15 @@ var ALERTS={
  hvac:["Cooling","He wants it not hot. Many warehouses only heat (or use evaporative coolers) in the open area. Cooling 10k sq ft is a large electrical load — a prime concession to ask for, and something to verify on every tour."],
  fumes:["Fumes","Resin, solvents, glazes and finishes give off fumes. Plan an extractor or a window/exhaust fan, and keep it away from the lounge."],
  ev:["EV charging","A Level 2 charger needs a 240V circuit (often 50–60 A). Check the panel has room before planning one."],
+ threephase:["3-phase power","This machine usually needs 3-phase power (208V or 480V). Many small industrial units only have single-phase; ask on every tour. A phase converter is the fallback."],
+ spray:["Spray finishing","Paint and powder spraying needs a proper booth with exhaust, and the fire marshal will want to see it. Keep it away from welding, grinding and lasers."],
  notyet:["Not released yet","Not available yet — dimensions and power are placeholders."]
 };
+/* Library rules:
+   - Every object takes floor space. Things that sit on a counter, hang from the ceiling or mount on a wall are folded
+     into the floor object they belong to (e.g. "Base cabinet + microwave", "Projector + screen wall", "EV parking bay").
+   - Generic, representative objects only, no brands; use tiers (entry / mid / pro) when size or cost varies a lot.
+   - Retired objects: map to a replacement in ALIAS, or keep them with hide:1 so old layouts still draw them. */
 /* p: [volts, watts, breakerAmps, dedicated(1/0)] ; est: estimate flag ; ov: may overlap others ; z: zone ; cost: [low, high] typical US$ new */
 var CATALOG=[
  // Rooms & Zones
@@ -41,7 +48,7 @@ var CATALOG=[
  {r:"b-net",c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
  {r:"b-mop",c:"Building & Support",n:"Janitor closet / mop sink",w:5,d:6,z:1,a:["plumbing"]},
  {r:"b-gas",c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
- {r:"b-hvac",c:"Building & Support",n:"Mini-split AC (2–3 ton)",w:4,d:4,cl:0,p:[240,6000,40,1],est:1,a:["hvac"],cost:[3000,9000]},
+ {r:"b-hvac",c:"Building & Support",n:"AC air handler (floor, ducted)",w:4,d:4,cl:3,cf:1,p:[240,6000,40,1],est:1,a:["hvac"],cost:[4000,12000],no:"Indoor half of a ducted split system, in a closet or on the floor; the condenser sits outside."},
  // Arcade & Gaming
  {r:"g-sim",c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added).",cost:[3000,12000]},
  {r:"g-cab",c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,4500]},
@@ -78,7 +85,7 @@ var CATALOG=[
  {r:"kr-range",c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1,cost:[700,3000]},
  {r:"kr-fridge",c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1],cost:[1200,4000]},
  {r:"kr-dw",c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1,cost:[500,1500]},
- {r:"kr-micro",c:"Kitchen – Residential",n:"Microwave (home)",w:2,d:1.5,cl:0,p:[120,1500,20,1],ov:1,cost:[150,700]},
+ {r:"kr-micro",c:"Kitchen – Residential",n:"Base cabinet + microwave (3 ft)",w:3,d:2,cl:3,cf:1,p:[120,1500,20,1],cost:[400,1500],no:"Microwave on a 3 ft run of counter. Microwaves want their own 20 A circuit."},
  {r:"kr-counter",c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
  {r:"kr-prep",c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
  {r:"kr-sink",c:"Kitchen – Residential",n:"Kitchen sink + disposal (3 ft)",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit.",cost:[500,2000]},
@@ -86,12 +93,12 @@ var CATALOG=[
  {r:"kr-pantry",c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
  // Kitchen commercial
  {r:"kc-range",c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"],cost:[2500,8000]},
- {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],cost:[8000,30000]},
+ {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],hide:1,cost:[8000,30000],no:"Retired: hangs over the cooking line. The commercial-kitchen alert covers it."},
  {r:"kc-fridge",c:"Kitchen – Commercial",n:"Reach-in refrigerator",w:2.5,d:3,cl:3,cf:1,p:[120,800,20,1],est:1,a:["commercial"],cost:[2500,6000]},
  {r:"kc-dw",c:"Kitchen – Commercial",n:"Commercial dishwasher (high-temp)",w:2,d:2.5,cl:3,cf:1,p:[240,6000,30,1],est:1,a:["commercial"],cost:[5000,15000]},
  {r:"kc-3sink",c:"Kitchen – Commercial",n:"3-compartment sink",w:8,d:2.5,cl:3,cf:1,a:["commercial"],cost:[800,3000]},
  {r:"kc-hand",c:"Kitchen – Commercial",n:"Hand-wash sink",w:1.5,d:1.5,cl:2,cf:1,a:["commercial"],cost:[200,800]},
- {r:"kc-grease",c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"],cost:[1000,5000]},
+ {r:"kc-grease",c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"],hide:1,cost:[1000,5000],no:"Retired: below the floor or under a sink."},
  // Fitness
  {r:"f-gym",c:"Fitness",n:"Weight machine (home gym)",w:7,d:7,cl:2,cost:[1500,6000]},
  {r:"f-tread",c:"Fitness",n:"Treadmill",w:3,d:7,cl:6.5,cf:1,p:[120,1800,20,1],no:"Most manufacturers call for a dedicated 20A circuit and ~6.5 ft clear behind.",cost:[1000,5000]},
@@ -100,14 +107,14 @@ var CATALOG=[
  {r:"f-free",c:"Fitness",n:"Free weights / mat area",w:8,d:8,cl:0,cost:[800,4000]},
  // Court & rink
  {r:"c-pp",c:"Court & Rink",n:"Ping-pong table",w:5,d:9,cl:6,cost:[400,2500]},
- {r:"c-robot",c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1,cost:[200,1500]},
- {r:"c-hoop",c:"Court & Rink",n:"Basketball hoop (wall/ceiling mount)",w:6,d:4,cl:0,ov:1,a:["ceiling"],cost:[1500,5000]},
+ {r:"c-robot",c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1,hide:1,cost:[200,1500],no:"Retired: sits on the table, not the floor."},
+ {r:"c-hoop",c:"Court & Rink",n:"Basketball shooting area (hoop on the wall)",w:12,d:15,cl:0,a:["ceiling"],cost:[1500,5000],no:"Wall- or ceiling-mounted hoop; the floor area is the shooting space in front of it."},
  {r:"c-net",c:"Court & Rink",n:"Divider / ceiling net (45 ft run)",w:45,d:1,cl:0,ov:1,cost:[1000,4000]},
  // Creator
- {r:"m-laser1",c:"Creator / Maker",n:"Laser cutter — hobby (desktop, 10–40 W)",w:2.5,d:2,cl:2,p:[120,300,20,0],est:1,a:["co2"],cost:[600,2500],no:"Enclosed desktop diode or small CO2 laser. Sits on a bench; vent the fumes out a window or through a filter."},
+ {r:"m-laser1",c:"Creator / Maker",n:"Laser cutter — hobby, on a bench (10–40 W)",w:4,d:2.5,cl:2,p:[120,300,20,0],est:1,a:["co2"],cost:[600,2500],no:"Enclosed desktop diode or small CO2 laser. Sits on a bench; vent the fumes out a window or through a filter."},
  {r:"m-laser2",c:"Creator / Maker",n:"Laser cutter — mid (55–80 W CO2)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"],cost:[3000,8000],no:"Prosumer CO2 cutter, often with a camera and add-on modules (diode, fiber or UV). Needs fume exhaust or a filter unit."},
  {r:"m-laser3",c:"Creator / Maker",n:"Laser cutter — pro (100–150 W CO2, 4×2.5 ft bed)",w:6.5,d:4,cl:3,p:[240,3000,20,1],est:1,a:["co2"],cost:[10000,30000],no:"Large-bed production CO2 laser with a water chiller and exhaust blower. Duct the exhaust outside."},
- {r:"m-fiber",c:"Creator / Maker",n:"Fiber laser engraver (metal marking)",w:2,d:2,cl:2,cf:1,p:[120,500,20,0],est:1,a:["co2"],cost:[2500,8000],no:"Galvo fiber laser for marking metal and plastics. Small, but still a Class 4 laser: enclose it or use a laser curtain."},
+ {r:"m-fiber",c:"Creator / Maker",n:"Fiber laser engraver, on its stand (metal marking)",w:2,d:2,cl:2,cf:1,p:[120,500,20,0],est:1,a:["co2"],cost:[2500,8000],no:"Galvo fiber laser for marking metal and plastics. Small, but still a Class 4 laser: enclose it or use a laser curtain."},
  {r:"m-weld1",c:"Creator / Maker",n:"Laser welder — compact (≈1 kW, air-cooled)",w:2.5,d:2,cl:4,p:[240,3000,20,1],est:1,a:["weld","gas"],cost:[4000,8000],no:"Handheld welder on a small cart. Uses argon or nitrogen shielding gas."},
  {r:"m-weld2",c:"Creator / Maker",n:"Laser welder + CNC cutting table (1–1.5 kW)",w:5,d:4,cl:4,p:[240,4200,25,1],est:1,a:["weld","gas"],cost:[10000,20000],no:"Workstation that welds by hand and cuts sheet metal on a small CNC table."},
  {r:"m-weld3",c:"Creator / Maker",n:"Laser welder — industrial (2–3 kW, water-cooled)",w:3,d:2.5,cl:4,p:[240,7500,40,1],est:1,a:["weld","gas"],cost:[15000,30000],no:"Production welder with a built-in chiller. Plan a 40 A 240V circuit."},
@@ -115,15 +122,15 @@ var CATALOG=[
  {r:"m-dryer",c:"Creator / Maker",n:"Compressed-air dryer",w:1.5,d:1.5,cl:1,p:[120,380,20,0],ov:1,est:1,cost:[300,1200],no:"Keeps moisture out of the air line."},
  {r:"m-fume",c:"Creator / Maker",n:"Laser fume extractor / filter",w:2,d:2,cl:1,p:[120,900,20,0],est:1,cost:[600,2500],no:"Filters laser smoke when you can't duct it outside. Filters are a running cost."},
  {r:"m-dtf",c:"Creator / Maker",n:"DTF / sublimation printer + heat press",w:4,d:3,cl:3,p:[120,2000,20,1],est:1,a:["fumes"],cost:[2000,8000],no:"Printer, powder shaker/oven and a heat press. The press drives the power."},
- {r:"m-emb1",c:"Creator / Maker",n:"Embroidery machine — single-needle (hobby)",w:2,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[400,1500],no:"Sits on a table; one thread colour at a time."},
+ {r:"m-emb1",c:"Creator / Maker",n:"Embroidery machine — single-needle, on a table",w:3,d:2,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[400,1500],no:"Sits on a table; one thread colour at a time."},
  {r:"m-emb2",c:"Creator / Maker",n:"Embroidery machine — multi-needle",w:2.5,d:2.5,cl:2,cf:1,p:[120,200,20,0],est:1,cost:[5000,15000],no:"6–15 needles, runs whole designs without re-threading. Often on its own stand."},
  {r:"m-emb3",c:"Creator / Maker",n:"Embroidery machine — commercial (multi-head)",w:7,d:3.5,cl:3,cf:1,p:[120,600,20,1],est:1,cost:[20000,45000],no:"2–6 heads stitching identical pieces at once."},
- {r:"m-print1",c:"Creator / Maker",n:"3D printer — entry (open frame)",w:2,d:2,cl:1.5,p:[120,350,20,0],est:1,cost:[200,600]},
- {r:"m-print2",c:"Creator / Maker",n:"3D printer — enclosed, multi-colour",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,cost:[800,3000],no:"Enclosed CoreXY printer with a tool changer or filament switcher."},
+ {r:"m-print1",c:"Creator / Maker",n:"3D printers — entry, 2 on a bench",w:4,d:2,cl:2.5,cf:1,p:[120,350,20,0],est:1,cost:[200,600]},
+ {r:"m-print2",c:"Creator / Maker",n:"3D printer — enclosed multi-colour, on a stand",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,cost:[800,3000],no:"Enclosed CoreXY printer with a tool changer or filament switcher."},
  {r:"m-print3",c:"Creator / Maker",n:"3D print farm rack (6–8 printers)",w:6,d:2,cl:3,cf:1,p:[120,3000,20,1],est:1,cost:[4000,15000],no:"Shelving with several printers running at once. Two circuits are safer than one."},
- {r:"m-resin",c:"Creator / Maker",n:"Resin printer + wash/cure station",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
- {r:"m-vinyl",c:"Creator / Maker",n:"Vinyl cutter / plotter (24 in)",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
- {r:"m-mill",c:"Creator / Maker",n:"Desktop CNC router / mill",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
+ {r:"m-resin",c:"Creator / Maker",n:"Resin printing bench (printer + wash/cure)",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
+ {r:"m-vinyl",c:"Creator / Maker",n:"Vinyl cutter / plotter on a stand (24 in)",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
+ {r:"m-mill",c:"Creator / Maker",n:"Desktop CNC router / mill, on a stand",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
  {r:"m-bench",c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
  {r:"m-filament",c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
  // Woodworking
@@ -141,7 +148,7 @@ var CATALOG=[
  {r:"w-bench",c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
  {r:"w-assy",c:"Built-ins & Counters",n:"Assembly table 4×8",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
  {r:"w-lumber",c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
- {r:"w-wall",c:"Built-ins & Counters",n:"Hand-tool wall / chargers",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
+ {r:"w-wall",c:"Built-ins & Counters",n:"Tool wall + charging bench",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
  // Garden
  {r:"h-rack",c:"Indoor Garden",n:"Hydroponic rack w/ LEDs (4-tier)",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
  {r:"h-micro",c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
@@ -188,8 +195,8 @@ var CATALOG=[
  {r:"ht-row3",c:"Home Theater & Music",n:"Theater recliners — row of 3",w:9,d:3.5,cl:2,cf:1,p:[120,300,20,0],est:1,cost:[3000,9000],no:"Power recliners need about 2 ft more in front when reclined."},
  {r:"ht-row4",c:"Home Theater & Music",n:"Theater recliners — row of 4",w:12,d:3.5,cl:2,cf:1,p:[120,400,20,0],est:1,cost:[4000,12000],no:"Power recliners need about 2 ft more in front when reclined."},
  {r:"ht-riser",c:"Home Theater & Music",n:"Theater riser (for a second row)",w:14,d:6,cl:0,cost:[1000,4000],no:"12–18 in platform so the back row sees over the front."},
- {r:"ht-screen",c:"Home Theater & Music",n:"Projection screen wall (120–150 in)",w:12,d:1.5,cl:0,p:[120,600,20,0],est:1,cost:[1500,8000],no:"Screen plus speakers; the projector hangs mid-room. Seat about 1.2–1.5 × the screen width back."},
- {r:"ht-proj",c:"Home Theater & Music",n:"Ceiling projector",w:1.5,d:1.5,cl:0,ov:1,p:[120,400,20,0],est:1,cost:[1500,6000]},
+ {r:"ht-screen",c:"Home Theater & Music",n:"Projector + screen wall (120–150 in)",w:12,d:1.5,cl:0,p:[120,1000,20,0],est:1,cost:[1500,8000],no:"Screen plus speakers; the projector hangs mid-room. Seat about 1.2–1.5 × the screen width back."},
+ {r:"ht-proj",c:"Home Theater & Music",n:"Ceiling projector",w:1.5,d:1.5,cl:0,ov:1,p:[120,400,20,0],est:1,hide:1,cost:[1500,6000],no:"Retired: now part of the projection screen wall."},
  {r:"ht-sub",c:"Home Theater & Music",n:"Subwoofer",w:2,d:2,cl:0.5,p:[120,500,20,0],est:1,cost:[400,3000]},
  {r:"ht-speaker",c:"Home Theater & Music",n:"Floor-standing speaker",w:1.2,d:1.2,cl:0.5,cost:[300,3000]},
  {r:"ht-rack",c:"Home Theater & Music",n:"AV equipment rack",w:2,d:2,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[500,3000]},
@@ -220,7 +227,7 @@ var CATALOG=[
  {r:"a-blast",c:"Auto & Garage",n:"Sandblast cabinet",w:4,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,a:["dust"],cost:[500,3000],no:"Needs plenty of shop air and a dust collector."},
  {r:"a-parts",c:"Auto & Garage",n:"Parts washer",w:3,d:2,cl:3,cf:1,p:[120,200,20,0],a:["fumes"],cost:[200,1500]},
  {r:"a-hoist",c:"Auto & Garage",n:"Engine hoist + engine stand",w:4,d:7,cl:2,ov:1,cost:[300,1200],no:"Folds up when not in use."},
- {r:"a-ev",c:"Auto & Garage",n:"EV charger (Level 2)",w:1,d:0.5,cl:0,ov:1,p:[240,11500,60,1],a:["ev"],cost:[500,2000],no:"Wall unit. 48 A charging needs a 60 A circuit."},
+ {r:"a-ev",c:"Auto & Garage",n:"EV charger (Level 2)",w:1,d:0.5,cl:0,ov:1,p:[240,11500,60,1],a:["ev"],hide:1,cost:[500,2000],no:"Retired: wall unit. Use the EV parking bay."},
  // Crafts & Office
  {r:"o-desk",c:"Crafts & Office",n:"Desk (5 ft) + chair",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[300,2000],no:"Front clearance is the room for the chair."},
  {r:"o-ldesk",c:"Crafts & Office",n:"L-shaped desk + chair",w:6,d:6,cl:2,p:[120,500,20,0],est:1,cost:[500,3000]},
@@ -242,14 +249,70 @@ var CATALOG=[
  {r:"s-heavy",c:"Storage & Utility",n:"Heavy-duty rack (8 ft)",w:8,d:3,cl:3,cf:1,cost:[300,1200]},
  {r:"s-pallet",c:"Storage & Utility",n:"Pallet racking bay",w:9,d:4,cl:4,cf:1,a:["ceiling"],cost:[500,1500],no:"Aisle shown is for a hand-pallet jack; a forklift needs 10–12 ft."},
  {r:"s-cab",c:"Storage & Utility",n:"Locking storage cabinet",w:3,d:2,cl:3,cf:1,cost:[200,900]},
- {r:"s-bins",c:"Storage & Utility",n:"Wall bin / pegboard rack",w:6,d:1,cl:3,cf:1,cost:[100,500]},
- {r:"s-overhead",c:"Storage & Utility",n:"Overhead ceiling rack (4×8)",w:4,d:8,cl:0,ov:1,a:["ceiling"],cost:[200,600]},
+ {r:"s-bins",c:"Storage & Utility",n:"Bin shelving (floor-standing)",w:6,d:1.5,cl:3,cf:1,cost:[150,700]},
+ {r:"s-overhead",c:"Storage & Utility",n:"Overhead ceiling rack (4×8)",w:4,d:8,cl:0,ov:1,a:["ceiling"],hide:1,cost:[200,600],no:"Retired: hangs from the ceiling."},
  {r:"s-safe",c:"Storage & Utility",n:"Safe / gun safe",w:3,d:2.5,cl:3,cf:1,cost:[800,4000],no:"Heavy: bolt it to the slab."},
  {r:"s-flam",c:"Storage & Utility",n:"Flammables cabinet",w:3.5,d:1.5,cl:3,cf:1,cost:[600,2000],no:"For paints, solvents and fuel. Keep it away from heat and lasers."},
  {r:"s-laundry",c:"Storage & Utility",n:"Washer + dryer",w:5.5,d:2.5,cl:3.5,cf:1,p:[240,5600,30,1],est:1,a:["plumbing"],cost:[1500,4000],no:"Electric dryer on a 30 A 240V circuit, washer on its own 20 A, plus a dryer vent to outside."},
  {r:"s-heater",c:"Storage & Utility",n:"Water heater (tank)",w:2,d:2,cl:2.5,cf:1,p:[240,4500,30,1],est:1,a:["plumbing"],cost:[1000,3000],no:"Electric tank shown; a heat pump model is larger and pulls heat from the room."},
  {r:"s-mini",c:"Storage & Utility",n:"Mini fridge",w:1.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],cost:[150,400]},
- {r:"s-recycle",c:"Storage & Utility",n:"Trash & recycling station",w:3,d:2,cl:2.5,cf:1,cost:[100,600]}
+ {r:"s-recycle",c:"Storage & Utility",n:"Trash & recycling station",w:3,d:2,cl:2.5,cf:1,cost:[100,600]},
+ // Metal & Fabrication
+ {r:"mf-water1",c:"Metal & Fabrication",n:"Waterjet cutter — desktop (≈2×1.5 ft cut area)",w:5,d:3,cl:3,cf:1,p:[120,1800,20,1],est:1,a:["plumbing"],cost:[8000,15000],no:"Benchtop waterjet with its own stand and pump. Needs a water supply and a place to settle and empty the spent garnet."},
+ {r:"mf-water2",c:"Metal & Fabrication",n:"Waterjet cutter — industrial (5×10 ft bed)",w:9,d:15,cl:3,p:[240,500,20,1],est:1,a:["plumbing","threephase"],cost:[80000,250000],no:"The tank holds tons of water: check the slab can take it. Add the high-pressure pump as its own object; it sits nearby."},
+ {r:"mf-wpump",c:"Metal & Fabrication",n:"Waterjet high-pressure pump",w:5,d:3,cl:3,p:[240,37000,150,1],est:1,a:["threephase"],cost:[0,0],no:"Comes with the industrial waterjet. A 50 HP pump usually wants 3-phase 480V. Loud; also needs cooling water."},
+ {r:"mf-plasma1",c:"Metal & Fabrication",n:"CNC plasma table (4×4)",w:7,d:7,cl:3,p:[240,9600,50,1],est:1,a:["fumes"],cost:[5000,15000],no:"Water table or down-draft with fume extraction. Plus a compressor for the torch."},
+ {r:"mf-plasma2",c:"Metal & Fabrication",n:"CNC plasma table (5×10)",w:8,d:14,cl:3,p:[240,14400,70,1],est:1,a:["fumes","threephase"],cost:[25000,80000],no:"Production plasma; the bigger cutters often run on 3-phase."},
+ {r:"mf-fiber",c:"Metal & Fabrication",n:"Fiber laser sheet-metal cutter (5×10, enclosed)",w:12,d:20,cl:4,p:[240,30000,100,1],est:1,a:["co2","threephase"],cost:[80000,300000],no:"Enclosed fiber laser with an exchange table, chiller and dust/fume collector. Needs 3-phase power."},
+ {r:"mf-brake",c:"Metal & Fabrication",n:"Press brake (6–8 ft)",w:9,d:6,cl:4,cf:1,p:[240,11000,50,1],est:1,a:["threephase"],cost:[15000,60000],no:"Front clearance is for handling long parts. Hydraulic and CNC brakes are usually 3-phase."},
+ {r:"mf-shear",c:"Metal & Fabrication",n:"Sheet-metal shear (4–6 ft)",w:8,d:5,cl:4,cf:1,p:[240,5600,30,1],est:1,cost:[3000,25000]},
+ {r:"mf-finger",c:"Metal & Fabrication",n:"Box & pan (finger) brake",w:5,d:3,cl:4,cf:1,cost:[800,4000],no:"Manual; no power needed."},
+ {r:"mf-roll",c:"Metal & Fabrication",n:"Slip roll / plate roll",w:4,d:2,cl:3,cf:1,cost:[300,4000]},
+ {r:"mf-lathe",c:"Metal & Fabrication",n:"Metal lathe (12×36)",w:7,d:3,cl:3,cf:1,p:[240,2200,20,1],est:1,cost:[3000,15000],no:"Heavy: put it on the slab, not a raised floor."},
+ {r:"mf-mill",c:"Metal & Fabrication",n:"Knee mill",w:6,d:6,cl:3,p:[240,2200,20,1],est:1,cost:[4000,20000],no:"Older mills are often 3-phase; a phase converter runs them on 240V single-phase."},
+ {r:"mf-hband",c:"Metal & Fabrication",n:"Horizontal metal bandsaw",w:5,d:2,cl:3,p:[120,1100,20,0],est:1,cost:[700,4000],no:"Leave room at both ends for long stock."},
+ {r:"mf-grind",c:"Metal & Fabrication",n:"Pedestal grinder / belt grinder",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,0],est:1,cost:[300,2500],no:"Sparks: keep it away from sawdust and flammables."},
+ {r:"mf-table",c:"Metal & Fabrication",n:"Welding / fixture table (4×8)",w:8,d:4,cl:3,cost:[1500,8000],no:"Steel table with fixture holes; doubles as a layout bench."},
+ {r:"mf-spray",c:"Metal & Fabrication",n:"Paint spray booth (walk-in)",w:10,d:14,cl:3,cf:1,p:[240,3000,30,1],est:1,a:["fumes","spray"],cost:[8000,40000],no:"Ducted exhaust, explosion-proof lights and fire protection. Inspected by the fire marshal."},
+ {r:"mf-pcbooth",c:"Metal & Fabrication",n:"Powder-coat booth + gun",w:5,d:5,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["spray"],cost:[1500,8000],no:"Filtered booth to catch overspray."},
+ {r:"mf-pcoven",c:"Metal & Fabrication",n:"Powder-coat curing oven (walk-in)",w:6,d:5,cl:3,cf:1,p:[240,12000,60,1],est:1,cost:[3000,15000],no:"Electric batch oven; plan a 60 A 240V circuit."},
+ {r:"mf-chiller",c:"Metal & Fabrication",n:"Water chiller",w:2,d:3,cl:2,p:[240,3000,20,1],est:1,cost:[1500,8000],no:"For lasers, welders and spindles. Gives off heat: don't box it in."},
+ // Print & finishing (Creator / Maker)
+ {r:"m-uvflat",c:"Creator / Maker",n:"Flatbed UV printer",w:6,d:4,cl:3,p:[120,1500,20,1],est:1,a:["fumes"],cost:[15000,60000],no:"Prints directly on panels, blanks and signs."},
+ {r:"m-large",c:"Creator / Maker",n:"Large-format printer (64 in)",w:9,d:3,cl:3,cf:1,p:[120,1200,20,1],est:1,cost:[8000,25000],no:"Banners, vinyl wraps and posters. Pair it with a laminator or a cutter."},
+ {r:"m-screen",c:"Creator / Maker",n:"Screen-printing press (4-colour)",w:6,d:6,cl:3,cost:[500,4000]},
+ {r:"m-expose",c:"Creator / Maker",n:"Screen exposure unit",w:3,d:3,cl:2,cf:1,p:[120,400,20,0],cost:[500,3000],no:"Wants a darkroom corner and a washout sink nearby."},
+ {r:"m-tunnel",c:"Creator / Maker",n:"Conveyor dryer (screen printing)",w:3,d:8,cl:2,p:[240,6000,30,1],est:1,cost:[3000,10000]},
+ // Woodworking (more)
+ {r:"w-cyclone",c:"Woodworking",n:"Cyclone dust collector (central)",w:4,d:4,cl:2,p:[240,3700,30,1],est:1,a:["dust"],cost:[2500,6000],no:"Ducted to all the big machines. Quieter in a closet."},
+ // Storage & Utility (more)
+ {r:"s-pack",c:"Storage & Utility",n:"Packing & shipping station",w:6,d:3,cl:3,cf:1,p:[120,300,20,0],cost:[500,2500],no:"Bench, box shelf above, tape and a scale."},
+ {r:"s-sheet",c:"Storage & Utility",n:"Sheet-goods cart / rack",w:5,d:2,cl:3,cf:1,cost:[200,1200],no:"Holds 4×8 sheets on edge."},
+ {r:"s-palletjack",c:"Storage & Utility",n:"Pallet jack (parked)",w:2,d:5,cl:1,cost:[300,800]},
+ {r:"s-gantry",c:"Storage & Utility",n:"Gantry crane (2-ton)",w:10,d:6,cl:2,a:["ceiling"],cost:[1500,5000],no:"Rolls over a machine or a truck bed; check the height."},
+ {r:"s-lockers",c:"Storage & Utility",n:"Coat lockers / cubbies",w:6,d:1.5,cl:3,cf:1,cost:[300,1500]},
+ // Lounge (more)
+ {r:"f-sectL",c:"Furniture & Seating",n:"Sectional sofa (L, seats 5–6)",w:9,d:7,cl:1.5,cost:[1500,6000]},
+ {r:"f-sectU",c:"Furniture & Seating",n:"Sectional sofa (U, seats 7–8)",w:11,d:8,cl:1.5,cost:[2500,9000]},
+ {r:"f-fire",c:"Furniture & Seating",n:"Fire table (electric / water-vapour)",w:4,d:2.5,cl:2,p:[120,400,20,0],cost:[800,4000],no:"Indoors, use an electric or water-vapour flame: real gas fire pits aren't for inside."},
+ {r:"f-fireplace",c:"Furniture & Seating",n:"Electric fireplace console",w:5,d:1.5,cl:3,cf:1,p:[120,1500,20,1],cost:[400,2500]},
+ {r:"f-hightop",c:"Furniture & Seating",n:"High-top table + 4 stools",w:3,d:3,cl:2,cost:[400,1800]},
+ {r:"f-game4",c:"Furniture & Seating",n:"Game table, seats 4 (cards & board games)",w:3.5,d:3.5,cl:3,cost:[400,2500]},
+ {r:"f-chess",c:"Furniture & Seating",n:"Chess table + 2 chairs",w:2.5,d:2.5,cl:2.5,cost:[300,1500]},
+ {r:"f-massage",c:"Furniture & Seating",n:"Massage chair",w:3,d:5,cl:1,p:[120,200,20,0],cost:[1500,8000],no:"Needs room behind to recline."},
+ {r:"l-wine",c:"Bar & Lounge",n:"Wine fridge (freestanding)",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],cost:[500,2500]},
+ {r:"l-winewall",c:"Bar & Lounge",n:"Wine wall / cellar racking",w:8,d:1.5,cl:3,cf:1,cost:[1000,8000],no:"Keep it out of sun and off warm walls."},
+ {r:"l-coffee",c:"Bar & Lounge",n:"Coffee bar (counter + espresso machine)",w:5,d:2,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[1500,6000],no:"Plumbed espresso machines also need a water line and drain."},
+ {r:"l-glass",c:"Bar & Lounge",n:"Undercounter glass washer",w:2,d:2,cl:2.5,cf:1,p:[120,1800,20,1],a:["plumbing"],cost:[1500,5000],ov:1},
+ {r:"l-popcorn",c:"Bar & Lounge",n:"Popcorn machine (cart)",w:2.5,d:2,cl:2,cf:1,p:[120,1400,20,0],cost:[300,1500]},
+ {r:"l-pizza",c:"Bar & Lounge",n:"Electric pizza oven (on a stand)",w:3,d:3,cl:3,cf:1,p:[240,5000,30,1],est:1,cost:[1000,6000],no:"Indoor electric ovens avoid the hood that gas or wood would need."},
+ {r:"l-jukebox",c:"Bar & Lounge",n:"Jukebox",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],cost:[2000,9000]},
+ {r:"l-tvwall",c:"Bar & Lounge",n:"Sports TV wall (4 screens + console)",w:12,d:1.5,cl:0,p:[120,1200,20,1],est:1,cost:[3000,10000]},
+ {r:"l-records",c:"Bar & Lounge",n:"Record console + shelf (vinyl corner)",w:5,d:1.5,cl:3,cf:1,p:[120,200,20,0],cost:[500,3000]},
+ {r:"g-beerpong",c:"Arcade & Gaming",n:"Beer pong table",w:2,d:8,cl:3,cost:[100,500]},
+ {r:"g-putt",c:"Arcade & Gaming",n:"Indoor putting green",w:6,d:15,cl:1,cost:[500,3000]},
+ {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
+ {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."}
 ];
 var BY={};CATALOG.forEach(function(i){BY[i.r]=i;i.cl=i.z?0:(i.cl||0)});
 /* retired ids → the generic object that replaced them (saved layouts are moved over when they load) */

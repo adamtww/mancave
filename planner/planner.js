@@ -21,7 +21,7 @@ var tt=null;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add(
 
 /* ---------------- the object library: built-in catalog + shared edits + my own ---------------- */
 var LIB={},MINE={},SHAREDROWS=0;
-function baseLib(){LIB={};CATALOG.forEach(function(c){if(c.z||c.r==='b-wall'||c.c==='Rooms & Zones')return;LIB[c.r]=JSON.parse(JSON.stringify(c))})}
+function baseLib(){LIB={};CATALOG.forEach(function(c){if(c.z||c.hide||c.r==='b-wall'||c.c==='Rooms & Zones')return;LIB[c.r]=JSON.parse(JSON.stringify(c))})}
 baseLib();
 // The catalog is the source of truth for built-in objects. A shared row only replaces a built-in when the
 // library owner actually edited it (rows copied in by the old one-time seed are ignored), and never for a retired id.
@@ -40,7 +40,7 @@ function defOf(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
 function needs(c){var a=c.a||[],q=c.req||{},o={};
  o.water=!!q.water||a.indexOf('plumbing')>=0||a.indexOf('garden')>=0||/sink|dishwasher|ice m|shower|toilet/i.test(c.n);
  o.vent=q.vent?'Ventilation':a.indexOf('fumes')>=0?'Fume extraction':a.indexOf('co2')>=0?'Fume exhaust to outside':a.indexOf('weld')>=0?'Ventilation for welding':a.indexOf('commercial')>=0?'Type I hood with fire suppression':a.indexOf('dust')>=0?'Dust collection':'';
- o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['truck','public','notyet','ev'].indexOf(k)>=0});return o}
+ o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['plumbing','garden','co2','weld','commercial','dust','gas','ceiling','hvac','fumes'].indexOf(k)<0});return o}
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,lastFail=null;

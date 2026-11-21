@@ -691,7 +691,7 @@ function undo(){if(!undoS.length)return;redoS.push(JSON.stringify(S));S=JSON.par
 function redo(){if(!redoS.length)return;undoS.push(JSON.stringify(S));S=JSON.parse(redoS.pop());commit()}
 /* catalog drawer */
 function renderCats(){var q=($('#q').value||'').toLowerCase(),h='';
- CATS.forEach(function(c){if(c[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===c[0]&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
+ CATS.forEach(function(c){if(c[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===c[0]&&!i.hide&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
   h+='<details class="cat"'+(q?' open':'')+'><summary><span class="dot" style="background:'+c[1]+'"></span>'+esc(c[0])+'<span class="n">'+list.length+'</span></summary>';
   list.forEach(function(i){h+='<button class="pi" data-r="'+i.r+'"><span>'+esc(i.n)+'</span><span>'+i.w+'×'+i.d+'</span></button>'});h+='</details>'});
  $('#cats').innerHTML=h}
@@ -1694,7 +1694,7 @@ window.cave={
  remove:function(u){remove(u)},
  find:function(q){q=q.toLowerCase();return S.items.filter(function(i){return i.name.toLowerCase().indexOf(q)>=0||i.u===q})},
  select:function(u){sel=u;render()},
- catalog:function(q){q=(q||'').toLowerCase();return CATALOG.filter(function(i){return !q||i.n.toLowerCase().indexOf(q)>=0||i.c.toLowerCase().indexOf(q)>=0}).map(function(i){return {ref:i.r,cat:i.c,name:i.n,w:i.w,d:i.d}})},
+ catalog:function(q){q=(q||'').toLowerCase();return CATALOG.filter(function(i){return !i.hide}).filter(function(i){return !q||i.n.toLowerCase().indexOf(q)>=0||i.c.toLowerCase().indexOf(q)>=0}).map(function(i){return {ref:i.r,cat:i.c,name:i.n,w:i.w,d:i.d}})},
  undo:undo,fit:fit,
  batch:function(fn){snapshot();var s=commit;commit=function(){};var sn=snapshot;snapshot=function(){};try{fn(window.cave)}finally{commit=s;snapshot=sn;commit()}}
 };
@@ -1717,7 +1717,7 @@ function libSummary(c){var s=fmtN(c.w)+' × '+fmtN(c.d)+' ft';if(c.p)s+=' · '+c
 function placedCount(r){return S.items.filter(function(i){return i.r===r}).length}
 function renderLib(){var b=$('#lib-b');if(!b)return;if(libSel||libNew){b.innerHTML=libForm(libSel?BY[libSel]:null);return}
  var q=($('#lq').value||'').toLowerCase(),h='';
- CATS.forEach(function(ct){if(ct[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===ct[0]&&!i.z&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
+ CATS.forEach(function(ct){if(ct[0]==='Rooms & Zones')return;var list=CATALOG.filter(function(i){return i.c===ct[0]&&!i.z&&!i.hide&&(!q||i.n.toLowerCase().indexOf(q)>=0)});if(!list.length)return;
   var open=q?true:!!libOpen[ct[0]];
   h+='<div class="lsec'+(open?' open':'')+'"><button class="lsh" data-c="'+escH(ct[0])+'"><i style="background:'+ct[1]+'"></i><span class="lsn">'+escH(ct[0])+'</span><span class="lct">'+list.length+'</span><svg class="lchev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></button>';
   if(open){h+='<div class="lgrid">';list.forEach(function(i){h+=libCard(i,ct[1])});h+='</div>'}
