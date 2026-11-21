@@ -70,6 +70,13 @@ dialog::backdrop{background:rgba(30,28,24,.35)}
 .spl button:hover{background:#f5f4f0}.spl small{color:#6b6960}
 @media (max-width:1100px){.main{grid-template-columns:250px 1fr 280px}}
 /*LIBCSS*/
+.pg{border-bottom:1px solid #f0ede6}.pg summary{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13.5px;cursor:pointer;list-style:none}.pg summary::-webkit-details-marker{display:none}
+.pg summary::before{content:"";width:6px;height:6px;border-right:2px solid #8a867c;border-bottom:2px solid #8a867c;transform:rotate(-45deg);transition:transform .15s;flex:0 0 6px;margin:0 2px}.pg[open] summary::before{transform:rotate(45deg)}
+.pg summary span{flex:1;color:var(--muted)}.pg summary b{font-weight:600;text-align:right}
+.pgl{display:flex;flex-direction:column;gap:6px;padding:0 0 8px 16px}.pc{display:flex;flex-direction:column;border-left:2px solid #e4e0d6;padding-left:8px}
+.pch{display:flex;justify-content:space-between;gap:8px;border:0;background:none;padding:2px 0;font-size:12.5px;font-weight:700;color:var(--ink);text-align:left}.pch:hover{color:var(--accent)}.pch small{font-weight:500;color:var(--muted)}.pch small.bad{color:#b42336}
+.pci{display:flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0;font-size:12.5px;color:#4a4740;text-align:left}.pci:hover{color:var(--accent)}.pci.on{color:#1d4f91;font-weight:600}
+.pci i{width:7px;height:7px;border-radius:50%;flex:0 0 7px}.pci i.red{background:#d6453d}.pci i.amber{background:#e0a21f}.pce{font-size:12px;color:#8a867c;padding:2px 0}
 .bar{height:8px;border-radius:4px;background:#ece9e2;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kgrid .muted{grid-column:1/-1;margin:2px 0 0}
 </style>

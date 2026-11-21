@@ -130,6 +130,13 @@ body.touch .lcard{touch-action:pan-y}
 .dhint .rm{flex:none;width:34px;height:24px;border:2px solid #2b2a27;border-radius:3px;background:#faf9f6;position:relative;box-sizing:border-box}
 .dhint .rm:after{content:'';position:absolute;right:4px;bottom:3px;width:9px;height:8px;border:1.5px dashed #3f8a4f;border-radius:2px;background:rgba(63,138,79,.15)}
 .lcard .lbdg .rz{background:#eef3fd!important;color:#2f6fed!important}
+.pg{border-bottom:1px solid #f0ede6}.pg summary{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13.5px;cursor:pointer;list-style:none}.pg summary::-webkit-details-marker{display:none}
+.pg summary::before{content:"";width:6px;height:6px;border-right:2px solid #8a867c;border-bottom:2px solid #8a867c;transform:rotate(-45deg);transition:transform .15s;flex:0 0 6px;margin:0 2px}.pg[open] summary::before{transform:rotate(45deg)}
+.pg summary span{flex:1;color:var(--muted)}.pg summary b{font-weight:600;text-align:right}
+.pgl{display:flex;flex-direction:column;gap:6px;padding:0 0 8px 16px}.pc{display:flex;flex-direction:column;border-left:2px solid #e4e0d6;padding-left:8px}
+.pch{display:flex;justify-content:space-between;gap:8px;border:0;background:none;padding:2px 0;font-size:12.5px;font-weight:700;color:var(--ink);text-align:left}.pch:hover{color:var(--accent)}.pch small{font-weight:500;color:var(--muted)}.pch small.bad{color:#b42336}
+.pci{display:flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0;font-size:12.5px;color:#4a4740;text-align:left}.pci:hover{color:var(--accent)}.pci.on{color:#1d4f91;font-weight:600}
+.pci i{width:7px;height:7px;border-radius:50%;flex:0 0 7px}.pci i.red{background:#d6453d}.pci i.amber{background:#e0a21f}.pce{font-size:12px;color:#8a867c;padding:2px 0}
 .bar{height:8px;border-radius:4px;background:#ece9e2;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kgrid .muted{grid-column:1/-1;margin:2px 0 0}
 </style>
@@ -1203,11 +1210,19 @@ function drawPower(k){if(!P.pw||P.pw.show===false)return '';var g='',W=P.room.w,
  P.items.forEach(function(it){var s=pstat(it);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
   g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(s.lv==='red'?'#d6453d':'#e0a21f')+'" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
  return g}
-function pwSummary(){var by={},gp={c:0,o:0};P.pw.circ.forEach(function(c){if(c.gp){gp.c++;gp.o+=c.out.length;return}var o=outBy(c.out[0]),key=c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared');
-  (by[key]=by[key]||{t:c.ty,o:o,ded:c.ded,c:0,n:0}).c++;by[key].n+=c.out.length});
- var rows=Object.keys(by).sort().map(function(k){var b=by[k],nm=b.t==='hw'?tName('hw',b.o).replace(' wired connection',''):tName(b.t,b.o).replace(' outlet','');
-  return '<div class="irow"><span>'+(b.t==='hw'?'Wired in · '+nm:nm+(b.ded?' · own circuit':' · shared'))+'</span><b>'+b.c+' circuit'+(b.c>1?'s':'')+(b.n>b.c?' · '+b.n+' outlets':'')+'</b></div>'});
- if(gp.c)rows.push('<div class="irow"><span>General-purpose 120V 20A</span><b>'+gp.c+' circuit'+(gp.c>1?'s':'')+' · '+gp.o+' outlets</b></div>');return rows.join('')}
+var pwOpen={};
+// circuits grouped by type; each group opens to show its circuits and what's plugged into them
+function pwSummary(){var by={},order=[];P.pw.circ.forEach(function(c){var o=outBy(c.out[0]),key=c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared');
+  if(!by[key]){by[key]={t:c.ty,o:o,ded:c.ded,gp:c.gp,list:[],n:0};order.push(key)}by[key].list.push(c);by[key].n+=c.out.length});
+ order.sort(function(a,b){return (a==='gp')-(b==='gp')||(a<b?-1:1)});
+ return order.map(function(k){var g=by[k],nc=g.list.length,nm=g.gp?'General-purpose 120V 20A':g.t==='hw'?'Wired in · '+tName('hw',g.o).replace(' wired connection',''):tName(g.t,g.o).replace(' outlet','')+(g.ded?' · own circuit':' · shared');
+  var h='<details class="pg" data-k="'+esc(k)+'"'+(pwOpen[k]?' open':'')+'><summary><span>'+esc(nm)+'</span><b>'+nc+' circuit'+(nc>1?'s':'')+(g.n>nc?' · '+g.n+' outlets':'')+'</b></summary><div class="pgl">';
+  g.list.forEach(function(c){var o0=outBy(c.out[0]),cap=(o0.ph===3?1.732:1)*o0.V*o0.A*CAP80,w=circLoad(c),its=[];
+   P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&c.out.indexOf(oid)>=0)its.push(it)});
+   h+='<div class="pc"><button class="pch" data-o="'+c.out[0]+'"><span>C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</small>':'')+'</button>';
+   h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+esc(defOf(it).n)+'</button>'}).join(''):'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
+   h+='</div>'});
+  return h+'</div></details>'}).join('')}
 function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab">Power</span>',gpOn=!P.pwo||P.pwo.gp!==false;
  if(!P.pw){if(!pw.items&&!P.items.length)return h+'<p class="muted">Add objects, then build out power to see the outlets and circuits they need.</p></div>';
   h+='<div><b>'+(pw.items?(pw.est?'≈ ':'')+fmtW(pw.w)+'</b> connected · ≈ '+fmtW(pw.peak)+' peak':'No powered objects yet</b>')+'</div>'+(pw.circ.length?'<p class="muted">Roughly '+esc(pw.circ.join(' · '))+'</p>':'');
@@ -1356,6 +1371,7 @@ function side(){var W=P.room.w,D=P.room.d,h='';
  var pb=$('#pw-build');if(pb)pb.onclick=function(){push();buildPower();selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
  var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
  var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
+ S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){pwOpen[d.dataset.k]=d.open}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
  var ps2=$('#pw-show');if(ps2)ps2.onchange=function(){P.pw.show=this.checked;if(!this.checked)selO=null;persist();render()};
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
