@@ -138,7 +138,16 @@ document.addEventListener('keydown',function(e){if(/INPUT|SELECT|TEXTAREA/.test(
 
 /* ---------------- drawing ---------------- */
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
-function vb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
+// view: z = zoom (1 = whole room fits), cx/cy = centre in feet (null = room centre)
+var V={z:1,cx:null,cy:null};
+function fitVb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
+function zoomed(){return Math.abs(V.z-1)>1e-3||V.cx!=null}
+function vb(){var b=fitVb();if(!zoomed())return b;var w=b.w/V.z,h=b.h/V.z,cx=V.cx==null?b.x+b.w/2:V.cx,cy=V.cy==null?b.y+b.h/2:V.cy;return {x:cx-w/2,y:cy-h/2,w:w,h:h}}
+function setVb(){var v=vb();sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h)}
+function clampView(){var b=fitVb();if(V.cx==null){V.cx=b.x+b.w/2;V.cy=b.y+b.h/2}V.cx=Math.max(0,Math.min(P.room.w,V.cx));V.cy=Math.max(0,Math.min(P.room.d,V.cy))}
+function zoomAt(x,y,f){var p0=toFt({clientX:x,clientY:y});clampView();V.z=Math.max(.6,Math.min(12,V.z*f));setVb();var p1=toFt({clientX:x,clientY:y});V.cx+=p0.x-p1.x;V.cy+=p0.y-p1.y;clampView();if(Math.abs(V.z-1)<.02&&Math.abs(V.cx-P.room.w/2)<.3&&Math.abs(V.cy-P.room.d/2)<.3)fitView(true);render()}
+function panBy(dx,dy){clampView();var k=scale();V.cx-=dx/k;V.cy-=dy/k;clampView();render()}
+function fitView(quiet){V.z=1;V.cx=null;V.cy=null;if(!quiet)render()}
 function scale(){var r=sv.getBoundingClientRect(),v=vb();return Math.min(r.width/v.w,r.height/v.h)||10}
 function drawRoom(){var v=vb(),W=P.room.w,D=P.room.d,k=1/scale(),g='';sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h);
  g+='<rect x="0" y="0" width="'+W+'" height="'+D+'" fill="#fbfaf7"/>';for(var x=1;x<W;x++)g+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+D+'" stroke="'+(x%5?'#f0ede6':'#e4e0d6')+'" stroke-width="'+k+'"/>';for(var y=1;y<D;y++)g+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="'+(y%5?'#f0ede6':'#e4e0d6')+'" stroke-width="'+k+'"/>';
@@ -159,13 +168,18 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
  Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});
- $('#rname').value=P.name;side();markLib();$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length;$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn':'Click an object on the left to add it'}
+ $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length;$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom':'Click an object on the left to add it'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
 /* ---------------- dragging an object pins it ---------------- */
 function toFt(e){var p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse())}
-sv.addEventListener('pointerdown',function(e){var g=e.target.closest('g.obj');if(!g){sel=null;render();return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};sv.setPointerCapture(e.pointerId);e.preventDefault()});
+// zoom: mouse wheel / trackpad pinch, two-finger pinch on touch; drag empty floor to pan
+sv.addEventListener('wheel',function(e){e.preventDefault();var dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?400:1);zoomAt(e.clientX,e.clientY,Math.exp(-dy*(e.ctrlKey?0.01:0.0018)))},{passive:false});
+var touches={},pinch=null,pan=null;
+function tpts(){return Object.keys(touches).map(function(k){return touches[k]})}
+sv.addEventListener('pointerdown',function(e){if(e.pointerType==='touch'){touches[e.pointerId]={x:e.clientX,y:e.clientY};var t=tpts();if(t.length===2){if(drag){drag.el.classList.remove('drag');drag.el.style.opacity='';drag.el.dataset.k='';ghost(null);drag=null;render()}pan=null;pinch={d:Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx:(t[0].x+t[1].x)/2,my:(t[0].y+t[1].y)/2};return}}
+ if(pinch)return;var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
 // the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
 function others(it){return P.items.filter(function(o){return o!==it}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
@@ -175,7 +189,10 @@ function ghost(sp,it,rot){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims
 // pushing past a wall turns the object to sit against that wall: front-facing pieces face into the room, others run their long side along it
 function wallTurn(it,s){var c=defOf(it);if(c.cf)return s;var m=dims(it,0);return m.w>=m.d?s:(s+1)%4}
 function drawAs(d,it,rot){if(d.shown===rot)return;d.shown=rot;var t=Object.assign({},it,{rot:rot});d.el.dataset.k='';d.el.innerHTML=objInner(t,1/scale())}
-sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot}drag.moved=true;
+sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e.pointerId]={x:e.clientX,y:e.clientY}}
+ if(pinch){var t=tpts();if(t.length<2)return;var d=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx=(t[0].x+t[1].x)/2,my=(t[0].y+t[1].y)/2;if(pinch.d>0)zoomAt(mx,my,d/pinch.d);panBy(mx-pinch.mx,my-pinch.my);pinch.d=d;pinch.mx=mx;pinch.my=my;return}
+ if(pan){if(!pan.moved&&Math.hypot(e.clientX-pan.sx,e.clientY-pan.sy)<4)return;pan.moved=true;sv.style.cursor='grabbing';panBy(e.clientX-pan.lx,e.clientY-pan.ly);pan.lx=e.clientX;pan.ly=e.clientY;return}
+ if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot}drag.moved=true;
  var p=toFt(e),W=P.room.w,D=P.room.d,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr;
  for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
  var x,y,rot,m;
@@ -184,7 +201,12 @@ sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Ma
  x=Math.max(0,Math.min(W-m.w,x));y=Math.max(0,Math.min(D-m.d,y));drag.x=x;drag.y=y;drag.rot=rot;drawAs(drag,it,rot);
  drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
  drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
-sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
+function tEnd(e){delete touches[e.pointerId];if(tpts().length<2)pinch=null}
+sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor=''});
+sv.addEventListener('dblclick',function(e){if(!e.target.closest('g.obj')&&zoomed())fitView()});
+sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType==='touch'&&tpts().length>1);tEnd(e);if(wasPinch)return;
+ if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){sel=null;render()}return}
+ if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;render();return}
  var before=snapP();sel=it.u;it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
@@ -266,14 +288,14 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
   api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((toShared?'Added to the shared library':v==='copy'?'Copy saved to My objects':'Saved')+': '+nd.n);return loadLib()}).then(function(){P.items.forEach(function(i){if(i.r===key)P.defs[key]=JSON.parse(JSON.stringify(LIB[key]))});if(toShared)openCats[nd.c]=true;else if(!c||v==='copy')openCats['My objects']=true;renderLib();relayout();render()}).catch(function(e){toast(e.message)})};
  d.showModal()}
 $('#b-newobj').onclick=function(){editObj(null)};
-$('#b-undo').onclick=function(){undo()};$('#b-redo').onclick=function(){redo()};
+$('#b-undo').onclick=function(){undo()};$('#b-fit').onclick=function(){fitView()};$('#b-redo').onclick=function(){redo()};
 
 /* ---------------- saving rooms ---------------- */
 function pack(){var defs={};P.items.forEach(function(i){var c=defOf(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,items:P.items.map(function(i){return {u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n}}),defs:defs}}
 $('#rname').onchange=function(){P.name=this.value.trim()||'Untitled room';persist()};
 $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to save rooms to your account');return}P.name=$('#rname').value.trim()||'Untitled room';var b={name:P.name,data:pack()};
  (P.id?api('PUT','/api/spaces/'+P.id,b):api('POST','/api/spaces',b).then(function(j){P.id=j.id})).then(function(){persist();toast('Saved “'+P.name+'”')}).catch(function(e){toast(e.message)})};
-$('#b-new').onclick=function(){push();P=blank();sel=null;lastFail=null;persist();render()};
+$('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
  d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{}});sel=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};d.showModal()}).catch(function(e){toast(e.message)})};
