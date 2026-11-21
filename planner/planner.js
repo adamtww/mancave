@@ -251,7 +251,7 @@ function pwSummary(){var by={},order=[],grp=pwGroup();P.pw.circ.forEach(function
   g.list.forEach(function(c){var o0=outBy(c.out[0]),cap=(o0.ph===3?1.732:1)*o0.V*o0.A*CAP80,w=circLoad(c),its=[];
    P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&c.out.indexOf(oid)>=0)its.push(it)});
    var cc=grp&&grp.col[c.id];h+='<div class="pc"'+(cc?' style="border-left-color:'+cc+'"':'')+'><button class="pch" data-o="'+c.out[0]+'"><span>'+(cc?'<i class="sw2" style="background:'+cc+'"></i>':'')+'C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</small>':'')+'</button>';
-   h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+esc(defOf(it).n)+'</button>'}).join(''):'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
+   h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+'<span class="pcn">'+esc(defOf(it).n)+'</span><small>'+Math.round((pspec(defOf(it))||{W:0}).W).toLocaleString()+' W</small></button>'}).join(''):'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
    h+='</div>'});
   return h+'</div></details>'}).join('')}
 function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab">Power</span>',gpOn=!P.pwo||P.pwo.gp!==false;
