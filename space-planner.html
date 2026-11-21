@@ -900,7 +900,7 @@ function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();pe
 function rotate(u,dir){var it=byU(u);if(!it)return;dir=dir||1;var nr=(it.rot+dir+4)%4,m0=dims(it,it.rot),m=dims(it,nr),cx=it.x+m0.w/2,cy=it.y+m0.d/2,
   x=Math.round((cx-m.w/2)*2)/2,y=Math.round((cy-m.d/2)*2)/2,sp=nearestFree(it,x,y,others(it),nr),give=Math.max(3,Math.max(m.w,m.d)*.75);
  if(!sp||Math.hypot(sp.x-x,sp.y-y)>give){toast('No room nearby to turn it');return}
- var before=snapP();it.rot=nr;it.x=sp.x;it.y=sp.y;it.pin=true;
+ var before=snapP();it.rot=nr;it.x=sp.x;it.y=sp.y;
  if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No room nearby to turn it');render();return}hist.push(before);fut=[];persist();render()}
 function byU(u){for(var i=0;i<P.items.length;i++)if(P.items[i].u===u)return P.items[i];return null}
 function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop());if(sel&&!byU(sel))sel=null;persist();render()}
@@ -959,7 +959,7 @@ sv.addEventListener('pointermove',function(e){if(!drag)return;if(!drag.moved&&Ma
  drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
 sv.addEventListener('pointerup',function(e){if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;render();return}
- var before=snapP();sel=it.u;it.pin=true;it.rot=d.rot;d.el.dataset.rot=it.rot;
+ var before=snapP();sel=it.u;it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
  if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}hist.push(before);fut=[];persist();render()});
 
