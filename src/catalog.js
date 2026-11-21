@@ -314,7 +314,14 @@ var CATALOG=[
  {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
  {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."}
 ];
-var BY={};CATALOG.forEach(function(i){BY[i.r]=i;i.cl=i.z?0:(i.cl||0)});
+/* Clearance ("keep this empty to use it") per side, relative to the object's front: k = [front, back, left, right],
+   left and right as you stand facing the front. Older data has cl (feet) + cf (front only); normObj fills k from those,
+   and keeps cl (the largest side) and cf (front only) for code that still reads them. */
+function kFrom(o){var v=o.cl||0;return (o.cf||o.cm==='front')?[v,0,0,0]:[v,v,v,v]}
+function normObj(o){if(!o||o.z){if(o)o.cl=0;return o}var k=(Array.isArray(o.k)&&o.k.length===4)?o.k.map(function(v){return Math.max(0,+v||0)}):kFrom(o);o.k=k;o.cl=Math.max(k[0],k[1],k[2],k[3]);o.cf=(k[0]>0&&!k[1]&&!k[2]&&!k[3])?1:null;return o}
+/* the clear zone of an object at x,y (w,d as it lies on the floor) turned rot quarter turns clockwise */
+function clrBox(x,y,w,d,k,rot){var loc=[k[1],k[3],k[0],k[2]],m=[0,0,0,0];for(var i=0;i<4;i++)m[(i+(rot||0))%4]=loc[i];return {x:x-m[3],y:y-m[0],w:w+m[3]+m[1],d:d+m[0]+m[2]}}
+var BY={};CATALOG.forEach(function(i){BY[i.r]=i;normObj(i)});
 /* retired ids → the generic object that replaced them (saved layouts are moved over when they load) */
 var ALIAS={"m-mf1200":"m-weld2","m-mf800":"m-weld2","m-ap2":"m-fume","m-x1co2":"m-laser2","m-x1diode":"m-laser2","m-x1fiber":"m-laser2","m-x1uv":"m-laser2","m-x1mopa":"m-laser2","m-o1":"m-dtf","m-se1":"m-emb2","m-prusa":"m-print2"};
 function realR(r){return ALIAS[r]||r}

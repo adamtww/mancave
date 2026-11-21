@@ -14,6 +14,7 @@ var me=null;
 function api(m,p,b){return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b?JSON.stringify(b):undefined}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmt(n){return (Math.round(n*10)/10).toLocaleString('en-US')}
+function clrTxt(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'none';if(k[0]===k[1]&&k[1]===k[2]&&k[2]===k[3])return fmt(k[0])+' ft all around';var n=['front','back','left','right'],o=[];k.forEach(function(v,i){if(v)o.push(fmt(v)+' '+n[i])});return o.join(' · ')+' ft'}
 function money(v){return v>=1000?'$'+(v>=10000?Math.round(v/1000):Math.round(v/100)/10)+'k':'$'+Math.round(v)}
 function costTxt(c){if(!c||!c.cost)return '';var a=c.cost[0],b=c.cost[1];if(!a&&!b)return '';return a===b?money(a):money(a)+'–'+money(b)}
 function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+' kW':Math.round(w)+' W'}
@@ -30,8 +31,8 @@ function loadLib(){if(!tok)return Promise.resolve();return api('GET','/api/objec
   j.objects.forEach(function(o){if(ALIAS[o.r])return;
    if(o.shared){SHAREDROWS++;var builtIn=!!BY[o.r],edited=(o.data&&o.data.ed)||(Date.parse(o.updated_at+'Z')||0)>t0+60000;
     if(o.deleted){delete LIB[o.r];return}
-    if(builtIn&&!edited)return;LIB[o.r]=Object.assign({},o.data,{r:o.r})}
-   else if(o.mine){LIB[o.r]=Object.assign({},o.data,{r:o.r});MINE[o.r]=1}});
+    if(builtIn&&!edited)return;LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}))}
+   else if(o.mine){LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}));MINE[o.r]=1}});
  }).catch(function(e){if(e.status===401){tok=null;showWho()}})}
 // rooms saved before an object was retired: move them onto its generic replacement
 function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&BY[n]){if(x.defs){delete x.defs[it.r];x.defs[n]=JSON.parse(JSON.stringify(BY[n]))}it.r=n}});if(x.defs)Object.keys(x.defs).forEach(function(r){if(ALIAS[r])delete x.defs[r]});return x}
@@ -52,11 +53,13 @@ function persist(){try{localStorage.setItem('space-planner-cur',JSON.stringify(P
 
 /* ---------------- geometry ---------------- */
 function dims(it,rot){var c=defOf(it),w=it.w||c.w,d=it.d||c.d,sw=(rot==null?it.rot:rot)%2;return {w:sw?d:w,d:sw?w:d}}
-function clr(c,b,rot){var k=c.cl||0;if(!k)return null;if(c.cf){switch(rot%4){case 1:return {x:b.x-k,y:b.y,w:k,d:b.d};case 2:return {x:b.x,y:b.y-k,w:b.w,d:k};case 3:return {x:b.x+b.w,y:b.y,w:k,d:b.d};default:return {x:b.x,y:b.y+b.d,w:b.w,d:k}}}return {x:b.x-k,y:b.y-k,w:b.w+2*k,d:b.d+2*k}}
+function kOf(c){return (c&&Array.isArray(c.k))?c.k:kFrom(c||{})}
+function clr(c,b,rot){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return null;return clrBox(b.x,b.y,b.w,b.d,k,rot%4)}
 function hit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b.y<a.y+a.d-1e-6}
 function inside(r,W,D){return r.x>=-1e-6&&r.y>=-1e-6&&r.x+r.w<=W+1e-6&&r.y+r.d<=D+1e-6}
 function ok(b,c,placed,W,D){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
-function kind(c){return c.cf?'wall':(c.cl>0?'center':'flex')}
+// back 0: it can stand against a wall; no clearance at all: it goes anywhere
+function kind(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'flex';return k[1]?'center':'wall'}
 var WALLROT=[0,1,2,3]; // top wall faces down (0), right faces left (1), bottom faces up (2), left faces right (3)
 function wallSpots(it,W,D){var o=[];for(var s=0;s<4;s++){var rot=WALLROT[s],m=dims(it,rot);
   if(s===0||s===2){var y=s===0?0:D-m.d;for(var x=0;x+m.w<=W+1e-6;x+=.5)o.push({x:x,y:y,rot:rot,t:s===0?x:W+D+(W-x-m.w)})}
@@ -75,7 +78,7 @@ function spotFor(it,c,placed,W,D,near){var k=kind(c),same=placed.filter(function
   if(!best||sc<best.sc-1e-9)best={x:s.x,y:s.y,rot:s.rot,b:bb,c:c2,sc:sc}}
  return best}
 function layout(items,W,D,stable){var placed=[],out={},order=items.slice(),moved=[];
- var pr=function(it){var c=defOf(it),m=dims(it,0),k=c.cl||0;return (it.pin?1e9:0)+(stable&&it.placed?5e8:0)+({center:3e6,wall:2e6,flex:1e6})[kind(c)]+(m.w+2*k)*(m.d+2*k)};
+ var pr=function(it){var c=defOf(it),m=dims(it,0),k=kOf(c);return (it.pin?1e9:0)+(stable&&it.placed?5e8:0)+({center:3e6,wall:2e6,flex:1e6})[kind(c)]+(m.w+k[2]+k[3])*(m.d+k[0]+k[1])};
  order.sort(function(a,b){return pr(b)-pr(a)||a.n-b.n});
  var put=function(it,c,best){placed.push({u:it.u,b:best.b,c:best.c,cat:c.c});out[it.u]={x:best.x,y:best.y,rot:best.rot}};
  var at=function(it,c){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);return ok(b,cc,placed,W,D)?{x:it.x,y:it.y,rot:it.rot,b:b,c:cc}:null};
@@ -92,7 +95,7 @@ function apply(res){P.items.forEach(function(it){var q=res.pos[it.u];if(q){it.x=
 function shifted(items,W,D,W2,D2){var dw=W2-W,dd=D2-D,h=function(v){return Math.round(v*2)/2};return items.map(function(it){if(it.pin||!it.placed)return it;var m=dims(it,it.rot),o=Object.assign({},it);
  o.x=it.x+m.w>=W-1e-6?it.x+dw:it.x<=1e-6?it.x:it.x+h(dw/2);o.y=it.y+m.d>=D-1e-6?it.y+dd:it.y<=1e-6?it.y:it.y+h(dd/2);return o})}
 // smallest bigger room (never smaller) that fits everything; prefers squarish growth over corridors
-function grow(items,W,D,maxTries){var body=0,need=items.map(function(it){var c=defOf(it),m=dims(it,0),k=c.cl||0;body+=m.w*m.d;return c.cf?{a:Math.min(m.w,m.d),b:Math.max(m.w,m.d)}:{a:Math.min(m.w,m.d)+2*k,b:Math.max(m.w,m.d)+2*k}});
+function grow(items,W,D,maxTries){var body=0,need=items.map(function(it){var c=defOf(it),m=dims(it,0),k=kOf(c),bw=m.w+k[2]+k[3],bd=m.d+k[0]+k[1];body+=m.w*m.d;return {a:Math.min(bw,bd),b:Math.max(bw,bd)}});
  var C=[];for(var w=W;w<=W+60;w+=.5)for(var d=D;d<=D+60;d+=.5){if(w===W&&d===D)continue;if(w*d<body)continue;var lo=Math.min(w,d),hi=Math.max(w,d);if(!need.every(function(n){return n.a<=lo+1e-6&&n.b<=hi+1e-6}))continue;C.push({w:w,d:d,k:w*d*(1+.25*Math.max(0,hi/lo-1.3))})}
  C.sort(function(a,b){return a.k-b.k});var t0=Date.now();
  for(var i=0;i<C.length&&i<(maxTries||4000)&&Date.now()-t0<2500;i++){var sh=shifted(items,W,D,C[i].w,C[i].d),r=layout(sh,C[i].w,C[i].d,true);if(!r.pos)r=layout(items,C[i].w,C[i].d);if(r.pos)return {w:C[i].w,d:C[i].d,res:r}}return null}
@@ -155,10 +158,10 @@ function drawRoom(){var v=vb(),W=P.room.w,D=P.room.d,k=1/scale(),g='';sv.setAttr
  g+='<text x="'+(W/2)+'" y="'+(-10*k)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960">'+fmt(W)+' ft</text><text x="'+(-8*k)+'" y="'+(D/2)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960" transform="rotate(-90 '+(-8*k)+' '+(D/2)+')">'+fmt(D)+' ft</text>';
  return g}
 function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d},cc=clr(c,b,it.rot),on=sel===it.u,h='';
- if(cc)h+='<rect x="'+cc.x+'" y="'+cc.y+'" width="'+cc.w+'" height="'+cc.d+'" fill="'+(c.cf?'rgba(150,140,120,.08)':'rgba(47,111,237,.035)')+'" stroke="#b9b4a8" stroke-width="'+k+'" stroke-dasharray="'+(5*k)+' '+(4*k)+'" pointer-events="none"/>';
+ if(cc)h+='<rect x="'+cc.x+'" y="'+cc.y+'" width="'+cc.w+'" height="'+cc.d+'" fill="'+(kind(c)==='wall'?'rgba(150,140,120,.08)':'rgba(47,111,237,.035)')+'" stroke="#b9b4a8" stroke-width="'+k+'" stroke-dasharray="'+(5*k)+' '+(4*k)+'" pointer-events="none"/>';
  var art=ICONS[it.r];h+='<rect x="0" y="0" width="'+m.w+'" height="'+m.d+'" rx="0.2" fill="'+(art?'#fff':'#ece9e2')+'" stroke="'+(on?'#2f7de1':'#9d988c')+'" stroke-width="'+((on?2.4:1.2)*k)+'"/>';
  if(art)h+=iconFor({r:it.r,x:0,y:0,w:m.w,d:m.d,rot:it.rot});
- if(c.cf){var f=clr({cl:.001,cf:1},b,it.rot);var x1=f.x,y1=f.y,x2=f.x+(f.w>.01?f.w:0),y2=f.y+(f.d>.01?f.d:0);h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#5f5b52" stroke-width="'+(2.5*k)+'"/>'}
+ if(kind(c)==='wall'){var R=it.rot%4,x1=R===3?b.w:0,y1=R===0?b.d:0,x2=R===1?0:b.w,y2=R===2?0:b.d;if(R===0)y2=b.d;if(R===3)x2=b.w;h+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#5f5b52" stroke-width="'+(2.5*k)+'"/>'}
  if(it.pin)h+='<circle cx="'+(m.w-.35)+'" cy=".35" r="'+(6*k)+'" fill="#e07b1f" stroke="#fff" stroke-width="'+(1.5*k)+'"/>';
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
@@ -187,7 +190,7 @@ function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D
  return best}
 function ghost(sp,it,rot){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
 // pushing past a wall turns the object to sit against that wall: front-facing pieces face into the room, others run their long side along it
-function wallTurn(it,s){var c=defOf(it);if(c.cf)return s;var m=dims(it,0);return m.w>=m.d?s:(s+1)%4}
+function wallTurn(it,s){var c=defOf(it);if(kind(c)==='wall')return s;var m=dims(it,0);return m.w>=m.d?s:(s+1)%4}
 function drawAs(d,it,rot){if(d.shown===rot)return;d.shown=rot;var t=Object.assign({},it,{rot:rot});d.el.dataset.k='';d.el.innerHTML=objInner(t,1/scale())}
 sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e.pointerId]={x:e.clientX,y:e.clientY}}
  if(pinch){var t=tpts();if(t.length<2)return;var d=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx=(t[0].x+t[1].x)/2,my=(t[0].y+t[1].y)/2;if(pinch.d>0)zoomAt(mx,my,d/pinch.d);panBy(mx-pinch.mx,my-pinch.my);pinch.d=d;pinch.mx=mx;pinch.my=my;return}
@@ -250,7 +253,7 @@ function side(){var W=P.room.w,D=P.room.d,h='';
  if(lastFail&&lastFail.msg)h+='<div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div>';
  h+='</div>';
  var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
-  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+(c.cl?fmt(c.cl)+' ft '+(c.cf?'in front':'all around'):'none')+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
+  '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+clrTxt(c)+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
   '<div class="row"><button class="btn" id="o-rl" title="Turn left (Shift+R)">↺ Turn left</button><button class="btn" id="o-rr" title="Turn right (R)">↻ Turn right</button></div><div class="row"><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div></div>'}
  var lo=0,hi=0,nc=0;P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});if(P.items.length&&hi)h+='<div class="card"><span class="lab">Equipment cost</span><div class="big" style="font-size:20px">'+money(lo)+' – '+money(hi)+'</div><p class="muted">Typical prices for new equipment'+(nc?'; '+nc+' object'+(nc>1?'s have':' has')+' no price':'')+'. Install, wiring and plumbing not included.</p></div>';
  h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
@@ -270,7 +273,7 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
   '<div class="fg"><label class="fl" style="grid-column:1/-1">Name<input name="n" required value="'+esc(c?c.n:'')+'"></label>'+
   '<label class="fl">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label><span></span>'+
   '<label class="fl">Width (ft)<input name="w" inputmode="decimal" required value="'+(c?c.w:'')+'"></label><label class="fl">Depth (ft)<input name="d" inputmode="decimal" required value="'+(c?c.d:'')+'"></label>'+
-  '<label class="fl">Clearance (ft)<input name="cl" inputmode="decimal" value="'+(c&&c.cl?c.cl:0)+'"></label><label class="fl">Clearance is<select name="cf"><option value="0">all around</option><option value="1"'+(c&&c.cf?' selected':'')+'>in front only (backs to a wall)</option></select></label>'+
+  '<div class="kgrid" style="grid-column:1/-1"><span class="muted">Clearance (ft): space that must stay empty to use it. Left and right as you face its front. Back 0 lets it stand against a wall.</span>'+['front','back','left','right'].map(function(n,i){var K=c?kOf(c):[0,0,0,0];return '<label class="fl">'+n.charAt(0).toUpperCase()+n.slice(1)+'<input name="k'+i+'" inputmode="decimal" value="'+fmt(K[i])+'"></label>'}).join('')+'</div>'+
   '<label class="fl">Power<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label><label class="fl">Watts<input name="pw" inputmode="decimal" value="'+(p[1]||'')+'"></label>'+
   '<label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><span></span>'+
   '<label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label>'+
@@ -280,7 +283,7 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
  if(shared&&!admin)Array.prototype.forEach.call(d.querySelectorAll('input,select,textarea'),function(el){if(el.name)el.dataset.ro=1});
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
   if(v==='del'){if(!confirm((shared?'Remove '+c.n+' from the shared library for everyone?':'Delete '+c.n+'?')))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
-  var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),cl:num('cl')};if(F('cf').value==='1')nd.cf=1;
+  var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
   var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();var lo=num('lo'),hi=num('hi');if(lo||hi)nd.cost=[Math.min(lo||hi,hi||lo),Math.max(lo,hi)];if(admin&&shared)nd.ed=1;
   if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
   var slug=nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4),toShared=!c&&admin&&f.elements.sh&&f.elements.sh.checked;

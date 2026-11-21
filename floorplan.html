@@ -668,7 +668,14 @@ var CATALOG=[
  {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
  {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."}
 ];
-var BY={};CATALOG.forEach(function(i){BY[i.r]=i;i.cl=i.z?0:(i.cl||0)});
+/* Clearance ("keep this empty to use it") per side, relative to the object's front: k = [front, back, left, right],
+   left and right as you stand facing the front. Older data has cl (feet) + cf (front only); normObj fills k from those,
+   and keeps cl (the largest side) and cf (front only) for code that still reads them. */
+function kFrom(o){var v=o.cl||0;return (o.cf||o.cm==='front')?[v,0,0,0]:[v,v,v,v]}
+function normObj(o){if(!o||o.z){if(o)o.cl=0;return o}var k=(Array.isArray(o.k)&&o.k.length===4)?o.k.map(function(v){return Math.max(0,+v||0)}):kFrom(o);o.k=k;o.cl=Math.max(k[0],k[1],k[2],k[3]);o.cf=(k[0]>0&&!k[1]&&!k[2]&&!k[3])?1:null;return o}
+/* the clear zone of an object at x,y (w,d as it lies on the floor) turned rot quarter turns clockwise */
+function clrBox(x,y,w,d,k,rot){var loc=[k[1],k[3],k[0],k[2]],m=[0,0,0,0];for(var i=0;i<4;i++)m[(i+(rot||0))%4]=loc[i];return {x:x-m[3],y:y-m[0],w:w+m[3]+m[1],d:d+m[0]+m[2]}}
+var BY={};CATALOG.forEach(function(i){BY[i.r]=i;normObj(i)});
 /* retired ids → the generic object that replaced them (saved layouts are moved over when they load) */
 var ALIAS={"m-mf1200":"m-weld2","m-mf800":"m-weld2","m-ap2":"m-fume","m-x1co2":"m-laser2","m-x1diode":"m-laser2","m-x1fiber":"m-laser2","m-x1uv":"m-laser2","m-x1mopa":"m-laser2","m-o1":"m-dtf","m-se1":"m-emb2","m-prusa":"m-print2"};
 function realR(r){return ALIAS[r]||r}
@@ -1537,7 +1544,7 @@ function zWater(z){var t=ZTB[z.type];return !!t&&(t.pl==='on'||(t.pl==='opt'&&!!
 function zFits(z,c){return zPlaced(z)&&oTypes(c).indexOf(z.type)>=0&&(!oNeedsWater(c)||zWater(z))}
 function fitZones(c){return (S.zones||[]).filter(function(z){return zFits(z,c)})}
 function oById(u){for(var i=0;i<(S.objs||[]).length;i++)if(S.objs[i].u===u)return S.objs[i];return null}
-function oCr(it){var c=it.cl||0;if(it.cm!=='front')return {x:it.x-c,y:it.y-c,w:it.w+2*c,d:it.d+2*c};switch((it.rot||0)%4){case 1:return {x:it.x-c,y:it.y,w:c,d:it.d};case 2:return {x:it.x,y:it.y-c,w:it.w,d:c};case 3:return {x:it.x+it.w,y:it.y,w:c,d:it.d};default:return {x:it.x,y:it.y+it.d,w:it.w,d:c}}}
+function oCr(it){if(Array.isArray(it.k))return clrBox(it.x,it.y,it.w,it.d,it.k,it.rot||0);var c=it.cl||0;if(it.cm!=='front')return {x:it.x-c,y:it.y-c,w:it.w+2*c,d:it.d+2*c};switch((it.rot||0)%4){case 1:return {x:it.x-c,y:it.y,w:c,d:it.d};case 2:return {x:it.x,y:it.y-c,w:it.w,d:c};case 3:return {x:it.x+it.w,y:it.y,w:c,d:it.d};default:return {x:it.x,y:it.y+it.d,w:it.w,d:c}}}
 function oFront(it){switch((it.rot||0)%4){case 1:return [it.x,it.y,it.x,it.y+it.d];case 2:return [it.x,it.y,it.x+it.w,it.y];case 3:return [it.x+it.w,it.y,it.x+it.w,it.y+it.d];default:return [it.x,it.y+it.d,it.x+it.w,it.y+it.d]}}
 function oHit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b.y<a.y+a.d-1e-6}
 function segHitsRect(a,b,r){var e=1e-6;if(Math.max(a.x,b.x)<=r.x+e||Math.min(a.x,b.x)>=r.x+r.w-e||Math.max(a.y,b.y)<=r.y+e||Math.min(a.y,b.y)>=r.y+r.d-e)return false;
@@ -1560,9 +1567,9 @@ function oProblem(it){var z=zById(it.zone),c=oCat(it);if(!z)return 'Its zone was
 function oFindSpot(z,w,d,skip,near,proto){if(!zPlaced(z))return null;var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;z.mp.forEach(function(pg){pg[0].forEach(function(q){x0=Math.min(x0,q[0]);x1=Math.max(x1,q[0]);y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1])})});
  var best=null,bestClean=null,pr=proto||{cl:0,cm:'all',rot:0};
  for(var y=Math.ceil(y0*2)/2;y+d<=y1+1e-6;y+=.5)for(var x=Math.ceil(x0*2)/2;x+w<=x1+1e-6;x+=.5){var r={x:x,y:y,w:w,d:d};if(!oFitsAt(r,z,skip))continue;var sc=near?Math.hypot(x+w/2-near.x,y+d/2-near.y):(y-y0)*1e4+(x-x0);
-  if(!best||sc<best.sc)best={sc:sc,r:r};var t={x:x,y:y,w:w,d:d,cl:pr.cl,cm:pr.cm,rot:pr.rot};if((!bestClean||sc<bestClean.sc)&&!(S.objs||[]).some(function(o){return o!==skip&&(oHit(oCr(t),o)||oHit(oCr(o),t))})&&!oClrWall(t))bestClean={sc:sc,r:r}}
+  if(!best||sc<best.sc)best={sc:sc,r:r};var t={x:x,y:y,w:w,d:d,cl:pr.cl,cm:pr.cm,k:pr.k,rot:pr.rot};if((!bestClean||sc<bestClean.sc)&&!(S.objs||[]).some(function(o){return o!==skip&&(oHit(oCr(t),o)||oHit(oCr(o),t))})&&!oClrWall(t))bestClean={sc:sc,r:r}}
  return bestClean?bestClean.r:best?best.r:null}
-function oNew(r,z,at){var c=BY[r],it={u:'o'+(S.oid=(S.oid||1)+1),r:r,name:c.n.replace(/ \(\$[^)]*\)/,''),x:at.x,y:at.y,w:c.w,d:c.d,cl:c.cl||0,cm:c.cf?'front':'all',rot:0,zone:z.id};S.objs.push(it);return it}
+function oNew(r,z,at){var c=BY[r],it={u:'o'+(S.oid=(S.oid||1)+1),r:r,name:c.n.replace(/ \(\$[^)]*\)/,''),x:at.x,y:at.y,w:c.w,d:c.d,cl:c.cl||0,cm:c.cf?'front':'all',k:(c.k||kFrom(c)).slice(),rot:0,zone:z.id};S.objs.push(it);return it}
 
 /* ---- power, as the app works it out: p = [volts, watts, breaker amps, dedicated?] ---- */
 function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+' kW':Math.round(w)+' W'}
@@ -1585,11 +1592,11 @@ function w2s(x,y){var r=svR();return {x:r.left+X(x),y:r.top+Y(y)}}
 // half-foot offsets out to 12 ft, nearest first: used to find the closest free spot under the pointer
 var OFFS=(function(){var o=[];for(var i=-24;i<=24;i++)for(var j=-24;j<=24;j++)o.push([i/2,j/2,Math.hypot(i,j)]);o.sort(function(a,b){return a[2]-b[2]});return o})();
 function baseWD(r){if(cdrag&&cdrag.mv&&cdrag.mv.it.r===r){var it=cdrag.mv.it,sw=(it.rot||0)%2;return {W:sw?it.d:it.w,D:sw?it.w:it.d}}var c=BY[r];return {W:c.w,D:c.d}}
-function mkGhost(r,rot){var c=BY[r],b=baseWD(r);rot=(rot||0)%4;var sw=rot%2;return {r:r,name:cdrag&&cdrag.mv?cdrag.mv.it.name:c.n.replace(/ \(\$[^)]*\)/,''),x:0,y:0,w:sw?b.D:b.W,d:sw?b.W:b.D,cl:c.cl||0,cm:c.cf?'front':'all',rot:rot}}
+function mkGhost(r,rot){var c=BY[r],b=baseWD(r);rot=(rot||0)%4;var sw=rot%2;return {r:r,name:cdrag&&cdrag.mv?cdrag.mv.it.name:c.n.replace(/ \(\$[^)]*\)/,''),x:0,y:0,w:sw?b.D:b.W,d:sw?b.W:b.D,cl:c.cl||0,cm:c.cf?'front':'all',k:(c.k||kFrom(c)).slice(),rot:rot}}
 // nearest spot in zone z: prefer one where both clear spaces stay free, else the nearest the body fits
 function clrClash(t){return (S.objs||[]).some(function(o){return (o.cl>0&&oHit(t,oCr(o)))||(t.cl>0&&oHit(o,oCr(t)))})}
 function spotNear(z,rot,px,py){var g=mkGhost(cdrag.r,rot),x0=snapH(px-g.w/2),y0=snapH(py-g.d/2),first=null;
- for(var k=0;k<OFFS.length;k++){var t={x:x0+OFFS[k][0],y:y0+OFFS[k][1],w:g.w,d:g.d,cl:g.cl,cm:g.cm,rot:g.rot};if(!oFitsAt(t,z,null))continue;if(!first)first=t;if(!clrClash(t)){first=t;break}}
+ for(var k=0;k<OFFS.length;k++){var t={x:x0+OFFS[k][0],y:y0+OFFS[k][1],w:g.w,d:g.d,cl:g.cl,cm:g.cm,k:g.k,rot:g.rot};if(!oFitsAt(t,z,null))continue;if(!first)first=t;if(!clrClash(t)){first=t;break}}
  if(!first)return null;g.x=first.x;g.y=first.y;g.dist=Math.hypot(g.x+g.w/2-px,g.y+g.d/2-py);return g}
 function fitGhost(){if(!cdrag)return;var px=cdrag.wx,py=cdrag.wy,c=BY[cdrag.r],z=zoneAt({x:px,y:py});
  if(!z||!zFits(z,c)){ghost=mkGhost(cdrag.r,cdrag.rot);ghost.x=snapH(px-ghost.w/2);ghost.y=snapH(py-ghost.d/2);ghost.noRoom=true;ghost.zone=z;ghost.why=!z?'none':oTypes(c).indexOf(z.type)<0?'type':'water';return}
@@ -1717,9 +1724,9 @@ document.addEventListener('keydown',function(e){if(step!=='layout'||cdrag||/INPU
  if((e.key==='r'||e.key==='R')&&lSel){oRotate(oById(lSel));return}
  if((e.key==='Delete'||e.key==='Backspace')&&lSel){e.preventDefault();oDelete(lSel)}});
 function oRotate(it){if(!it)return;var z=zById(it.zone),cx=it.x+it.w/2,cy=it.y+it.d/2,r={x:snapH(cx-it.d/2),y:snapH(cy-it.w/2),w:it.d,d:it.w};
- if(!oFitsAt(r,z,it)){var sp2=oFindSpot(z,r.w,r.d,it,{x:cx,y:cy},{cl:it.cl,cm:it.cm,rot:((it.rot||0)+1)%4});if(!sp2){toast('No room to turn it in '+(z?z.name:'its zone'));return}r.x=sp2.x;r.y=sp2.y}push();it.x=r.x;it.y=r.y;it.w=r.w;it.d=r.d;it.rot=((it.rot||0)+1)%4;render()}
+ if(!oFitsAt(r,z,it)){var sp2=oFindSpot(z,r.w,r.d,it,{x:cx,y:cy},{cl:it.cl,cm:it.cm,k:it.k,rot:((it.rot||0)+1)%4});if(!sp2){toast('No room to turn it in '+(z?z.name:'its zone'));return}r.x=sp2.x;r.y=sp2.y}push();it.x=r.x;it.y=r.y;it.w=r.w;it.d=r.d;it.rot=((it.rot||0)+1)%4;render()}
 function oDelete(u){var it=oById(u);if(!it)return;push();S.objs.splice(S.objs.indexOf(it),1);if(lSel===u)lSel=null;toast(it.name+' removed');render()}
-function placeAuto(r,zid){var z=zById(zid),c=BY[r],at=oFindSpot(z,c.w,c.d,null,null,{cl:c.cl||0,cm:c.cf?'front':'all',rot:0});if(!at){toast('No free spot big enough in '+z.name);return}push();var it=oNew(r,z,at);lSel=it.u;libPick=null;popU=it.u;render();var g={x:at.x,y:at.y,w:at.w,d:at.d};setTimeout(function(){poof(g)},0);setTimeout(function(){if(popU===it.u)popU=null},320);toast(it.name+' added to '+z.name)}
+function placeAuto(r,zid){var z=zById(zid),c=BY[r],at=oFindSpot(z,c.w,c.d,null,null,{cl:c.cl||0,cm:c.cf?'front':'all',k:(c.k||kFrom(c)).slice(),rot:0});if(!at){toast('No free spot big enough in '+z.name);return}push();var it=oNew(r,z,at);lSel=it.u;libPick=null;popU=it.u;render();var g={x:at.x,y:at.y,w:at.w,d:at.d};setTimeout(function(){poof(g)},0);setTimeout(function(){if(popU===it.u)popU=null},320);toast(it.name+' added to '+z.name)}
 
 /* ---- library cards (the app's look) ---- */
 function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i.r](W,D):'<rect x="'+(-W/2)+'" y="'+(-D/2)+'" width="'+W+'" height="'+D+'" rx="'+(Math.min(W,D)*0.08)+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="'+(m*0.02)+'"/>';

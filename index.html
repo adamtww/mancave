@@ -959,17 +959,24 @@ var CATALOG=[
  {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
  {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."}
 ];
-var BY={};CATALOG.forEach(function(i){BY[i.r]=i;i.cl=i.z?0:(i.cl||0)});
+/* Clearance ("keep this empty to use it") per side, relative to the object's front: k = [front, back, left, right],
+   left and right as you stand facing the front. Older data has cl (feet) + cf (front only); normObj fills k from those,
+   and keeps cl (the largest side) and cf (front only) for code that still reads them. */
+function kFrom(o){var v=o.cl||0;return (o.cf||o.cm==='front')?[v,0,0,0]:[v,v,v,v]}
+function normObj(o){if(!o||o.z){if(o)o.cl=0;return o}var k=(Array.isArray(o.k)&&o.k.length===4)?o.k.map(function(v){return Math.max(0,+v||0)}):kFrom(o);o.k=k;o.cl=Math.max(k[0],k[1],k[2],k[3]);o.cf=(k[0]>0&&!k[1]&&!k[2]&&!k[3])?1:null;return o}
+/* the clear zone of an object at x,y (w,d as it lies on the floor) turned rot quarter turns clockwise */
+function clrBox(x,y,w,d,k,rot){var loc=[k[1],k[3],k[0],k[2]],m=[0,0,0,0];for(var i=0;i<4;i++)m[(i+(rot||0))%4]=loc[i];return {x:x-m[3],y:y-m[0],w:w+m[3]+m[1],d:d+m[0]+m[2]}}
+var BY={};CATALOG.forEach(function(i){BY[i.r]=i;normObj(i)});
 /* retired ids → the generic object that replaced them (saved layouts are moved over when they load) */
 var ALIAS={"m-mf1200":"m-weld2","m-mf800":"m-weld2","m-ap2":"m-fume","m-x1co2":"m-laser2","m-x1diode":"m-laser2","m-x1fiber":"m-laser2","m-x1uv":"m-laser2","m-x1mopa":"m-laser2","m-o1":"m-dtf","m-se1":"m-emb2","m-prusa":"m-print2"};
 function realR(r){return ALIAS[r]||r}
 
 
 /* Object Library edits: saved per browser, layered over the built-in catalog */
-var LIBK='cave-lib',LIB={},DEF={},LIB_KEYS=['n','c','w','d','cl','cf','p','est','no'];
+var LIBK='cave-lib',LIB={},DEF={},LIB_KEYS=['n','c','w','d','cl','cf','k','p','est','no'];
 try{LIB=JSON.parse(localStorage.getItem(LIBK)||'{}')||{}}catch(_){LIB={}}
 CATALOG.forEach(function(c){DEF[c.r]=JSON.parse(JSON.stringify(c))});
-Object.keys(LIB).forEach(function(r){var o=LIB[r];if(!o)return;if(BY[r]){LIB_KEYS.forEach(function(k){if(k in o){if(o[k]==null)delete BY[r][k];else BY[r][k]=o[k]}})}else if(o.custom){var c={r:r};LIB_KEYS.forEach(function(k){if(o[k]!=null)c[k]=o[k]});CATALOG.push(c);BY[r]=c}});
+Object.keys(LIB).forEach(function(r){var o=LIB[r];if(!o)return;if(BY[r]){LIB_KEYS.forEach(function(k){if(k in o){if(o[k]==null)delete BY[r][k];else BY[r][k]=o[k]}})}else if(o.custom){var c={r:r};LIB_KEYS.forEach(function(k){if(o[k]!=null)c[k]=o[k]});CATALOG.push(c);BY[r]=c}if(BY[r]){if(!Array.isArray(o.k)&&('cl' in o||'cf' in o))BY[r].k=kFrom(BY[r]);normObj(BY[r])}});
 function saveLib(){try{localStorage.setItem(LIBK,JSON.stringify(LIB))}catch(_){}}
 /* ---- top-down symbols: drawn in local space, centered, front = +y (bottom) ---- */
 var INK='#3d3b36',SW=0.07;
@@ -1437,7 +1444,7 @@ function renderCats(){var q=($('#q').value||'').toLowerCase(),h='';
   list.forEach(function(i){h+='<button class="pi" data-r="'+i.r+'"><span>'+esc(i.n)+'</span><span>'+i.w+'×'+i.d+'</span></button>'});h+='</details>'});
  $('#cats').innerHTML=h}
 $('#q').oninput=function(){renderCats();if(detR)Array.prototype.forEach.call(document.querySelectorAll('.pi'),function(b){b.classList.toggle('on',b.dataset.r===detR)})};
-function place(r,x,y,rot){var c=BY[r];rot=(rot||0)%4;var sw=rot%2;snapshot();var it={u:uid(),r:r,kind:c.z?'room':'item',name:c.n.replace(/ \(\$[^)]*\)/,''),x:snap(x),y:snap(y),w:sw?c.d:c.w,d:sw?c.w:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',rot:rot};if(c.bi)it.bi={len:c.w,dep:c.d,a:null,b:null,o:rot};S.items.push(it);sel=it.u;setTool('sel');commit();return it.u}
+function place(r,x,y,rot){var c=BY[r];rot=(rot||0)%4;var sw=rot%2;snapshot();var it={u:uid(),r:r,kind:c.z?'room':'item',name:c.n.replace(/ \(\$[^)]*\)/,''),x:snap(x),y:snap(y),w:sw?c.d:c.w,d:sw?c.w:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',k:c.z?undefined:(c.k||kFrom(c)).slice(),rot:rot};if(c.bi)it.bi={len:c.w,dep:c.d,a:null,b:null,o:rot};S.items.push(it);sel=it.u;setTool('sel');commit();return it.u}
 /* analysis */
 function hit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b.y<a.y+a.d-1e-6}
 /* ---------- built-ins (counters, benches, shelving, walls): resizable, and counters can turn corners ----------
@@ -1470,7 +1477,7 @@ function biOutline(it){var b=biOf(it),L=b.len,D=b.dep,P=[];
 var BI_PLAINLEG={'kr-counter':'#f1eee8','l-barc':'#ead9b8','l-bar':'#ead9b8','m-bench':'#ead9b8','w-bench':'#ead9b8'};
 function biArt(it){var f=ICONS[it.r];if(!f)return '';var b=biOf(it),h='',pl=BI_PLAINLEG[it.r];function piece(lx,ly,len,rot){var w=biW(it,lx,ly),g=(rot&&pl)?iR(-len/2,-b.dep/2,len,b.dep,{fill:pl})+iL(-len/2,-b.dep/2+0.12,len/2,-b.dep/2+0.12,{stroke:DARK}):f(len,b.dep);h+='<g transform="translate('+w[0]+','+w[1]+') rotate('+((b.o*90+rot)%360)+')" pointer-events="none">'+g+'</g>'}
  piece(b.len/2,b.dep/2,b.len,0);if(b.a)piece(b.dep/2,b.a.s>0?b.dep+b.a.len/2:-b.a.len/2,b.a.len,-90);if(b.b)piece(b.len-b.dep/2,b.b.s>0?b.dep+b.b.len/2:-b.b.len/2,b.b.len,90);return h}
-function cr(it){var c=it.cl||0;if(it.cm!=='front')return {x:it.x-c,y:it.y-c,w:it.w+2*c,d:it.d+2*c};
+function cr(it){if(Array.isArray(it.k))return clrBox(it.x,it.y,it.w,it.d,it.k,it.rot||0);var c=it.cl||0;if(it.cm!=='front')return {x:it.x-c,y:it.y-c,w:it.w+2*c,d:it.d+2*c};
  switch((it.rot||0)%4){case 1:return {x:it.x-c,y:it.y,w:c,d:it.d};case 2:return {x:it.x,y:it.y-c,w:it.w,d:c};case 3:return {x:it.x+it.w,y:it.y,w:c,d:it.d};default:return {x:it.x,y:it.y+it.d,w:it.w,d:c}}}
 function frontEdge(it){switch((it.rot||0)%4){case 1:return [it.x,it.y,it.x,it.y+it.d];case 2:return [it.x,it.y,it.x+it.w,it.y];case 3:return [it.x+it.w,it.y,it.x+it.w,it.y+it.d];default:return [it.x,it.y+it.d,it.x+it.w,it.y+it.d]}}
 function conflicts(){var bad={},o=S.items.filter(function(i){return !isRoom(i)});o.forEach(function(a){var r=roomOf(a);if(!r||!fullyIn(a,r))bad[a.u]=1});
@@ -1649,8 +1656,8 @@ function renderInsp(){var it=sel&&find(sel),el=$('#insp');if(!it){el.className='
  $('#i-n').onchange=function(){snapshot();it.name=this.value;commit()};
  $('#i-w').onchange=function(){var v=+this.value;if(v>0){snapshot();if(isRoom(it)){var nr=limitToKids(resizeRect(it,'e',it.x+v,0,roomObs(it),1),'e',kidBounds(it),it);it.w=nr.w}else it.w=v;commit()}};
  $('#i-d').onchange=function(){var v=+this.value;if(v>0){snapshot();if(isRoom(it)){var nr=limitToKids(resizeRect(it,'s',0,it.y+v,roomObs(it),1),'s',kidBounds(it),it);it.d=nr.d}else it.d=v;commit()}};
- if($('#i-c'))$('#i-c').onchange=function(){var v=+this.value;if(v>=0){snapshot();it.cl=v;commit()}};
- if($('#i-cm'))$('#i-cm').onchange=function(){snapshot();it.cm=this.checked?'front':'all';commit()};
+ if($('#i-c'))$('#i-c').onchange=function(){var v=+this.value;if(v>=0){snapshot();it.cl=v;delete it.k;commit()}};
+ if($('#i-cm'))$('#i-cm').onchange=function(){snapshot();it.cm=this.checked?'front':'all';delete it.k;commit()};
  $('#i-r').onclick=function(){if(!it.lk)rotate(it)};
  Array.prototype.forEach.call(document.querySelectorAll('#insp .swc[data-c]'),function(b){b.onclick=function(){snapshot();it.col=b.dataset.c||'';commit()}});
  if($('#i-col'))$('#i-col').onchange=function(){snapshot();it.col=this.value;commit()};
@@ -2104,7 +2111,7 @@ function xpPush(r,info){var out={moves:{},why:'',stuck:null};if(!info.n||info.wh
   for(var d=0;d<=maxD&&!found;d+=0.5){var c=[],k;
    if(d===0)c.push([0,0]);else for(k=-d;k<=d;k+=0.5){c.push([k,-d],[k,d]);if(k>-d&&k<d)c.push([-d,k],[d,k])}
    c.sort(function(a,b){return a[0]*a[0]+a[1]*a[1]-b[0]*b[0]-b[1]*b[1]});
-   for(k=0;k<c.length;k++){var t={x:o.x+c[k][0],y:o.y+c[k][1],w:o.w,d:o.d,cl:o.cl,cm:o.cm,rot:o.rot,r:o.r};
+   for(k=0;k<c.length;k++){var t={x:o.x+c[k][0],y:o.y+c[k][1],w:o.w,d:o.d,cl:o.cl,cm:o.cm,k:o.k,rot:o.rot,r:o.r};
     if(!coveredBy(t,room))continue;if(fixed.some(function(b){return clash(t,b)}))continue;found=t;break}}
   if(!found){out.why='No room left for '+(o.name||'an object');out.stuck=o.u;return out}
   out.moves[o.u]=[found.x,found.y];fixed.push(found)}
@@ -2283,7 +2290,7 @@ function fit(){scale=minScale();cam.cx=S.lot.w/2;cam.cy=S.lot.d/2;render()}
 ['#lw','#ld'].forEach(function(id,i){$(id).onchange=function(){var v=+this.value;if(v>=10){snapshot();S.lot[i?'d':'w']=v;commit()}}});
 /* catalog: click = details, press-and-drag = place */
 var ghost=null,cdrag=null,detR=null;
-function mkGhost(r,rot){var c=BY[r];rot=(rot||0)%4;if(cdrag&&cdrag.mv&&c.bi&&cdrag.mv.it.r===r){var nb=biCopy(biOf(cdrag.mv.it));nb.o=rot;var gg=biGeom(nb);return {r:r,name:cdrag.mv.it.name,x:0,y:0,w:gg.w,d:gg.d,cl:0,cm:'all',rot:rot,z:false,bi:nb}}var sw=rot%2;return {r:r,name:c.n.replace(/ \(\$[^)]*\)/,''),x:0,y:0,w:sw?c.d:c.w,d:sw?c.w:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',rot:rot,z:!!c.z}}
+function mkGhost(r,rot){var c=BY[r];rot=(rot||0)%4;if(cdrag&&cdrag.mv&&c.bi&&cdrag.mv.it.r===r){var nb=biCopy(biOf(cdrag.mv.it));nb.o=rot;var gg=biGeom(nb);return {r:r,name:cdrag.mv.it.name,x:0,y:0,w:gg.w,d:gg.d,cl:0,cm:'all',rot:rot,z:false,bi:nb}}var sw=rot%2;return {r:r,name:c.n.replace(/ \(\$[^)]*\)/,''),x:0,y:0,w:sw?c.d:c.w,d:sw?c.w:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',k:c.z?undefined:(c.k||kFrom(c)).slice(),rot:rot,z:!!c.z}}
 function ghostHits(g){var cg=BY[g.r];if(cg&&cg.ov)return false;return S.items.some(function(o){if(isRoom(o))return false;var co=cat(o);if(co&&co.ov)return false;return oHit(g,o)})}
 /* best spot for an object in room r near (px,py) at a given rotation: clamp first, then nearest free spot */
 function spotIn(r,rot,px,py){var g=mkGhost(cdrag.r,rot),B=roomBox(r),sh=!!r.ex;if(g.w>B.w+1e-6||g.d>B.d+1e-6)return null;
@@ -2430,7 +2437,7 @@ window.cave={
  load:function(s){snapshot();S=s;sel=null;commit();fit()},
  lot:function(w,d){snapshot();S.lot={w:w,d:d};commit();fit()},
  room:function(name,x,y,w,d){snapshot();var it={u:uid(),r:null,kind:'room',name:name,x:x,y:y,w:w,d:d,cl:0};S.items.push(it);commit();return it.u},
- add:function(ref,x,y,o){var c=BY[ref];if(!c)throw new Error('unknown ref '+ref);snapshot();var it={u:uid(),r:ref,kind:c.z?'room':'item',name:c.n.replace(/ \(\$[^)]*\)/,''),x:x,y:y,w:c.w,d:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',rot:0};if(o)for(var k in o)it[k]=o[k];S.items.push(it);commit();return it.u},
+ add:function(ref,x,y,o){var c=BY[ref];if(!c)throw new Error('unknown ref '+ref);snapshot();var it={u:uid(),r:ref,kind:c.z?'room':'item',name:c.n.replace(/ \(\$[^)]*\)/,''),x:x,y:y,w:c.w,d:c.d,cl:c.z?0:(c.cl||0),cm:c.cf?'front':'all',k:c.z?undefined:(c.k||kFrom(c)).slice(),rot:0};if(o)for(var k in o)it[k]=o[k];S.items.push(it);commit();return it.u},
  update:function(u,props){var it=find(u);if(!it)throw new Error('no '+u);snapshot();for(var k in props)it[k]=props[k];commit()},
  remove:function(u){remove(u)},
  find:function(q){q=q.toLowerCase();return S.items.filter(function(i){return i.name.toLowerCase().indexOf(q)>=0||i.u===q})},
@@ -2486,9 +2493,9 @@ function libForm(c){var isNew=!c;c=c||{n:'',c:'Creator / Maker',w:3,d:3,cl:2,cf:
  h+='</div>';
  if(n)h+='<div class="fnote">'+n+' placed on the plan — saving updates '+(n===1?'it':'them')+' too.</div>';
  h+='<div class="fnote">Edits are saved in this browser.</div></div>';return h}
-function libUpdatePlaced(r,oldName){var c=BY[r];S.items.forEach(function(i){if(i.r!==r)return;var sw=(i.rot||0)%2,nw=sw?c.d:c.w,nd=sw?c.w:c.d,cx=i.x+i.w/2,cy=i.y+i.d/2;i.x=snap(cx-nw/2);i.y=snap(cy-nd/2);i.w=nw;i.d=nd;i.cl=c.cl||0;i.cm=c.cf?'front':'all';if(i.name===oldName)i.name=c.n})}
+function libUpdatePlaced(r,oldName){var c=BY[r];S.items.forEach(function(i){if(i.r!==r)return;var sw=(i.rot||0)%2,nw=sw?c.d:c.w,nd=sw?c.w:c.d,cx=i.x+i.w/2,cy=i.y+i.d/2;i.x=snap(cx-nw/2);i.y=snap(cy-nd/2);i.w=nw;i.d=nd;i.cl=c.cl||0;i.cm=c.cf?'front':'all';i.k=(c.k||kFrom(c)).slice();if(i.name===oldName)i.name=c.n})}
 function libRead(){var v=function(id){return $('#'+id).value},num=function(id,mn){var x=parseFloat(v(id));return isFinite(x)&&x>=mn?x:null};
- var o={n:v('lf-n').trim(),c:v('lf-c'),w:num('lf-w',0.5),d:num('lf-d',0.5),cl:num('lf-cl',0)||0,cf:v('lf-cf')==='1'?1:null,est:$('#lf-est').checked?1:null,no:v('lf-no').trim()||null};
+ var o={n:v('lf-n').trim(),c:v('lf-c'),w:num('lf-w',0.5),d:num('lf-d',0.5),cl:num('lf-cl',0)||0,cf:v('lf-cf')==='1'?1:null,est:$('#lf-est').checked?1:null,no:v('lf-no').trim()||null};o.k=kFrom(o);
  if(!o.n){flash('Give it a name');return null}if(o.w==null||o.d==null){flash('Width and depth must be at least 0.5 ft');return null}
  o.p=$('#lf-hp').checked?[+v('lf-v'),num('lf-wt',0)||0,num('lf-a',5)||20,$('#lf-dd').checked?1:0]:null;return o}
 document.addEventListener('click',function(e){var t=e.target;if(!t.closest||!t.closest('#lib'))return;
