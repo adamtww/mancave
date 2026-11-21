@@ -969,11 +969,12 @@ function hit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b
 function inside(r,W,D){return r.x>=-1e-6&&r.y>=-1e-6&&r.x+r.w<=W+1e-6&&r.y+r.d<=D+1e-6}
 function ok(b,c,placed,W,D){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
 // back 0: it can stand against a wall; no clearance at all: it goes anywhere
-function kind(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'flex';return k[1]?'center':'wall'}
+function kind(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'flex';return (k[1]<=1&&k[0]>=k[1])?'wall':'center'}
 var WALLROT=[0,1,2,3]; // top wall faces down (0), right faces left (1), bottom faces up (2), left faces right (3)
-function wallSpots(it,W,D){var o=[];for(var s=0;s<4;s++){var rot=WALLROT[s],m=dims(it,rot);
-  if(s===0||s===2){var y=s===0?0:D-m.d;for(var x=0;x+m.w<=W+1e-6;x+=.5)o.push({x:x,y:y,rot:rot,t:s===0?x:W+D+(W-x-m.w)})}
-  else{var x2=s===1?W-m.w:0;for(var y2=0;y2+m.d<=D+1e-6;y2+=.5)o.push({x:x2,y:y2,rot:rot,t:s===1?W+y2:2*W+D+(D-y2-m.d)})}}return o}
+// spots with the object's back to a wall; its own clear zone (including any small gap behind it) stays inside the room
+function wallSpots(it,W,D){var o=[],k=kOf(defOf(it));for(var s=0;s<4;s++){var rot=WALLROT[s],m=dims(it,rot),b=clrBox(0,0,m.w,m.d,k,rot),L=-b.x,T=-b.y,R=b.w-m.w-L,B=b.d-m.d-T;
+  if(s===0||s===2){var y=s===0?T:D-m.d-B;for(var x=L;x+m.w+R<=W+1e-6;x+=.5)o.push({x:x,y:y,rot:rot,t:s===0?x:W+D+(W-x-m.w)})}
+  else{var x2=s===1?W-m.w-R:L;for(var y2=T;y2+m.d+B<=D+1e-6;y2+=.5)o.push({x:x2,y:y2,rot:rot,t:s===1?W+y2:2*W+D+(D-y2-m.d)})}}return o}
 function gridSpots(it,W,D){var o=[];[0,1].forEach(function(rot){var m=dims(it,rot);for(var y=0;y+m.d<=D+1e-6;y+=.5)for(var x=0;x+m.w<=W+1e-6;x+=.5)o.push({x:x,y:y,rot:rot})});return o}
 function center(b){return {x:b.x+b.w/2,y:b.y+b.d/2}}
 // lay the whole room out; returns placements or the first object that didn't fit
