@@ -130,7 +130,8 @@ body.touch .lcard{touch-action:pan-y}
 .dhint .rm{flex:none;width:34px;height:24px;border:2px solid #2b2a27;border-radius:3px;background:#faf9f6;position:relative;box-sizing:border-box}
 .dhint .rm:after{content:'';position:absolute;right:4px;bottom:3px;width:9px;height:8px;border:1.5px dashed #3f8a4f;border-radius:2px;background:rgba(63,138,79,.15)}
 .lcard .lbdg .rz{background:#eef3fd!important;color:#2f6fed!important}
-.pg{border-bottom:1px solid #f0ede6}.pg summary{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13.5px;cursor:pointer;list-style:none}.pg summary::-webkit-details-marker{display:none}
+.pg{border-bottom:1px solid #f0ede6;user-select:none;-webkit-user-select:none}.sw2{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
+g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13.5px;cursor:pointer;list-style:none}.pg summary::-webkit-details-marker{display:none}
 .pg summary::before{content:"";width:6px;height:6px;border-right:2px solid #8a867c;border-bottom:2px solid #8a867c;transform:rotate(-45deg);transition:transform .15s;flex:0 0 6px;margin:0 2px}.pg[open] summary::before{transform:rotate(45deg)}
 .pg summary span{flex:1;color:var(--muted)}.pg summary b{font-weight:600;text-align:right}
 .pgl{display:flex;flex-direction:column;gap:6px;padding:0 0 8px 16px}.pc{display:flex;flex-direction:column;border-left:2px solid #e4e0d6;padding-left:8px}
@@ -1188,15 +1189,18 @@ function converter(){var hp=P.items.map(function(it){var s=pspec(defOf(it));retu
  var big=Math.max.apply(null,hp),tot=hp.reduce(function(a,b){return a+b},0),need=Math.max(big*1.5,tot),size=HPS.filter(function(v){return v>=need})[0]||Math.ceil(need/25)*25;
  return {n:hp.length,hp:size,lo:Math.round((500+100*size)/100)*100,hi:Math.round((1000+200*size)/100)*100}}
 var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
-function drawPower(k){if(!P.pw||P.pw.show===false)return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
+function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
+ if(grp){P.items.forEach(function(it){var oid=grp.items[it.u];if(!oid)return;var b=ibox(it),col=grp.out[oid],p=opos(outBy(oid)),pd=3*k;
+   g+='<rect x="'+(b.x-pd)+'" y="'+(b.y-pd)+'" width="'+(b.w+2*pd)+'" height="'+(b.d+2*pd)+'" rx="'+(2*k)+'" fill="none" stroke="'+col+'" stroke-width="'+(2.2*k)+'" pointer-events="none"/>';
+   lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#fff" stroke-width="'+(4*k)+'" stroke-linecap="round" pointer-events="none"/><line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="'+col+'" stroke-width="'+(2*k)+'" stroke-dasharray="'+(6*k)+' '+(4*k)+'" stroke-linecap="round" pointer-events="none"/><circle cx="'+(b.x+b.w/2)+'" cy="'+(b.y+b.d/2)+'" r="'+(3*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+k+'" pointer-events="none"/>'})}
  if(selIt){var st=pstat(selIt);if(st&&st.o)hiO[st.o.id]=1}if(selO)hiO[selO]=1;
  // lines from the selected outlet (or the selected object's outlet) to what it powers
  Object.keys(hiO).forEach(function(id){var o=outBy(id);if(!o)return;var p=opos(o);
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+REACH+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines;
- P.pw.outlets.forEach(function(o){var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?9*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=tCol(o),r=6*k,on=!!hiO[o.id];
-  g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
+ P.pw.outlets.forEach(function(o){var inG=grp&&grp.out[o.id];if(grp&&!inG&&P.pw.show===false)return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?9*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+  g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
   else{g+=(o.s<0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"':'<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(2.5*k)+'"')+' fill="'+(o.gp?'#fff':col)+'" stroke="'+(o.gp?col:'#fff')+'" stroke-width="'+(1.4*k)+'"/>';
@@ -1210,16 +1214,20 @@ function drawPower(k){if(!P.pw||P.pw.show===false)return '';var g='',W=P.room.w,
  P.items.forEach(function(it){var s=pstat(it);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
   g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(s.lv==='red'?'#d6453d':'#e0a21f')+'" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
  return g}
-var pwOpen={};
+var pwOpenK=null,CCOL=['#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#854F0B','#3B6D11','#A32D2D'];
+function gkey(c){var o=outBy(c.out[0]);return c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared')}
+// the opened group: its circuits (each with a colour), their outlets and the objects on them
+function pwGroup(){if(!P.pw||!pwOpenK)return null;var g={col:{},out:{},items:{}},i=0;P.pw.circ.forEach(function(c){if(gkey(c)!==pwOpenK)return;var col=CCOL[i++%CCOL.length];g.col[c.id]=col;c.out.forEach(function(id){g.out[id]=col})});
+ if(!i)return null;P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&g.out[oid])g.items[it.u]=oid});return g}
 // circuits grouped by type; each group opens to show its circuits and what's plugged into them
-function pwSummary(){var by={},order=[];P.pw.circ.forEach(function(c){var o=outBy(c.out[0]),key=c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared');
+function pwSummary(){var by={},order=[],grp=pwGroup();P.pw.circ.forEach(function(c){var o=outBy(c.out[0]),key=gkey(c);
   if(!by[key]){by[key]={t:c.ty,o:o,ded:c.ded,gp:c.gp,list:[],n:0};order.push(key)}by[key].list.push(c);by[key].n+=c.out.length});
  order.sort(function(a,b){return (a==='gp')-(b==='gp')||(a<b?-1:1)});
  return order.map(function(k){var g=by[k],nc=g.list.length,nm=g.gp?'General-purpose 120V 20A':g.t==='hw'?'Wired in · '+tName('hw',g.o).replace(' wired connection',''):tName(g.t,g.o).replace(' outlet','')+(g.ded?' · own circuit':' · shared');
-  var h='<details class="pg" data-k="'+esc(k)+'"'+(pwOpen[k]?' open':'')+'><summary><span>'+esc(nm)+'</span><b>'+nc+' circuit'+(nc>1?'s':'')+(g.n>nc?' · '+g.n+' outlets':'')+'</b></summary><div class="pgl">';
+  var h='<details class="pg" data-k="'+esc(k)+'"'+(pwOpenK===k?' open':'')+'><summary><span>'+esc(nm)+'</span><b>'+nc+' circuit'+(nc>1?'s':'')+(g.n>nc?' · '+g.n+' outlets':'')+'</b></summary><div class="pgl">';
   g.list.forEach(function(c){var o0=outBy(c.out[0]),cap=(o0.ph===3?1.732:1)*o0.V*o0.A*CAP80,w=circLoad(c),its=[];
    P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&c.out.indexOf(oid)>=0)its.push(it)});
-   h+='<div class="pc"><button class="pch" data-o="'+c.out[0]+'"><span>C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</small>':'')+'</button>';
+   var cc=grp&&grp.col[c.id];h+='<div class="pc"'+(cc?' style="border-left-color:'+cc+'"':'')+'><button class="pch" data-o="'+c.out[0]+'"><span>'+(cc?'<i class="sw2" style="background:'+cc+'"></i>':'')+'C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</small>':'')+'</button>';
    h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+esc(defOf(it).n)+'</button>'}).join(''):'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
    h+='</div>'});
   return h+'</div></details>'}).join('')}
@@ -1277,7 +1285,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=drawPower(k);
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=drawPower(k);
  $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length;$('#hint').textContent=P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&P.pw.show!==false?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
@@ -1371,7 +1379,7 @@ function side(){var W=P.room.w,D=P.room.d,h='';
  var pb=$('#pw-build');if(pb)pb.onclick=function(){push();buildPower();selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
  var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
  var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
- S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){pwOpen[d.dataset.k]=d.open}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
+ S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
  var ps2=$('#pw-show');if(ps2)ps2.onchange=function(){P.pw.show=this.checked;if(!this.checked)selO=null;persist();render()};
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
