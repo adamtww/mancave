@@ -1109,14 +1109,34 @@ function remove(u){push();P.items=P.items.filter(function(i){return i.u!==u});if
 function scaled(items,W,D,W2,D2){var h=function(v){return Math.round(v*2)/2};return items.map(function(it){var m=dims(it,it.rot),o=Object.assign({},it,{pin:false});if(!it.placed)return o;
  o.x=it.x+m.w>=W-1e-6?W2-m.w:it.x<=1e-6?0:h((it.x+m.w/2)*W2/W-m.w/2);o.y=it.y+m.d>=D-1e-6?D2-m.d:it.y<=1e-6?0:h((it.y+m.d/2)*D2/D-m.d/2);
  o.x=Math.max(0,Math.min(W2-m.w,o.x));o.y=Math.max(0,Math.min(D2-m.d,o.y));return o})}
+// Resizing without breaking up arrangements: shrinking removes empty strips of floor (the widest gaps first,
+// keeping a little breathing room where it can); growing adds the new space in the widest gap. Groups keep
+// their shape and pieces against a moving wall go with it. Returns maps for both axes, or null if it can't.
+function squeezeAxis(spans,L,L2){var S=.5,n=Math.round(L/S),cov=new Array(n).fill(false);
+ spans.forEach(function(s){for(var i=Math.max(0,Math.floor(s[0]/S+1e-6));i<Math.min(n,Math.ceil(s[1]/S-1e-6));i++)cov[i]=true});
+ var gaps=[],i=0;while(i<n){if(cov[i]){i++;continue}var j=i;while(j<n&&!cov[j])j++;gaps.push({a:i,b:j,edge:i===0||j===n});i=j}
+ var cut=new Array(n).fill(0),ins=null,need=Math.round((L-L2)/S);
+ if(need<0){var g=gaps.filter(function(g){return !g.edge}).sort(function(a,b){return (b.b-b.a)-(a.b-a.a)})[0]||gaps.filter(function(g){return g.b===n})[0];ins={at:g?(g.a+g.b)/2*S:L,len:L2-L}}
+ else if(need>0){var order=gaps.slice().sort(function(a,b){return (b.edge-a.edge)||((b.b-b.a)-(a.b-a.a))}),
+   take=function(keep){order.forEach(function(g){if(need<=0)return;var free=[];for(var q=g.a;q<g.b;q++)if(!cut[q])free.push(q);var res=g.edge?0:Math.min(free.length,Math.round(keep/S)),c=Math.min(need,free.length-res);if(c<=0)return;
+    var st=Math.floor((free.length-c)/2);for(var t=st;t<st+c;t++)cut[free[t]]=1;need-=c})};
+  take(3);take(1);take(0);if(need>0)return null}
+ var pre=[0];for(var q=0;q<n;q++)pre.push(pre[q]+cut[q]);
+ return function(v){if(ins)return v>=ins.at-1e-6?v+ins.len:v;var c=Math.max(0,Math.min(n,Math.round(v/S)));return v-pre[c]*S}}
+function squeezed(items,W,D,w,d){var sx=[],sy=[];items.forEach(function(it){if(!it.placed)return;var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},c=clr(defOf(it),b,it.rot)||b;
+  sx.push([Math.min(b.x,c.x),Math.max(b.x+b.w,c.x+c.w)]);sy.push([Math.min(b.y,c.y),Math.max(b.y+b.d,c.y+c.d)])});
+ var fx=w===W?function(v){return v}:squeezeAxis(sx,W,w),fy=d===D?function(v){return v}:squeezeAxis(sy,D,d);if(!fx||!fy)return null;
+ return {fx:fx,fy:fy,items:items.map(function(it){var o=Object.assign({},it);if(!it.placed)return o;var m=dims(it,it.rot);
+  o.x=it.x+m.w>=W-1e-6?w-m.w:fx(it.x);o.y=it.y+m.d>=D-1e-6?d-m.d:fy(it.y);o.x=Math.max(0,Math.min(w-m.w,o.x));o.y=Math.max(0,Math.min(d-m.d,o.y));return o})}}
 function setSize(w,d){if(!(w>=2&&d>=2&&w<=300&&d<=300)){toast('Use a size between 2 and 300 ft');return}
- var W=P.room.w,D=P.room.d,base=scaled(P.items,W,D,w,d),free=P.items.map(function(it){return Object.assign({},it,{pin:false})}),r,how;
- r=layout(base,w,d,true);how=0;
+ var W=P.room.w,D=P.room.d,sq=squeezed(P.items,W,D,w,d),base=scaled(P.items,W,D,w,d),free=P.items.map(function(it){return Object.assign({},it,{pin:false})}),r,how,mapO=null;
+ if(sq){r=layout(sq.items,w,d,true);if(r.pos&&sq.items.every(function(it){var q=r.pos[it.u];return !it.placed||(q&&q.x===it.x&&q.y===it.y)}))mapO=sq;else r={}}
+ if(!r||!r.pos)r=layout(base,w,d,true);how=0;
  if(!r.pos){r=layout(base,w,d,2);how=1}
  if(!r.pos){r=layout(free,w,d);how=2}
  if(!r.pos){toast((w*d<W*D?'Too small: ':'')+why(r).replace('No room for','no room for'));render();return}
  push();var moved=0;P.items.forEach(function(it){var q=r.pos[it.u];if(q&&(q.x!==it.x||q.y!==it.y||q.rot!==it.rot))moved++});
- P.room.w=w;P.room.d=d;apply(r);if(P.pw)P.pw.outlets.forEach(function(o){if(o.s===0||o.s===2)o.a=Math.max(.5,Math.min(w-.5,h2(o.a*w/W)));else if(o.s===1||o.s===3)o.a=Math.max(.5,Math.min(d-.5,h2(o.a*d/D)));else{o.x=h2(o.x*w/W);o.y=h2(o.y*d/D)}});if(how===2)P.items.forEach(function(it){it.pin=false});lastFail=null;persist();render();
+ P.room.w=w;P.room.d=d;apply(r);if(P.pw)P.pw.outlets.forEach(function(o){var fx=mapO?mapO.fx:function(v){return v*w/W},fy=mapO?mapO.fy:function(v){return v*d/D};if(o.s===0||o.s===2)o.a=Math.max(.5,Math.min(w-.5,h2(fx(o.a))));else if(o.s===1||o.s===3)o.a=Math.max(.5,Math.min(d-.5,h2(fy(o.a))));else{o.x=h2(fx(o.x));o.y=h2(fy(o.y))}});if(how===2)P.items.forEach(function(it){it.pin=false});lastFail=null;persist();render();
  if(w*d<W*D||how)toast(how===2?'Everything was rearranged to fit, and pins were released':how===1?'Things were pushed around to fit':'Resized to '+fmt(w)+' × '+fmt(d)+' ft')}
 function setPin(u,on){var it=byU(u);if(!it)return;push();it.pin=on;relayout();persist();render()}
 // turn a quarter left (-1) or right (+1) about its centre; if that spot is blocked, nudge it into the nearest free space close by
