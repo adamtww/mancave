@@ -56,7 +56,10 @@ button{font:inherit;cursor:pointer}
 g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:none}g.obj.pop{animation:spop .35s ease-out}@keyframes spop{0%{opacity:.15}100%{opacity:1}}
 .lgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
-.lcard{position:relative}
+.lcard{position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}.lcard.lifting{opacity:.45}
+.ldchip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9d6ce;border-radius:12px;padding:6px 10px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:13px;font-weight:600;color:#26251f;max-width:220px;transition:opacity .12s}
+.ldchip .lart{width:40px;height:40px;flex:0 0 40px}.ldchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ldchip.over{opacity:.0}
+body.ldragging,body.ldragging *{cursor:grabbing!important}
 dialog{border:0;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);max-width:min(560px,94vw);width:100%;color:var(--ink)}
 dialog::backdrop{background:rgba(30,28,24,.35)}
 .dlg{padding:18px;display:flex;flex-direction:column;gap:12px}.dlg h2{margin:0;font-size:18px}
@@ -160,7 +163,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
    <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
-    <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted">Click an object to add it. It finds its own spot.</p></div>
+    <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted" id="libtip">Click an object to add it. It finds its own spot. Or drag it onto the plan to place it yourself.</p></div>
    <div class="bd" id="lib"></div>
   </aside>
   <div class="stage"><svg id="sv" aria-label="Room plan"></svg><div class="ur"><button class="btn" id="b-fit" title="Show the whole room (double-click empty floor)" style="display:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Fit</button><button class="btn" id="b-undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>Undo</button><button class="btn" id="b-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg>Redo</button></div></div>
@@ -1296,10 +1299,11 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
 var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
 var TOUCH=false;try{TOUCH=matchMedia('(pointer: coarse)').matches||(navigator.maxTouchPoints>0&&!matchMedia('(pointer: fine)').matches)}catch(_){}
-document.addEventListener('pointerdown',function(e){var t=e.pointerType!=='mouse';if(t===TOUCH)return;TOUCH=t;var k=document.querySelector('#howto .hkeys');if(k)k.innerHTML=howRows()},true);
+document.addEventListener('pointerdown',function(e){var t=e.pointerType!=='mouse';if(t===TOUCH)return;TOUCH=t;var k=document.querySelector('#howto .hkeys');if(k)k.innerHTML=howRows();libTip()},true);
+function libTip(){var l=document.getElementById('libtip');if(l)l.textContent=TOUCH?'Tap an object to add it. It finds its own spot. Or hold and drag it onto the plan to place it yourself.':'Click an object to add it. It finds its own spot. Or drag it onto the plan to place it yourself.'}
 function howRows(){var kb=function(t){return '<span class="kb">'+t+'</span>'},row=function(k,t){return '<span class="hk">'+k+'</span><span>'+t+'</span>'},pw=!!P.pw;
- if(TOUCH)return row(kb('Tap'),'Add an object from the list')+row(kb('Drag'),'Move an object')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('↺')+kb('↻'),'Turn the selected one')+row(kb('Remove'),'Remove the selected one')+row(kb('Pinch'),'Zoom')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Fit'),'See the whole room again')+(pw?row(kb('Tap outlet'),'See its circuit and what it powers'):'')+row(kb('Tap floor'),'Deselect');
- return row(kb('Click'),'Add an object from the list')+row(kb('Drag'),'Move an object')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('R')+kb('Shift R'),'Turn right / left')+row(kb('Del'),'Remove the selected one')+row(kb('Scroll'),'Zoom (pinch on a trackpad)')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Double-click'),'Fit the whole room')+(pw?row(kb('Click outlet'),'See its circuit and what it powers'):'')+row(kb('Esc'),'Deselect')}
+ if(TOUCH)return row(kb('Tap'),'Add an object; it finds its own spot')+row(kb('Hold')+kb('Drag'),'Place it yourself on the plan')+row(kb('Drag'),'Move an object on the plan')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('↺')+kb('↻'),'Turn the selected one')+row(kb('Remove'),'Remove the selected one')+row(kb('Pinch'),'Zoom')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Fit'),'See the whole room again')+(pw?row(kb('Tap outlet'),'See its circuit and what it powers'):'')+row(kb('Tap floor'),'Deselect');
+ return row(kb('Click'),'Add an object; it finds its own spot')+row(kb('Drag'),'Place it yourself on the plan')+row(kb('Drag'),'Move an object on the plan')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('R')+kb('Shift R'),'Turn right / left')+row(kb('Del'),'Remove the selected one')+row(kb('Scroll'),'Zoom (pinch on a trackpad)')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Double-click'),'Fit the whole room')+(pw?row(kb('Click outlet'),'See its circuit and what it powers'):'')+row(kb('Esc'),'Deselect')}
 // "How to use the plan": one line, opens to the controls
 function howTo(){return '<details class="howto" id="howto"'+(howOpen?' open':'')+'><summary><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f5b52" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg><span>How to Use</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a867c" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="hkeys">'+howRows()+'</div></details>'}
 function hintTxt(){return P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&P.pw.show!==false?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
@@ -1358,9 +1362,45 @@ function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
   if(open)h+='<div class="lgrid">'+list.map(function(i){return card(i,g.col)}).join('')+'</div>';h+='</div>'});
  $('#lib').innerHTML=h||'<p class="muted">No objects match.</p>';
  $('#lib').querySelectorAll('.lsh').forEach(function(b){b.onclick=function(){openCats[b.dataset.c]=!openCats[b.dataset.c];renderLib()}});
- $('#lib').querySelectorAll('.lcard').forEach(function(b){b.onclick=function(){add(b.dataset.r)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();add(b.dataset.r)}};b.oncontextmenu=function(e){e.preventDefault();editObj(b.dataset.r)}});markLib()}
+ $('#lib').querySelectorAll('.lcard').forEach(function(b){b.onclick=function(){if(ldCard===b&&Date.now()-ldClick<400)return;add(b.dataset.r)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();add(b.dataset.r)}};b.oncontextmenu=function(e){e.preventDefault();if(ldrag||Date.now()-ldClick<800||e.pointerType==='touch'||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents))return;editObj(b.dataset.r)}});markLib()}
 function markLib(){var cnt={};P.items.forEach(function(i){cnt[i.r]=(cnt[i.r]||0)+1});document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('sel',!!cnt[b.dataset.r])})}
-$('#q').oninput=function(){q=this.value;renderLib()};
+$('#q').oninput=function(){q=this.value;renderLib()};libTip();
+/* ---------------- drag from the library: hold and drag a card onto the plan to place it by hand ----------------
+   Mouse: press and drag. Touch: hold for a moment, then drag (a quick swipe still scrolls the list).
+   It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */
+var ldrag=null,ldClick=0,ldCard=null;
+function ldCancel(){if(!ldrag)return;clearTimeout(ldrag.timer);if(ldrag.chip)ldrag.chip.remove();if(ldrag.card)ldrag.card.classList.remove('lifting');ghost(null);document.body.classList.remove('ldragging');ldrag=null}
+function ldStart(){var d=ldrag;d.started=true;d.timer=null;var c=LIB[d.r];d.it={u:'__new',r:d.r,x:0,y:0,rot:0};d.obs=others(d.it);
+ d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}
+ var ch=document.createElement('div');ch.className='ldchip';ch.innerHTML='<div class="lart">'+libArt(c,getComputedStyle(d.card).getPropertyValue('--c')||'#888')+'</div><span>'+esc(c.n)+'</span>';document.body.appendChild(ch);d.chip=ch}
+function ldOver(e){var r=sv.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
+function ldMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';
+ if(!ldOver(e)){d.spot=null;d.chip.classList.remove('over');ghost(null);return}d.chip.classList.add('over');
+ var p=toFt(e),W=P.room.w,D=P.room.d,it=d.it,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr,rot=0,m,x,y;
+ for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
+ if(side>=0){rot=wallTurn(it,side);m=dims(it,rot);x=side===3?0:side===1?W-m.w:Math.round((p.x-m.w/2)*2)/2;y=side===0?0:side===2?D-m.d:Math.round((p.y-m.d/2)*2)/2}
+ else{m=dims(it,0);x=Math.round((p.x-m.w/2)*2)/2;y=Math.round((p.y-m.d/2)*2)/2}
+ x=Math.max(0,Math.min(W-m.w,x));y=Math.max(0,Math.min(D-m.d,y));
+ if(m.w>W+1e-6||m.d>D+1e-6){d.spot=null;ghost(null);return}
+ d.rot=rot;d.spot=nearestFree(it,x,y,d.obs,rot);var k=1/scale(),t=Object.assign({},it,{rot:rot}),exact=d.spot&&d.spot.x===x&&d.spot.y===y;
+ G.ghost.innerHTML='<g transform="translate('+x+' '+y+')" opacity="'+(exact?.92:.45)+'" pointer-events="none">'+objInner(t,k)+'</g>'+(d.spot&&!exact?'<rect x="'+d.spot.x+'" y="'+d.spot.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>':'')}
+function ldDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e))return;
+ if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':'No free spot for it there');return}
+ var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
+ if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
+ hist.push(before);fut=[];sel=it.u;selO=null;lastFail=null;persist();render();pop(it.u)}
+$('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0||ldrag)return;
+ ldrag={r:b.dataset.r,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
+ if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
+window.addEventListener('pointermove',function(e){var d=ldrag;if(!d)return;var dist=Math.hypot(e.clientX-d.sx,e.clientY-d.sy);
+ if(!d.started){if(d.touch){if(dist>10)ldCancel()}else if(dist>6)ldStart();if(!ldrag||!ldrag.started)return}
+ e.preventDefault();ldMove(e)},{passive:false});
+window.addEventListener('pointerup',function(e){if(!ldrag)return;if(!ldrag.started){ldCancel();return}ldDrop(e)});
+window.addEventListener('pointercancel',function(){if(ldrag&&!ldrag.started)ldCancel()});
+// once a held card is lifted, stop the list from scrolling under the finger
+window.addEventListener('touchmove',function(e){if(ldrag&&ldrag.started)e.preventDefault()},{passive:false});
+window.addEventListener('keydown',function(e){if(e.key==='Escape'&&ldrag)ldCancel()});
+
 
 /* ---------------- right: room, requirements, objects ---------------- */
 var ICO={power:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',water:'<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',vent:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',gas:'<rect x="8" y="6" width="8" height="15" rx="3"/><path d="M10 3h4v3h-4z"/>',ceil:'<path d="M4 4h16M12 7v13M9 10l3-3 3 3M9 17l3 3 3-3"/>',cool:'<path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/>',note:'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>'};
