@@ -1214,7 +1214,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))retu
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+REACH+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines;
- P.pw.outlets.forEach(function(o){var inG=grp&&grp.out[o.id];if(grp&&!inG&&P.pw.show===false)return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?9*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){var inG=grp&&grp.out[o.id];if(grp&&!inG&&P.pw.show===false)return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
@@ -1222,7 +1222,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))retu
    var dot=o.gp?col:'#fff';if(o.ty.slice(0,3)==='120'){g+='<rect x="'+(cx-2.6*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><rect x="'+(cx+1.3*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><circle cx="'+cx+'" cy="'+(cy+2*k)+'" r="'+(.9*k)+'" fill="'+dot+'"/>'}
    else if(o.ty.slice(0,2)==='3p'){[[-2.4,-1.6],[2.4,-1.6],[0,2.4]].forEach(function(d){g+='<circle cx="'+(cx+d[0]*k)+'" cy="'+(cy+d[1]*k)+'" r="'+(1.1*k)+'" fill="'+dot+'"/>'})}
    else g+='<rect x="'+(cx-3*k)+'" y="'+(cy-.8*k)+'" width="'+(6*k)+'" height="'+(1.6*k)+'" fill="'+dot+'"/>'}
-  if(big||on){var lx=cx+n[0]*12*k,ly=cy+n[1]*12*k+(n[1]?3.5*k:3.5*k),anc=n[0]>0?'start':n[0]<0?'end':'middle';if(!n[0]&&!n[1]){ly=cy+r+11*k}else if(!n[0]){lx=cx;ly=n[1]>0?cy+r+11*k:cy-r-5*k}else{lx=cx+n[0]*(r+4*k)}
+  if(big||on){var m=[-n[0],-n[1]],lx=cx,ly=cy,anc=m[0]>0?'start':m[0]<0?'end':'middle';if(!m[0]&&!m[1]){ly=cy+r+11*k}else if(!m[0]){ly=m[1]>0?cy+r+11*k:cy-r-5*k}else{lx=cx+m[0]*(r+4*k);ly=cy+3.5*k}
    g+='<text x="'+lx+'" y="'+ly+'" text-anchor="'+anc+'" font-size="'+(9.5*k)+'" font-weight="600" fill="'+(o.gp?'#4a76b8':col)+'" stroke="#fff" stroke-width="'+(2.6*k)+'" paint-order="stroke" pointer-events="none">'+(o.gp?'':tShort(o.ty,o)+' ')+'C'+o.c+'</text>'}
   g+='</g>'});
  // objects that aren't powered (red) or need attention (amber)
@@ -1273,7 +1273,8 @@ function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLo
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
 // view: z = zoom (1 = whole room fits), cx/cy = centre in feet (null = room centre)
 var V={z:1,cx:null,cy:null};
-function fitVb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
+function dimOff(){var o={t:0,l:0};if(!P.pw||P.pw.show===false)return o;var big=scale()>=16;P.pw.outlets.forEach(function(q){if(q.s===0)o.t=Math.max(o.t,big?30:16);if(q.s===3)o.l=Math.max(o.l,big?14+((q.gp?0:tShort(q.ty,q).length+1)+String(q.c).length+1)*5.8:16)});return o}
+function fitVb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12)+(P.pw&&P.pw.show!==false?Math.max(3.5,Math.max(P.room.w,P.room.d)*.08):0);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
 function zoomed(){return Math.abs(V.z-1)>1e-3||V.cx!=null}
 function vb(){var b=fitVb();if(!zoomed())return b;var w=b.w/V.z,h=b.h/V.z,cx=V.cx==null?b.x+b.w/2:V.cx,cy=V.cy==null?b.y+b.h/2:V.cy;return {x:cx-w/2,y:cy-h/2,w:w,h:h}}
 function setVb(){var v=vb();sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h)}
@@ -1282,10 +1283,10 @@ function zoomAt(x,y,f){var p0=toFt({clientX:x,clientY:y});clampView();V.z=Math.m
 function panBy(dx,dy){clampView();var k=scale();V.cx-=dx/k;V.cy-=dy/k;clampView();render()}
 function fitView(quiet){V.z=1;V.cx=null;V.cy=null;if(!quiet)render()}
 function scale(){var r=sv.getBoundingClientRect(),v=vb();return Math.min(r.width/v.w,r.height/v.h)||10}
-function drawRoom(){var v=vb(),W=P.room.w,D=P.room.d,k=1/scale(),g='';sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h);
+function drawRoom(){var v=vb(),W=P.room.w,D=P.room.d,k=1/scale(),g='',dOff=dimOff();sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h);
  g+='<rect x="0" y="0" width="'+W+'" height="'+D+'" fill="#fbfaf7"/>';for(var x=1;x<W;x++)g+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="'+D+'" stroke="'+(x%5?'#f0ede6':'#e4e0d6')+'" stroke-width="'+k+'"/>';for(var y=1;y<D;y++)g+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="'+(y%5?'#f0ede6':'#e4e0d6')+'" stroke-width="'+k+'"/>';
  g+='<rect x="0" y="0" width="'+W+'" height="'+D+'" fill="none" stroke="#3a3936" stroke-width="'+(5*k)+'"/>';
- g+='<text x="'+(W/2)+'" y="'+(-10*k)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960">'+fmt(W)+' ft</text><text x="'+(-8*k)+'" y="'+(D/2)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960" transform="rotate(-90 '+(-8*k)+' '+(D/2)+')">'+fmt(D)+' ft</text>';
+ g+='<text x="'+(W/2)+'" y="'+(-(10+dOff.t)*k)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960">'+fmt(W)+' ft</text><text x="'+(-(8+dOff.l)*k)+'" y="'+(D/2)+'" text-anchor="middle" font-size="'+(12*k)+'" fill="#6b6960" transform="rotate(-90 '+(-(8+dOff.l)*k)+' '+(D/2)+')">'+fmt(D)+' ft</text>';
  return g}
 function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d},cc=clr(c,b,it.rot),on=sel===it.u,h='';
  if(cc)h+='<rect x="'+cc.x+'" y="'+cc.y+'" width="'+cc.w+'" height="'+cc.d+'" fill="'+(kind(c)==='wall'?'rgba(150,140,120,.08)':'rgba(47,111,237,.035)')+'" stroke="#b9b4a8" stroke-width="'+k+'" stroke-dasharray="'+(5*k)+' '+(4*k)+'" pointer-events="none"/>';
