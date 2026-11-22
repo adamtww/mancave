@@ -457,6 +457,9 @@ function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).f
  var co=names(function(x){return needs(x.c).cool});if(co)h+='<div class="rq">'+ico('cool')+'<div><b>Cooling</b></div><small>'+esc(co)+'</small></div>';
  var ot={};L.forEach(function(x){needs(x.c).other.forEach(function(k){if(ALERTS[k])(ot[k]=ot[k]||[]).push(x.c.n)})});Object.keys(ot).forEach(function(k){h+='<div class="rq">'+ico('note')+'<div><b>'+esc(ALERTS[k][0])+'</b></div><small>'+esc(Array.from(new Set(ot[k])).join(', '))+'</small></div>'});
  return h||'<p class="muted">Nothing beyond power.</p>'}
+// 10–30 ft; an older room's unset or odd value stays selectable
+function ceilOpts(){var H=P.room.h||null,v=[],h='';for(var i=10;i<=30;i++)v.push(i);if(H&&v.indexOf(H)<0){v.push(H);v.sort(function(a,b){return a-b})}
+ if(!H)h+='<option value="" selected>—</option>';v.forEach(function(x){h+='<option value="'+x+'"'+(x===H?' selected':'')+'>'+fmt(x)+'</option>'});return h}
 function lowCeil(){var H=P.room.h,out=[];if(!H)return out;P.items.forEach(function(it){var c=defOf(it),n=c&&needs(c);if(n&&n.ceil>H+1e-6)out.push({it:it,need:n.ceil})});return out}
 function ceilOf(it){var H=P.room.h,c=defOf(it),n=c&&needs(c);return H&&n&&n.ceil>H+1e-6?n.ceil:0}
 // room strip under the top bar: size (edit in place), Dynamic Expansion, area, equipment cost, power
@@ -465,12 +468,11 @@ function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0
  el.innerHTML='<span class="slab">Room</span><span class="sdim"><input id="r-w" value="'+fmt(W)+'" inputmode="decimal" aria-label="Width in feet"><span>×</span><input id="r-d" value="'+fmt(D)+'" inputmode="decimal" aria-label="Depth in feet"><span class="mu">ft</span></span>'+
   '<label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
   '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b>'+
-  '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><input id="r-h" value="'+(P.room.h?fmt(P.room.h):'')+'" placeholder="?" inputmode="decimal" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak"><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
+  '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
   '<i class="ssep"></i><span class="slab">Equipment</span><b title="Typical prices for new equipment'+(nc?'; '+nc+' object'+(nc>1?'s have':' has')+' no price':'')+'. Install, wiring and plumbing not included.">'+(hi?money(lo)+' – '+money(hi):'—')+'</b>';
  var apply=function(){var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)};
  ['#r-w','#r-d'].forEach(function(q){var i=$(q);i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();apply();i.blur()}else if(e.key==='Escape'){i.value=fmt(q==='#r-w'?P.room.w:P.room.d);i.blur()}};i.onchange=apply});
- var hi2=$('#r-h');hi2.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();hi2.blur()}else if(e.key==='Escape'){hi2.value=P.room.h?fmt(P.room.h):'';hi2.blur()}};
- hi2.onchange=function(){var v=parseFloat(hi2.value);v=v>0&&v<=200?v:null;if(v===(P.room.h||null)){hi2.value=v?fmt(v):'';return}push();P.room.h=v;persist();render()};
+ var hi2=$('#r-h');hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
  $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};if(act&&$('#'+act))$('#'+act).focus()}
 function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(lastFail&&lastFail.msg)h+='<div class="card"><div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div></div>';
