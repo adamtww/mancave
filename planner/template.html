@@ -9,7 +9,12 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#f3f2ee}
 button{font:inherit;cursor:pointer}
-.app{display:grid;grid-template-rows:auto 1fr;height:100%}
+.app{display:grid;grid-template-rows:auto auto 1fr;height:100%}
+.strip{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;padding:7px 14px;background:#fbfaf7;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--ink)}
+.strip .slab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b6960}.strip .mu{color:#77736b}.strip b{font-weight:700;white-space:nowrap}
+.strip .ssep{width:1px;height:22px;background:#e4e2dc}.strip .sdim{display:flex;align-items:center;gap:6px}
+.strip .sdim input{font:inherit;font-size:14px;width:58px;padding:5px 6px;border:1px solid #d9d6ce;border-radius:8px;text-align:center;background:#fff;color:var(--ink)}
+.strip .sw{margin:0;white-space:nowrap}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line)}
 .top h1{margin:0;font-size:18px;font-weight:700;white-space:nowrap}
 .tag{font-size:11px;font-weight:800;letter-spacing:.06em;color:#fff;background:#e0457b;border-radius:999px;padding:3px 9px}
@@ -102,6 +107,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
   <button class="btn" id="b-open">Open…</button>
   <button class="btn pri" id="b-save">Save</button>
  </div>
+ <div class="strip" id="strip"></div>
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
    <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
