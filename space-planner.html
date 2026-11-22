@@ -14,7 +14,7 @@ button{font:inherit;cursor:pointer}
 .strip .slab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b6960}.strip .mu{color:#77736b}.strip b{font-weight:700;white-space:nowrap}
 .strip .ssep{width:1px;height:22px;background:#e4e2dc}.strip .sdim{display:flex;align-items:center;gap:6px}
 .strip .sdim input{font:inherit;font-size:14px;width:58px;padding:5px 6px;border:1px solid #d9d6ce;border-radius:8px;text-align:center;background:#fff;color:var(--ink)}
-.strip .sw{margin:0;white-space:nowrap}.strip #r-h{font:inherit;font-size:14px;padding:5px 6px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:var(--ink);min-width:62px}.strip .sbad{font-size:12.5px;font-weight:600;color:#b42336;background:#fdecea;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.strip .sw{margin:0;white-space:nowrap}.strip #r-w,.strip #r-d,.strip #r-h{font:inherit;font-size:14px;padding:5px 6px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:var(--ink);min-width:62px}.strip .sbad{font-size:12.5px;font-weight:600;color:#b42336;background:#fdecea;border-radius:999px;padding:3px 9px;white-space:nowrap}
 .rq .bad{color:#b42336;font-weight:600}.rq .good{color:#2b7a4b;font-weight:600}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-bottom:1px solid var(--line)}
 .top h1{margin:0;font-size:18px;font-weight:700;white-space:nowrap}
@@ -1040,7 +1040,7 @@ function needs(c){var a=c.a||[],q=c.req||{},o={};
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,selO=null,lastFail=null;
-function blank(){return {id:null,name:'Untitled room',room:{w:7,d:7,h:10},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
+function blank(){return {id:null,name:'Untitled room',room:{w:10,d:10,h:10},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
 P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=migrate(Object.assign(blank(),sv0))}catch(_){}
 function snapP(){return JSON.stringify(P)}
 function push(){hist.push(snapP());if(hist.length>60)hist.shift();fut=[]}
@@ -1452,6 +1452,8 @@ function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).f
  var co=names(function(x){return needs(x.c).cool});if(co)h+='<div class="rq">'+ico('cool')+'<div><b>Cooling</b></div><small>'+esc(co)+'</small></div>';
  var ot={};L.forEach(function(x){needs(x.c).other.forEach(function(k){if(ALERTS[k])(ot[k]=ot[k]||[]).push(x.c.n)})});Object.keys(ot).forEach(function(k){h+='<div class="rq">'+ico('note')+'<div><b>'+esc(ALERTS[k][0])+'</b></div><small>'+esc(Array.from(new Set(ot[k])).join(', '))+'</small></div>'});
  return h||'<p class="muted">Nothing beyond power.</p>'}
+// room sides in 5 ft steps; a size the room grew to on its own stays selectable
+function dimOpts(V){var v=[],h='';for(var i=5;i<=300;i+=5)v.push(i);if(v.indexOf(V)<0){v.push(V);v.sort(function(a,b){return a-b})}v.forEach(function(x){h+='<option value="'+x+'"'+(x===V?' selected':'')+'>'+fmt(x)+'</option>'});return h}
 // 10–30 ft; an older room's unset or odd value stays selectable
 function ceilOpts(){var H=P.room.h||null,v=[],h='';for(var i=10;i<=30;i++)v.push(i);if(H&&v.indexOf(H)<0){v.push(H);v.sort(function(a,b){return a-b})}
  if(!H)h+='<option value="" selected>—</option>';v.forEach(function(x){h+='<option value="'+x+'"'+(x===H?' selected':'')+'>'+fmt(x)+'</option>'});return h}
@@ -1460,13 +1462,12 @@ function ceilOf(it){var H=P.room.h,c=defOf(it),n=c&&needs(c);return H&&n&&n.ceil
 // room strip under the top bar: size (edit in place), Dynamic Expansion, area, equipment cost, power
 function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0,hi=0,nc=0,pw=power(P.items);P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});
  var act=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#strip')?document.activeElement.id:null;
- el.innerHTML='<span class="slab">Room</span><span class="sdim"><input id="r-w" value="'+fmt(W)+'" inputmode="decimal" aria-label="Width in feet"><span>×</span><input id="r-d" value="'+fmt(D)+'" inputmode="decimal" aria-label="Depth in feet"><span class="mu">ft</span></span>'+
+ el.innerHTML='<span class="slab">Room</span><span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span>×</span><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span>'+
   '<label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
   '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b>'+
   '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
   '<i class="ssep"></i><span class="slab">Equipment</span><b title="Typical prices for new equipment'+(nc?'; '+nc+' object'+(nc>1?'s have':' has')+' no price':'')+'. Install, wiring and plumbing not included.">'+(hi?money(lo)+' – '+money(hi):'—')+'</b>';
- var apply=function(){var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)};
- ['#r-w','#r-d'].forEach(function(q){var i=$(q);i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();apply();i.blur()}else if(e.key==='Escape'){i.value=fmt(q==='#r-w'?P.room.w:P.room.d);i.blur()}};i.onchange=apply});
+ ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
  $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};if(act&&$('#'+act))$('#'+act).focus()}
 function side(){var W=P.room.w,D=P.room.d,h=howTo();
