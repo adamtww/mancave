@@ -60,13 +60,15 @@ g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:n
 .ldchip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9d6ce;border-radius:12px;padding:6px 10px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:13px;font-weight:600;color:#26251f;max-width:220px;transition:opacity .12s}
 .ldchip .lart{width:40px;height:40px;flex:0 0 40px}.ldchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ldchip.over{opacity:.0}
 body.ldragging,body.ldragging *{cursor:grabbing!important}
-dialog{border:0;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);max-width:min(560px,94vw);width:100%;color:var(--ink)}
+dialog{border:0;border-radius:14px;padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);max-width:min(720px,96vw);width:100%;max-height:calc(100dvh - 24px);overflow-x:hidden;color:var(--ink)}
 dialog::backdrop{background:rgba(30,28,24,.35)}
 .dlg{padding:18px;display:flex;flex-direction:column;gap:12px}.dlg h2{margin:0;font-size:18px}
-.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}.fg .s2{grid-column:span 2}.fg .s4{grid-column:1/-1}.fg>.muted{margin:4px 0 -4px}
+.cks{display:flex;flex-wrap:wrap;gap:8px 20px;padding:2px 0}
+@media (max-width:640px){.fg{grid-template-columns:repeat(2,minmax(0,1fr))}.fg .s2{grid-column:1/-1}}
 .fl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:#6b6960}
-.fl input,.fl select,.fl textarea{font:inherit;font-size:14px;color:var(--ink);padding:8px 9px;border:1px solid #d9d6ce;border-radius:8px;background:#fff}
-.fl textarea{min-height:60px;resize:vertical}
+.fl input,.fl select,.fl textarea{width:100%;min-width:0;box-sizing:border-box;font:inherit;font-size:14px;color:var(--ink);padding:8px 9px;border:1px solid #d9d6ce;border-radius:8px;background:#fff}
+.fl textarea{min-height:44px;resize:vertical}
 .ck{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)}.ck input{width:17px;height:17px;margin:0}
 .spl{display:flex;flex-direction:column;gap:4px;max-height:50vh;overflow:auto}
 .spl button{display:flex;justify-content:space-between;gap:10px;text-align:left;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px}
@@ -1446,15 +1448,15 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
  var canEdit=!c||mine||admin,shared=c&&!mine,d=$('#d-obj'),cs=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}).map(function(x){return x[0]});
  var n=c?needs(c):{},p=c&&c.p?c.p:[0,0,20,0],title=!c?'New object':shared?(admin?'Edit shared object':'Object details'):'Edit my object';
  d.innerHTML='<form method="dialog" class="dlg"><h2>'+title+'</h2>'+(shared&&!admin?'<p class="muted">Shared objects are managed by the library owner. Save a copy to make your own version.</p>':'')+
-  '<div class="fg"><label class="fl" style="grid-column:1/-1">Name<input name="n" required value="'+esc(c?c.n:'')+'"></label>'+
-  '<label class="fl">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label><span></span>'+
+  '<div class="fg"><label class="fl s2">Name<input name="n" required value="'+esc(c?c.n:'')+'"></label>'+
+  '<label class="fl s2">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
   '<label class="fl">Width (ft)<input name="w" inputmode="decimal" required value="'+(c?c.w:'')+'"></label><label class="fl">Depth (ft)<input name="d" inputmode="decimal" required value="'+(c?c.d:'')+'"></label>'+
-  '<div class="kgrid" style="grid-column:1/-1"><span class="muted">Clearance (ft): space that must stay empty to use it. Left and right as you face its front. Back 0 lets it stand against a wall.</span>'+['front','back','left','right'].map(function(n,i){var K=c?kOf(c):[0,0,0,0];return '<label class="fl">'+n.charAt(0).toUpperCase()+n.slice(1)+'<input name="k'+i+'" inputmode="decimal" value="'+fmt(K[i])+'"></label>'}).join('')+'</div>'+
+  '<label class="fl">Typical cost, low ($)<input name="lo" inputmode="numeric" value="'+(c&&c.cost?c.cost[0]:'')+'"></label><label class="fl">Typical cost, high ($)<input name="hi" inputmode="numeric" value="'+(c&&c.cost?c.cost[1]:'')+'"></label>'+
+  '<span class="muted s4">Clearance (ft): space that must stay empty to use it. Left and right as you face its front. Back 0 lets it stand against a wall.</span>'+['front','back','left','right'].map(function(n,i){var K=c?kOf(c):[0,0,0,0];return '<label class="fl">'+n.charAt(0).toUpperCase()+n.slice(1)+'<input name="k'+i+'" inputmode="decimal" value="'+fmt(K[i])+'"></label>'}).join('')+
   '<label class="fl">Power<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label><label class="fl">Watts<input name="pw" inputmode="decimal" value="'+(p[1]||'')+'"></label>'+
-  '<label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><span></span>'+
-  '<label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label>'+
-  '<label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label><label class="fl">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label>'+
-  '<label class="fl">Typical cost, low ($)<input name="lo" inputmode="numeric" value="'+(c&&c.cost?c.cost[0]:'')+'"></label><label class="fl">Typical cost, high ($)<input name="hi" inputmode="numeric" value="'+(c&&c.cost?c.cost[1]:'')+'"></label>'+'<label class="fl" style="grid-column:1/-1">Notes<textarea name="no">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
+  '<label class="fl s2">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label>'+
+  '<div class="cks s4"><label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label><label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label></div>'+
+  '<label class="fl s4">Notes<textarea name="no" rows="2">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(c&&canEdit?'<button class="btn red" value="del" formnovalidate>'+(shared?'Remove from library':'Delete')+'</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button>'+(shared?'<button class="btn" value="copy">Save as my own copy</button>':'')+(canEdit?'<button class="btn pri" value="save">Save</button>':'')+'</span></div></form>';
  if(shared&&!admin)Array.prototype.forEach.call(d.querySelectorAll('input,select,textarea'),function(el){if(el.name)el.dataset.ro=1});
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
