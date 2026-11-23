@@ -310,8 +310,8 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines+'<defs><filter id="osh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="'+(1.1*k)+'" stdDeviation="'+(1.4*k)+'" flood-color="#000" flood-opacity=".32"/></filter></defs>';
- P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
-  g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(14*k)+'" fill="transparent"/><g transform="translate('+cx+' '+cy+') scale(1.45) translate('+(-cx)+' '+(-cy)+')" filter="url(#osh)">';
+ P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var noFit=selIt&&VW.md==='p'&&pspec(defOf(selIt))&&!canPower(o,selIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+  g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':noFit?';opacity:.3;filter:grayscale(1)':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(14*k)+'" fill="transparent"/><g transform="translate('+cx+' '+cy+') scale(1.45) translate('+(-cx)+' '+(-cy)+')" filter="url(#osh)">';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.man)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+1.8*k)+'" fill="none" stroke="#2b2a27" stroke-width="'+(1.1*k)+'"/>'+(o.s===-2?'<path d="M'+cx+' '+(cy-r-1.8*k)+'v'+(-5*k)+'" stroke="#2b2a27" stroke-width="'+(1.2*k)+'"/>':'');
   if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
@@ -450,11 +450,14 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
  return {o15:I0.duplex,o20:I0.duplex,d20:I0.ded,v20:I0.r30,v30:I0.r30,v50:I0.r50,p30:I0.p3,p60:I0.p3,floor:I0.floor,drop:I0.drop,reel:I0.reel,hw:I0.jbox,chw:I0.cjb,c20:I0.crec,c30:I0.c240}})();
 // after an object is moved or dropped: if it has no working power, plug it into the nearest outlet that fits and has room.
 // Objects that are already powered keep their outlet.
+// could this outlet power this object (right voltage/phase/amps, a free plug, spare capacity), wherever it is?
+function canPower(o,it,sp){sp=sp||pspec(defOf(it));if(!sp||!pfits(o,sp,isC(it)))return false;if(P.pw.links[it.u]===o.id)return true;var c=circBy(o.c),ownC=o.man?!!o.ded||o.ty==='hw':!!(c&&c.ded);if(sp.ded&&!ownC&&!o.any)return false;
+ var on=P.items.filter(function(x){return x!==it&&P.pw.links[x.u]===o.id}),cap=o.cap||(ownC?1:2);if(on.length>=cap)return false;
+ if(!ownC&&!o.any){var w=on.reduce(function(a,x){var q=pspec(defOf(x));return a+(q?q.W:0)},0);if(w+sp.W>o.V*o.A*CAP80)return false;if(c&&circLoad(c)+sp.W>(o.ph===3?1.732:1)*o.V*o.A*CAP80)return false}
+ return true}
 function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it)return null;var sp=pspec(defOf(it));if(!sp)return null;var st=pstat(it);if(st&&st.lv!=='red')return null;
  var ceil=isC(it),b=ibox(it),best=null,bd=1e9;
- P.pw.outlets.forEach(function(o){if(!pfits(o,sp,ceil))return;var c=circBy(o.c),ownC=o.man?!!o.ded||o.ty==='hw':!!(c&&c.ded);if(sp.ded&&!ownC&&!o.any)return;
-  var on=P.items.filter(function(x){return x!==it&&P.pw.links[x.u]===o.id}),cap=o.cap||(ownC?1:2);if(on.length>=cap)return;
-  if(!ownC&&!o.any){var w=on.reduce(function(a,x){var q=pspec(defOf(x));return a+(q?q.W:0)},0);if(w+sp.W>o.V*o.A*CAP80)return;if(c&&circLoad(c)+sp.W>(o.ph===3?1.732:1)*o.V*o.A*CAP80)return}
+ P.pw.outlets.forEach(function(o){if(!canPower(o,it,sp))return;
   var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
  if(!best)return null;P.pw.links[u]=best.id;P.pw.sig[u]=sigOf(it);
  if(best.any&&!P.items.some(function(x){return x!==it&&P.pw.links[x.u]===best.id})){best.V=sp.V;best.A=sp.A;best.ph=sp.ph;best.ty=sp.hw?'hw':sp.t}
