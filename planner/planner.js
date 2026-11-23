@@ -237,7 +237,7 @@ function drawCeil(k){var g='';lowCeil().forEach(function(x){var b=ibox(x.it),cx=
 var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
 // before power is built out every powered object gets a grey bolt; after, only red (unpowered) or amber (needs attention)
 function drawPlugs(k){var g='';
- P.items.forEach(function(it){var s=P.pw?pstat(it):(pspec(defOf(it))?{lv:'need'}:null);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
+ P.items.forEach(function(it){var s=P.pw?pstat(it):(pspec(defOf(it))?{lv:'need'}:null);if(!s||s.lv==='ok'||s.lv==='amber')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
   g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#d6453d" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
  return g}
 function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
