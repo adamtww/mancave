@@ -1512,9 +1512,9 @@ function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0
   '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b><label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
   
   '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'');
- ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
- var hi2=$('#r-h');hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
- $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};if(act&&$('#'+act))$('#'+act).focus()}
+ ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
+ var hi2=$('#r-h');hi2.onchange=function(){hi2.blur();var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
+ $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};if(act&&$('#'+act)&&$('#'+act).tagName!=='SELECT')$('#'+act).focus()}
 function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(lastFail&&lastFail.msg)h+='<div class="card"><div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div></div>';
  if(selO)h+=outletCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it),col=((CATS.filter(function(x){return x[0]===c.c})[0])||[])[1]||'#8a867c';
