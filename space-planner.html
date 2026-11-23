@@ -182,6 +182,11 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .sb.red{color:#b42336;border-color:#f0c8c8}.sb.red:hover{background:#fdf1f1}
 .spin{font-size:12.5px;color:#6b6960}.lnk{border:0;background:none;padding:0;font:inherit;color:#1d4f91;font-weight:600;cursor:pointer}
 .srows{display:flex;flex-direction:column}.srw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:13px}.srw:last-child{border:0}.srw span{display:flex;align-items:center;gap:7px;color:#6b6960;white-space:nowrap}.srw b{font-weight:600;text-align:right}
+.chip2{display:inline-flex;align-items:center;gap:7px;max-width:62%;border:1px solid #d9d6ce;border-radius:8px;padding:4px 8px 4px 10px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);font:inherit;font-size:13px;font-weight:600;color:#2b2a27;text-align:right;cursor:pointer}
+.chip2:hover{border-color:#2f7de1;background:#f7faff}.chip2:hover .chpen{color:#2f7de1}
+.chip2 .chpen{color:#8a867c;flex:none}
+.etag{font-style:normal;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:0 6px;margin-left:2px}
+.dlg.sm{max-width:380px}.fg.two{grid-template-columns:1fr 1fr}
 .explore{display:none}body.exploring .main{display:none}body.exploring .explore{display:block;position:relative;margin:12px;border-radius:14px;overflow:hidden;background:#141416;min-height:0}
 .explore canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .exhud{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(20,20,22,.7);color:#eee;font-size:12.5px;padding:7px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
@@ -219,6 +224,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 </div>
 <div class="toast" id="toast" role="status"></div>
 <dialog id="d-obj"></dialog>
+<dialog id="d-it"></dialog>
 <dialog id="d-open"></dialog>
 <script>
 var CATS=[
@@ -1396,7 +1402,7 @@ var me=null;
 function api(m,p,b){return fetch(API+p,{method:m,headers:Object.assign({'content-type':'application/json'},tok?{authorization:'Bearer '+tok}:{}),body:b?JSON.stringify(b):undefined}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmt(n){return (Math.round(n*10)/10).toLocaleString('en-US')}
-function clrTxt(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'none';if(k[0]===k[1]&&k[1]===k[2]&&k[2]===k[3])return fmt(k[0])+' ft all around';var n=['front','back','left','right'],o=[];k.forEach(function(v,i){if(v)o.push(fmt(v)+' '+n[i])});return o.join(' · ')+' ft'}
+function clrTxt(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'none';if(k[0]===k[1]&&k[1]===k[2]&&k[2]===k[3])return fmt(k[0])+' ft all around';var n=['front','back','left','right'],o=[];k.forEach(function(v,i){if(v)o.push(fmt(v)+' ft '+n[i])});return o.join(' · ')}
 function money(v){return v>=1000?'$'+(v>=10000?Math.round(v/1000):Math.round(v/100)/10)+'k':'$'+Math.round(v)}
 function costTxt(c){if(!c||!c.cost)return '';var a=c.cost[0],b=c.cost[1];if(!a&&!b)return '';return a===b?money(a):money(a)+'–'+money(b)}
 function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+' kW':Math.round(w)+' W'}
@@ -1426,7 +1432,12 @@ function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&B
 function syncDefs(say){if(!P||!P.items)return 0;P.defs=P.defs||{};var seen={},n=0;P.items.forEach(function(i){var r=i.r;if(seen[r])return;seen[r]=1;var L=LIB[r],D=P.defs[r];
   if(!L||!(MINE[r]||EDITED[r]||(D&&D.uv)))return;var j=JSON.stringify(L);if(D&&JSON.stringify(D)===j)return;P.defs[r]=JSON.parse(j);n+=P.items.filter(function(x){return x.r===r}).length});
  if(n){relayout();persist();render();if(say)toast('Updated '+n+' object'+(n>1?'s':'')+' on the floor plan')}else if(say)render();return n}
-function defOf(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
+function defOf0(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
+// A placed object can have its own clearance (it.k) or reach (it.reach); its own size lives in it.w / it.d (see dims).
+var DEFX=typeof WeakMap!=='undefined'?new WeakMap():null;
+function defOf(it){var c=defOf0(it);if(!c||!(it.k||it.reach!=null))return c;var e=DEFX&&DEFX.get(it);if(e&&e.c===c&&e.k===it.k&&e.re===it.reach)return e.v;
+ var v=Object.assign({},c);if(it.k)v.k=it.k.slice();if(it.reach!=null)v.reach=it.reach;if(DEFX)DEFX.set(it,{c:c,k:it.k,re:it.reach,v:v});return v}
+function itEdited(it,f){var c=defOf0(it);if(!c)return false;if(f==='size')return !!((it.w&&it.w!==c.w)||(it.d&&it.d!==c.d));if(f==='k')return !!it.k&&JSON.stringify(it.k)!==JSON.stringify(kOf(c));if(f==='reach')return it.reach!=null&&it.reach!==(c.reach||0);return false}
 // what a room needs because of what's in it
 function needs(c){var a=c.a||[],q=c.req||{},o={};
  o.water=!!q.water||a.indexOf('plumbing')>=0||a.indexOf('garden')>=0||/sink|dishwasher|ice m|shower|toilet/i.test(c.n);
@@ -1937,9 +1948,9 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(selO)h+=outletCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it),col=((CATS.filter(function(x){return x[0]===c.c})[0])||[])[1]||'#8a867c';
   h+='<div class="card sel"><span class="lab">Selected</span><div class="hero">'+libArt(Object.assign({},c,{w:it.w||c.w,d:it.d||c.d}),col)+'</div><b class="snm">'+esc(c.n)+'</b>'+
   '<div class="sbtns"><span class="sgrp"><button class="sb" id="o-rl" title="Turn left (Shift+R)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Turn left</button><button class="sb" id="o-rr" title="Turn right (R)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Turn right</button></span></div>'+
-  '<div class="sbtns"><button class="sb" id="o-edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg>Edit</button><button class="sb red" id="o-del"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Delete</button></div>'+
+  '<div class="sbtns"><button class="sb red" id="o-del"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Delete</button></div>'+
   (it.pin?'<div class="spin">Pinned here · <button class="lnk" id="o-pin">Unpin</button></div>':'')+
-  '<div class="srows"><div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/></svg>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>'+(c.ceiling?'Reach</span><b>about '+fmt(c.reach||0)+' ft around</b></div><div class="srw"><span>Hangs down</span><b>'+(c.drop?fmt(c.drop)+' ft':'flush')+'</b></div>':'Clearance</span><b>'+clrTxt(c)+'</b></div>')+(c.p?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps&&ps.o?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+'</div>'+
+  '<div class="srows"><div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/></svg>Size'+(itEdited(it,'size')?'<em class="etag">Edited</em>':'')+'</span><button class="chip2" id="o-size" title="Change the size of this one">'+fmt(m.w)+' × '+fmt(m.d)+' ft<svg class="chpen" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button></div><div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>'+(c.ceiling?'Reach'+(itEdited(it,'reach')?'<em class="etag">Edited</em>':'')+'</span><button class="chip2" id="o-clr" title="Change the reach of this one">about '+fmt(c.reach||0)+' ft around<svg class="chpen" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button></div><div class="srw"><span>Hangs down</span><b>'+(c.drop?fmt(c.drop)+' ft':'flush')+'</b></div>':'Clearance'+(itEdited(it,'k')?'<em class="etag">Edited</em>':'')+'</span><button class="chip2" id="o-clr" title="Change the clearance of this one">'+clrTxt(c)+'<svg class="chpen" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button></div>')+(c.p?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps&&ps.o?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+'</div>'+
   (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. The room is '+fmt(P.room.h)+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
  if(VW.md==='p')h+=powerCard();if(VW.md!=='p'&&!byU(sel))h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
 
@@ -1951,7 +1962,7 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  var ht=$('#howto');if(ht)ht.ontoggle=function(){howOpen=ht.open;try{localStorage.setItem('sp-howto',howOpen?'1':'0')}catch(_){}};
  var un=$('#unp');if(un){un.ontoggle=function(){unpOpen=un.open;try{localStorage.setItem('sp-unp',unpOpen?'1':'0')}catch(_){}};S.querySelectorAll('.uli').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});$('#unp-go').onclick=function(){setView('md','p')}}
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
- if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};if($('#o-pin'))$('#o-pin').onclick=function(){setPin(it.u,false)};$('#o-del').onclick=function(){remove(it.u)};$('#o-edit').onclick=function(){editObj(it.r)}}
+ if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};if($('#o-pin'))$('#o-pin').onclick=function(){setPin(it.u,false)};$('#o-del').onclick=function(){remove(it.u)};$('#o-size').onclick=function(){editIt(it.u,'size')};$('#o-clr').onclick=function(){editIt(it.u,defOf(it).ceiling?'reach':'k')}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
 
 /* ---------------- objects: make your own, or save your own version of a library object ---------------- */
@@ -1981,11 +1992,27 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
   var key=mine?r:lib?(ov||('u'+me.id+'-ov-'+r).slice(0,80)):'u'+me.id+'-'+nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4);
   api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((lib?'Saved your version':'Saved')+': '+nd.n);return loadLib()}).then(function(){if(!c)openCats['My objects']=true;after(lib?r:key)}).catch(function(e){toast(e.message)})};
  modal(d)}
+/* ---------------- one placed object: its own size / clearance / reach (the library object stays as it is) ---------------- */
+function editIt(u,f){var it=byU(u);if(!it)return;var c0=defOf0(it),c=defOf(it),d=$('#d-it'),K=kOf(c),K0=kOf(c0),num=function(v){v=parseFloat(v);return isFinite(v)&&v>=0?Math.round(v*4)/4:null};
+ var inp=function(n,lab,v){return '<label class="fl">'+lab+'<input name="'+n+'" inputmode="decimal" autocomplete="off" value="'+fmt(v)+'"></label>'};
+ var sw=it.rot%2,m=dims(it,it.rot),body=f==='size'?inp('w','Width (ft)',m.w)+inp('d','Depth (ft)',m.d):f==='reach'?inp('re','Reach (ft around)',c.reach||0):['Front','Back','Left','Right'].map(function(n,i){return inp('k'+i,n,K[i])}).join('');
+ var orig=f==='size'?(sw?fmt(c0.d)+' × '+fmt(c0.w):fmt(c0.w)+' × '+fmt(c0.d))+' ft':f==='reach'?'about '+fmt(c0.reach||0)+' ft':clrTxt(c0);
+ d.innerHTML='<form method="dialog" class="dlg sm"><h2>'+(f==='size'?'Size':f==='reach'?'Reach':'Clearance')+'</h2><p class="muted">Only this '+esc(c0.n)+' changes. The library version stays '+esc(orig)+'.'+(f==='k'?' Left and right as you face its front.':f==='size'?' Width is left to right on the plan.':'')+'</p>'+
+  '<div class="fg'+(f==='k'?'':' two')+'">'+body+'</div><div class="row" style="justify-content:space-between"><span class="row">'+(itEdited(it,f)?'<button class="btn" value="reset" formnovalidate>Reset to original</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn pri" value="ok">Done</button></span></div></form>';
+ d.onclose=function(){var v=d.returnValue,F=d.querySelector('form').elements;if(!v||v==='cancel')return;var nw={};
+  if(v==='reset'){if(f==='size'){nw.w=undefined;nw.d=undefined}else if(f==='k')nw.k=undefined;else nw.reach=undefined}
+  else if(f==='size'){var w=num(F.w.value),dd=num(F.d.value);if(sw){var t=w;w=dd;dd=t}if(!(w>0&&dd>0)){toast('Width and depth need to be more than 0');return}nw.w=w===c0.w?undefined:w;nw.d=dd===c0.d?undefined:dd}
+  else if(f==='reach'){var re=num(F.re.value);if(re==null){toast('Enter a reach in feet');return}nw.reach=re===(c0.reach||0)?undefined:re}
+  else{var k=[0,1,2,3].map(function(i){return num(F['k'+i].value)||0});nw.k=JSON.stringify(k)===JSON.stringify(K0)?undefined:k}
+  var before=snapP();Object.keys(nw).forEach(function(x){if(nw[x]===undefined)delete it[x];else it[x]=nw[x]});
+  if(!relayout()){P=JSON.parse(before);toast('That doesn\'t fit in the room');render();return}
+  hist.push(before);if(hist.length>60)hist.shift();fut=[];if(P.pw)buildPower();persist();render()};
+ modal(d)}
 $('#b-newobj').onclick=function(){editObj(null)};
 $('#b-undo').onclick=function(){undo()};$('#b-redo').onclick=function(){redo()};
 
 /* ---------------- saving rooms ---------------- */
-function pack(){var defs={};P.items.forEach(function(i){var c=defOf(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,pw:P.pw,pwo:P.pwo,items:P.items.map(function(i){return {u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n}}),defs:defs}}
+function pack(){var defs={};P.items.forEach(function(i){var c=defOf0(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,pw:P.pw,pwo:P.pwo,items:P.items.map(function(i){var o={u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n};if(i.w)o.w=i.w;if(i.d)o.d=i.d;if(i.k)o.k=i.k.slice();if(i.reach!=null)o.reach=i.reach;return o}),defs:defs}}
 $('#rname').onchange=function(){P.name=this.value.trim()||'Untitled room';persist()};
 $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to save rooms to your account');return}P.name=$('#rname').value.trim()||'Untitled room';var b={name:P.name,data:pack()};
  (P.id?api('PUT','/api/spaces/'+P.id,b):api('POST','/api/spaces',b).then(function(j){P.id=j.id})).then(function(){persist();toast('Saved “'+P.name+'”')}).catch(function(e){toast(e.message)})};

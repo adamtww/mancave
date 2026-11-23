@@ -122,6 +122,11 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .sb.red{color:#b42336;border-color:#f0c8c8}.sb.red:hover{background:#fdf1f1}
 .spin{font-size:12.5px;color:#6b6960}.lnk{border:0;background:none;padding:0;font:inherit;color:#1d4f91;font-weight:600;cursor:pointer}
 .srows{display:flex;flex-direction:column}.srw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:13px}.srw:last-child{border:0}.srw span{display:flex;align-items:center;gap:7px;color:#6b6960;white-space:nowrap}.srw b{font-weight:600;text-align:right}
+.chip2{display:inline-flex;align-items:center;gap:7px;max-width:62%;border:1px solid #d9d6ce;border-radius:8px;padding:4px 8px 4px 10px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);font:inherit;font-size:13px;font-weight:600;color:#2b2a27;text-align:right;cursor:pointer}
+.chip2:hover{border-color:#2f7de1;background:#f7faff}.chip2:hover .chpen{color:#2f7de1}
+.chip2 .chpen{color:#8a867c;flex:none}
+.etag{font-style:normal;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:0 6px;margin-left:2px}
+.dlg.sm{max-width:380px}.fg.two{grid-template-columns:1fr 1fr}
 .explore{display:none}body.exploring .main{display:none}body.exploring .explore{display:block;position:relative;margin:12px;border-radius:14px;overflow:hidden;background:#141416;min-height:0}
 .explore canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .exhud{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(20,20,22,.7);color:#eee;font-size:12.5px;padding:7px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
@@ -159,6 +164,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 </div>
 <div class="toast" id="toast" role="status"></div>
 <dialog id="d-obj"></dialog>
+<dialog id="d-it"></dialog>
 <dialog id="d-open"></dialog>
 <script>
 /*CATALOG*/
