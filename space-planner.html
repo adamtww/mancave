@@ -2617,7 +2617,6 @@ var PK={
  v50:{n:'240V 50A outlet',g:'240V',ty:'240-50',cap:1,ded:1,at:'wall'},
  p30:{n:'3-phase 30A outlet',g:'3-phase',ty:'3p30',cap:1,ded:1,at:'wall'},
  p60:{n:'3-phase 60A outlet',g:'3-phase',ty:'3p60',cap:1,ded:1,at:'wall'},
- floor:{n:'Floor 120V 20A outlet',g:'Floor',ty:'120-20',cap:2,at:'floor'},
  drop:{n:'Ceiling drop 120V 20A',g:'Drops to the floor',ty:'120-20',cap:2,at:'drop'},
  reel:{n:'Cord reel 120V 20A',g:'Drops to the floor',ty:'120-20',cap:2,at:'drop',reach:15},
  hw:{n:'Hardwired, any voltage',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
@@ -2625,9 +2624,9 @@ var PK={
  c20:{n:'Ceiling 120V 20A outlet',g:'Ceiling fixtures',ty:'120-20',cap:2,at:'ceil'},
  c30:{n:'Ceiling 240V 30A outlet',g:'Ceiling fixtures',ty:'240-30',cap:1,ded:1,at:'ceil'}};
 // earlier outlet types, folded into the generic ones
-var PKA={duplex:'o15',usb:'o15',gfci:'o20',quad:'o20',ded:'d20',r30:'v30',r50:'v50',p3:'p60',jbox:'hw',disc:'hw',cjb:'chw',cdisc:'chw',crec:'c20',c240:'c30'};
+var PKA={floor:'o20',duplex:'o15',usb:'o15',gfci:'o20',quad:'o20',ded:'d20',r30:'v30',r50:'v50',p3:'p60',jbox:'hw',disc:'hw',cjb:'chw',cdisc:'chw',crec:'c20',c240:'c30'};
 function pkK(k){return PK[k]?k:PKA[k]||'o20'}
-var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Floor','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Drops to the floor','#b8862e']]};
+var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Drops to the floor','#b8862e']]};
 var PKO={};
 function pkBase(k){k=pkK(k);var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
  if(t==='any')return Object.assign(o,{ty:'hw',V:240,A:60,ph:1});if(t.slice(0,2)==='3p')return Object.assign(o,{ty:t,V:240,A:+t.slice(2),ph:3});var s=t.split('-');return Object.assign(o,{ty:t,V:+s[0],A:+s[1],ph:1})}
@@ -2688,7 +2687,7 @@ function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it)return null;var s
  best.sk=P.items.filter(function(x){return P.pw.links[x.u]===best.id}).length;best.w=pwLoad(best).w;return best}
 function plugToast(o){if(o)toast('Plugged into '+(o.man?PK[pkK(o.k)].n:tName(o.ty,o))+' on C'+o.c)}
 function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
-function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall or the floor. Objects plug into the nearest one that fits. Ceiling drops and reels are in Ceiling view.'}
+function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet near a wall to put it on the wall, or anywhere else to put it in the floor. Objects plug into the nearest one that fits. Ceiling drops and reels are in Ceiling view.'}
 function renderPwLib(){pwHead();renderPwCat()}
 function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
  hd.innerHTML='<div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Power</span><span class="muted" style="margin:0;font-size:12px">'+(VW.lv==='c'?'Ceiling':'Outlets &amp; circuits')+'</span></div>'+
