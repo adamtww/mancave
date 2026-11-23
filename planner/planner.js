@@ -420,6 +420,10 @@ function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
  $('#lib').querySelectorAll('.ledit').forEach(function(e){e.onpointerdown=function(ev){ev.stopPropagation()};e.onclick=function(ev){ev.stopPropagation();editObj(e.closest('.lcard').dataset.r)}});$('#lib').querySelectorAll('.lcard').forEach(function(b){b.onclick=function(){if(ldCard===b&&Date.now()-ldClick<400)return;add(b.dataset.r)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();add(b.dataset.r)}};b.oncontextmenu=function(e){e.preventDefault();if(ldrag||Date.now()-ldClick<800||e.pointerType==='touch'||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents))return;editObj(b.dataset.r)}});markLib()}
 function markLib(){var cnt={};P.items.forEach(function(i){cnt[i.r]=(cnt[i.r]||0)+1});document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('sel',!!cnt[b.dataset.r])})}
 $('#q').oninput=function(){q=this.value;renderLib()};libTip();
+/* ---------------- no page zoom: pinch/zoom only works on the plan itself (which handles it), not the rest of the page ---------------- */
+['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
+window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
 /* ---------------- drag from the library: hold and drag a card onto the plan to place it by hand ----------------
    Mouse: press and drag. Touch: hold for a moment, then drag (a quick swipe still scrolls the list).
    It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */

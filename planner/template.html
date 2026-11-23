@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Space Planner</title>
 <style>
 :root{--accent:#2f7de1;--bad:#d6453d;--muted:#77736b;--line:#e4e2dc;--paper:#fbfaf7;--ink:#26251f;color-scheme:light}
@@ -34,6 +34,7 @@ button{font:inherit;cursor:pointer}
 #q{font:inherit;font-size:14px;padding:8px 10px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:var(--ink);width:100%}
 .ur{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:2}.ur .btn{display:inline-flex;align-items:center;gap:5px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}.ur .btn:disabled{opacity:.4;cursor:default}
 .stage{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;min-height:0;overflow:hidden}
+html,body{touch-action:pan-x pan-y}
 #sv{width:100%;height:100%;display:block;touch-action:none;user-select:none}
 .hint{position:absolute;left:12px;top:14px;background:#26251f;color:#fff;font-size:12.5px;padding:7px 13px;border-radius:14px;line-height:1.35;pointer-events:none;max-width:calc(100% - 210px)}
 .card{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}

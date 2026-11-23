@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Space Planner</title>
 <style>
 :root{--accent:#2f7de1;--bad:#d6453d;--muted:#77736b;--line:#e4e2dc;--paper:#fbfaf7;--ink:#26251f;color-scheme:light}
@@ -34,6 +34,7 @@ button{font:inherit;cursor:pointer}
 #q{font:inherit;font-size:14px;padding:8px 10px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:var(--ink);width:100%}
 .ur{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:2}.ur .btn{display:inline-flex;align-items:center;gap:5px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}.ur .btn:disabled{opacity:.4;cursor:default}
 .stage{position:relative;background:#fff;border:1px solid var(--line);border-radius:12px;min-height:0;overflow:hidden}
+html,body{touch-action:pan-x pan-y}
 #sv{width:100%;height:100%;display:block;touch-action:none;user-select:none}
 .hint{position:absolute;left:12px;top:14px;background:#26251f;color:#fff;font-size:12.5px;padding:7px 13px;border-radius:14px;line-height:1.35;pointer-events:none;max-width:calc(100% - 210px)}
 .card{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
@@ -1436,6 +1437,10 @@ function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
  $('#lib').querySelectorAll('.ledit').forEach(function(e){e.onpointerdown=function(ev){ev.stopPropagation()};e.onclick=function(ev){ev.stopPropagation();editObj(e.closest('.lcard').dataset.r)}});$('#lib').querySelectorAll('.lcard').forEach(function(b){b.onclick=function(){if(ldCard===b&&Date.now()-ldClick<400)return;add(b.dataset.r)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();add(b.dataset.r)}};b.oncontextmenu=function(e){e.preventDefault();if(ldrag||Date.now()-ldClick<800||e.pointerType==='touch'||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents))return;editObj(b.dataset.r)}});markLib()}
 function markLib(){var cnt={};P.items.forEach(function(i){cnt[i.r]=(cnt[i.r]||0)+1});document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('sel',!!cnt[b.dataset.r])})}
 $('#q').oninput=function(){q=this.value;renderLib()};libTip();
+/* ---------------- no page zoom: pinch/zoom only works on the plan itself (which handles it), not the rest of the page ---------------- */
+['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
+window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
 /* ---------------- drag from the library: hold and drag a card onto the plan to place it by hand ----------------
    Mouse: press and drag. Touch: hold for a moment, then drag (a quick swipe still scrolls the list).
    It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */
