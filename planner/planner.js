@@ -478,8 +478,8 @@ function ceilOf(it){var H=P.room.h,c=defOf(it),n=c&&needs(c);return H&&n&&n.ceil
 function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0,hi=0,nc=0,pw=power(P.items);P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});
  var act=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#strip')?document.activeElement.id:null;
  el.innerHTML='<span class="slab">Room</span><span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span>×</span><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span>'+
-  '<label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
-  '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b>'+
+  '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b><label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
+  
   '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'');
  ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
