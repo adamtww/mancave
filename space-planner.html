@@ -2461,7 +2461,7 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  // outlets you placed stay where they are; everything plugs into them first
  var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;
   if(q.s>=0)q.a=Math.max(.5,Math.min((q.s%2===0?W:D)-.5,q.a));else{q.x=Math.max(.5,Math.min(W-.5,q.x));q.y=Math.max(.5,Math.min(D-.5,q.y))}return q});out=man.slice();
- var mk=function(sp,f){var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
+ var mk=function(sp,f){while(out.some(function(x){return x.id==='q'+nid}))nid++;var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
  var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.man||opt.fresh||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
   if(sp.s>=0&&(sp.a<.5||sp.a>(sp.s%2===0?W:D)-.5))return null;return rdist(opos(sp),ibox(it))<=REACH?sp:null};
  var L=P.items.map(function(it){return {it:it,sp:pspec(defOf(it))}}).filter(function(x){return x.sp});
@@ -2594,7 +2594,7 @@ function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab
  if(ch)h+='<div class="warn">'+(red?red+' object'+(red>1?'s aren\'t':' isn\'t')+' powered yet. ':'')+(P.pw.auto?'Rebuild to update the outlets.':'Place outlets for them, or build out power.')+'</div>';
  h+='<p class="muted">Click an outlet to see its circuit. A plan for the electrician to price, not a wiring design.</p></div>';return h}
 function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLoad(o),cw=c?circLoad(c):l.w,cap=(o.ph===3?1.732:1)*o.V*o.A*CAP80,pct=Math.min(100,cw/cap*100),many=c&&c.out.length>1;
- var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.man?esc(PK[pkK(o.k)].n):o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>'+(o.man?'<p class="muted" style="margin:0">Placed by you. Drag it on the plan to move it.</p>':'');
+ var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.man?esc(PK[pkK(o.k)].n):o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>'+'<p class="muted" style="margin:0">'+(o.man?'Placed by you. Drag it on the plan to move it.':'Placed by build out. Drag it on the plan to move it, and it stays where you put it.')+'</p>';
  h+='<div class="irow"><span>Circuit</span><b>C'+o.c+(o.ty==='hw'||!many?' · own circuit':' · '+c.out.length+' outlets')+'</b></div>';
  h+='<div class="irow"><span>Where</span><b>'+(o.man?pkWhere(o):o.s===-3?'Wired at the fixture (ceiling)':o.s<0?'Floor box or ceiling drop':'On the wall')+'</b></div>';
  if(!o.gp||cw){h+='<div><div class="irow" style="border:0;padding-bottom:2px"><span>Circuit load</span><b>'+Math.round(cw).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</b></div><div class="bar"><i style="width:'+pct+'%;background:'+(cw>cap?'#d6453d':cw>cap*.9?'#e0a21f':'#3ba776')+'"></i></div><p class="muted" style="margin-top:4px">80% of '+o.A+'A, the limit for loads that run for hours.</p></div>'}
@@ -2636,7 +2636,8 @@ function pfits(o,sp,ceil){var lv=o.s===-3?'c':'g';if(ceil!==(lv==='c'))return fa
  if(o.any)return ceil||sp.hw;if(sp.hw)return o.ty==='hw'&&(o.A>=sp.A||!!o.any);if(o.ty==='hw')return false;
  if(sp.ded&&o.man&&!o.ded)return false;return (o.ph===3)===(sp.ph===3)&&o.V===sp.V&&(o.V===120&&!sp.ded||o.A>=sp.A)}
 function pkSpot(k,p){var K=PK[pkK(k)],W=P.room.w,D=P.room.d,cl=function(v,L){return Math.max(.5,Math.min(L-.5,h2(v)))},dist=[p.y,W-p.x,D-p.y,p.x],s=dist.indexOf(Math.min.apply(null,dist)),inside=p.x>0&&p.x<W&&p.y>0&&p.y<D;
- if(K.at==='wall'||(K.at==='wallfloor'&&(!inside||dist[s]<2.5)))return {s:s,a:s%2===0?cl(p.x,W):cl(p.y,D)};
+ if((K.at==='wall'||K.at==='wallfloor')&&(!inside||dist[s]<2.5))return {s:s,a:s%2===0?cl(p.x,W):cl(p.y,D)};
+ if(K.at==='wall'||K.at==='wallfloor')return {s:-1,x:cl(p.x,W),y:cl(p.y,D)};
  return {s:K.at==='ceil'?-3:K.at==='drop'?-2:-1,x:cl(p.x,W),y:cl(p.y,D)}}
 function pkWhere(o){return o.s===-3?'On the ceiling':o.s===-2?'Hangs from the ceiling':o.s===-1?'On the floor':'On the wall'}
 function pwEnsure(){if(!P.pw)P.pw={outlets:[],circ:[],links:{},sig:{},show:true,auto:false};return P.pw}
@@ -2703,7 +2704,8 @@ function pkMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14
 function pkDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e)||!d.spot)return;var before=snapP(),o=pkPlace(d.pk,d.spot);pkAfter(o,before)}
 // moving a placed outlet on the plan
 var odrag=null;
-function odMove(e){var d=odrag;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4)return;var o=outBy(d.id);if(!o)return;if(!d.moved){d.before=snapP();d.moved=true}
+function pkOf(o){if(o.k)return pkK(o.k);if(o.s===-3)return o.ty==='120-20'&&!o.ded?'c20':o.ty==='240-30'?'c30':'chw';if(o.ty==='hw')return 'hw';var c=circBy(o.c),m={'120-15':'o15','120-20':c&&c.ded?'d20':'o20','240-20':'v20','240-30':'v30','240-50':'v50','3p30':'p30','3p60':'p60'};return m[o.ty]||'o20'}
+function odMove(e){var d=odrag;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4)return;var o=outBy(d.id);if(!o)return;if(!d.moved){d.before=snapP();d.moved=true;if(!o.man){var kk=pkOf(o);o.man=1;o.k=kk;Object.assign(o,pkBase(kk))}}
  var sp=pkSpot(o.k,toFt(e));delete o.a;delete o.x;delete o.y;Object.assign(o,sp);render()}
 function odUp(){var d=odrag;odrag=null;if(!d.moved){selO=d.id;sel=null;render();return}var o=outBy(d.id);if(!o)return;Object.assign(o,nudge(Object.assign({s:o.s},o.s>=0?{a:o.a}:{x:o.x,y:o.y}),P.pw.outlets.filter(function(x){return x!==o}),{x:-1e3,y:-1e3,w:3e3,d:3e3}));pkAfter(o,d.before)}
 
@@ -2764,7 +2766,7 @@ sv.addEventListener('wheel',function(e){e.preventDefault();var dy=e.deltaY*(e.de
 var touches={},pinch=null,pan=null;
 function tpts(){return Object.keys(touches).map(function(k){return touches[k]})}
 sv.addEventListener('pointerdown',function(e){if(e.pointerType==='touch'){touches[e.pointerId]={x:e.clientX,y:e.clientY};var t=tpts();if(t.length===2){if(drag){drag.el.classList.remove('drag');drag.el.style.opacity='';drag.el.dataset.k='';ghost(null);drag=null;render()}pan=null;pinch={d:Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx:(t[0].x+t[1].x)/2,my:(t[0].y+t[1].y)/2};return}}
- if(pinch)return;var go=e.target.closest('g.out');if(go){var oo=outBy(go.dataset.o);if(oo&&oo.man&&VW.md==='p'){odrag={id:oo.id,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();return}selO=go.dataset.o;sel=null;render();e.preventDefault();return}var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+ if(pinch)return;var go=e.target.closest('g.out');if(go){var oo=outBy(go.dataset.o);if(oo&&VW.md==='p'){odrag={id:oo.id,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();return}selO=go.dataset.o;sel=null;render();e.preventDefault();return}var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
 // the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
 function others(it){var lv=isC(it);return P.items.filter(function(o){return o!==it&&isC(o)===lv}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
