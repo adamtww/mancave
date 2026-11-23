@@ -304,11 +304,11 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
  if(grp){P.items.forEach(function(it){var oid=grp.items[it.u];if(!oid)return;var b=ibox(it),col=grp.out[oid],p=opos(outBy(oid)),pd=3*k;
    g+='<rect x="'+(b.x-pd)+'" y="'+(b.y-pd)+'" width="'+(b.w+2*pd)+'" height="'+(b.d+2*pd)+'" rx="'+(2*k)+'" fill="none" stroke="'+col+'" stroke-width="'+(2.2*k)+'" pointer-events="none"/>';
    lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#fff" stroke-width="'+(4*k)+'" stroke-linecap="round" pointer-events="none"/><line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="'+col+'" stroke-width="'+(2*k)+'" stroke-dasharray="'+(6*k)+' '+(4*k)+'" stroke-linecap="round" pointer-events="none"/><circle cx="'+(b.x+b.w/2)+'" cy="'+(b.y+b.d/2)+'" r="'+(3*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+k+'" pointer-events="none"/>'})}
- if(selIt){var st=pstat(selIt);if(st&&st.o)hiO[st.o.id]=1}if(selO)hiO[selO]=1;
+ if(selIt){var st=pstat(selIt);if(st&&st.o)hiO[st.o.id]=1}if(selO)hiO[selO]=1;if(odrag&&odrag.moved)hiO[odrag.id]=1;
  // lines from the selected outlet (or the selected object's outlet) to what it powers
  Object.keys(hiO).forEach(function(id){var o=outBy(id);if(!o)return;var p=opos(o);
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
-  P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;if(drag&&drag.moved&&drag.u===it.u)return;var b=ibox(it);if(!inReach(o,b))return;lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
+  var LK=odrag&&odrag.moved&&odrag.id===id&&odrag.links||P.pw.links;P.items.forEach(function(it){if(LK[it.u]!==id)return;if(drag&&drag.moved&&drag.u===it.u)return;var b=ibox(it);if(!inReach(o,b))return;lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines+'<defs><filter id="osh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="'+(1.1*k)+'" stdDeviation="'+(1.4*k)+'" flood-color="#000" flood-opacity=".32"/></filter></defs>';
  P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var noFit=selIt&&VW.md==='p'&&pspec(defOf(selIt))&&!canPower(o,selIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':noFit?';opacity:.3;filter:grayscale(1)':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(14*k)+'" fill="transparent"/><g transform="translate('+cx+' '+cy+') scale(1.45) translate('+(-cx)+' '+(-cy)+')" filter="url(#osh)">';
@@ -500,7 +500,7 @@ function pkDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!l
 var odrag=null;
 function pkOf(o){if(o.k)return pkK(o.k);if(o.s===-3)return o.ty==='120-20'&&!o.ded?'c20':o.ty==='240-30'?'c30':'chw';if(o.ty==='hw')return 'hw';var c=circBy(o.c),m={'120-15':'o15','120-20':c&&c.ded?'d20':'o20','240-20':'v20','240-30':'v30','240-50':'v50','3p30':'p30','3p60':'p60'};return m[o.ty]||'o20'}
 function odMove(e){var d=odrag;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4)return;var o=outBy(d.id);if(!o)return;if(!d.moved){d.before=snapP();d.moved=true;if(!o.man){var kk=pkOf(o);o.man=1;o.k=kk;Object.assign(o,pkBase(kk))}}
- var sp=pkSpot(o.k,toFt(e));delete o.a;delete o.x;delete o.y;Object.assign(o,sp);render()}
+ var sp=pkSpot(o.k,toFt(e));delete o.a;delete o.x;delete o.y;Object.assign(o,sp);var keep=P.pw;try{buildPower({keep:1});d.links=P.pw.links}catch(_){d.links=null}P.pw=keep;render()}
 function odUp(){var d=odrag;odrag=null;if(!d.moved){selO=d.id;sel=null;render();return}var o=outBy(d.id);if(!o)return;Object.assign(o,nudge(Object.assign({s:o.s},o.s>=0?{a:o.a}:{x:o.x,y:o.y}),P.pw.outlets.filter(function(x){return x!==o}),{x:-1e3,y:-1e3,w:3e3,d:3e3}));pkAfter(o,d.before)}
 
 /* ---------------- drawing ---------------- */
