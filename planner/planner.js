@@ -423,6 +423,8 @@ $('#q').oninput=function(){q=this.value;renderLib()};libTip();
 /* ---------------- no page zoom: pinch/zoom only works on the plan itself (which handles it), not the rest of the page ---------------- */
 ['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
 document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length>1&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
+// iPad Safari can still double-tap-zoom on plain text; swallow a quick second tap there (buttons, fields and the plan are left alone)
+var lastTE=0;document.addEventListener('touchend',function(e){var n=Date.now(),t=e.target;if(n-lastTE<350&&e.changedTouches&&e.changedTouches.length===1&&t.closest&&!t.closest('#sv,button,input,select,textarea,label,a,summary,[role=button],.lcard'))e.preventDefault();lastTE=n},{passive:false});
 window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
 /* ---------------- drag from the library: hold and drag a card onto the plan to place it by hand ----------------
    Mouse: press and drag. Touch: hold for a moment, then drag (a quick swipe still scrolls the list).
