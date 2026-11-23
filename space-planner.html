@@ -1416,10 +1416,16 @@ function loadLib(){if(!tok)return Promise.resolve();return api('GET','/api/objec
     if(builtIn&&!edited)return;LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}))}
    else if(o.mine&&!(o.data&&o.data.base)){LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}));MINE[o.r]=1}});
   // your own versions of library objects: they replace the original for you only, and can be reverted
-  j.objects.forEach(function(o){var b=o.mine&&o.data&&o.data.base;if(!b||!LIB[b]||MINE[b])return;var d=Object.assign({},o.data,{r:b});delete d.base;LIB[b]=normObj(d);EDITED[b]=o.r});
+  j.objects.forEach(function(o){var b=o.mine&&o.data&&o.data.base;if(!b||!LIB[b]||MINE[b])return;var d=Object.assign({},o.data,{r:b,uv:o.updated_at||1});delete d.base;LIB[b]=normObj(d);EDITED[b]=o.r});
  }).catch(function(e){if(e.status===401){tok=null;showWho()}})}
 // rooms saved before an object was retired: move them onto its generic replacement
 function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&BY[n]){if(x.defs){delete x.defs[it.r];x.defs[n]=JSON.parse(JSON.stringify(BY[n]))}it.r=n}});if(x.defs)Object.keys(x.defs).forEach(function(r){if(ALIAS[r])delete x.defs[r]});return x}
+// Rooms keep a copy of each object they use. When you edit (or revert) a library object, every copy of it on the
+// floor plan switches to the new version: right away in the open room, and when you open any other saved room.
+// Only your own objects and your edited versions are synced, so built-in objects in old rooms are left as they were.
+function syncDefs(say){if(!P||!P.items)return 0;P.defs=P.defs||{};var seen={},n=0;P.items.forEach(function(i){var r=i.r;if(seen[r])return;seen[r]=1;var L=LIB[r],D=P.defs[r];
+  if(!L||!(MINE[r]||EDITED[r]||(D&&D.uv)))return;var j=JSON.stringify(L);if(D&&JSON.stringify(D)===j)return;P.defs[r]=JSON.parse(j);n+=P.items.filter(function(x){return x.r===r}).length});
+ if(n){relayout();persist();render();if(say)toast('Updated '+n+' object'+(n>1?'s':'')+' on the floor plan')}else if(say)render();return n}
 function defOf(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
 // what a room needs because of what's in it
 function needs(c){var a=c.a||[],q=c.req||{},o={};
@@ -1964,7 +1970,7 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
   '<div class="cks s4"><label class="ck"><input type="checkbox" name="ceiling"'+((c?c.ceiling:VW.lv==='c')?' checked':'')+'> Ceiling object (hangs overhead)</label><label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label><label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label></div>'+
   '<label class="fl s4">Notes<textarea name="no" rows="2">'+esc(c&&c.no||'')+'</textarea></label></div>'+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(mine?'<button class="btn red" value="del" formnovalidate>Delete</button>':'')+(ov?'<button class="btn" value="revert" formnovalidate>Revert to original</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn pri" value="save">Save</button></span></div></form>';
- var after=function(rr){P.items.forEach(function(i){if(i.r===rr&&LIB[rr])P.defs[rr]=JSON.parse(JSON.stringify(LIB[rr]))});renderLib();relayout();render()};
+ var after=function(){syncDefs(true);renderLib()};
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
   if(v==='del'){if(!confirm('Delete '+c.n+'?'))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
   if(v==='revert'){if(!confirm('Revert '+c.n+' to the original? Your changes to it will be lost.'))return;api('DELETE','/api/objects/'+ov).then(function(){return loadLib()}).then(function(){toast('Reverted to the original: '+LIB[r].n);after(r)}).catch(function(e){toast(e.message)});return}
@@ -1986,10 +1992,10 @@ $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to
 $('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;selO=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
- d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true}});sel=null;selO=null;lastFail=null;persist();render();toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
+ d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true}});sel=null;selO=null;lastFail=null;persist();render();syncDefs(true);toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
 function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'</b>'+(me.admin?' · library owner':''):'Not signed in · <a href="index.html">sign in to the test app</a> to save'}
 showWho();
-if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render()}).catch(function(){tok=null;me=null;showWho()});
+if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render();syncDefs(true)}).catch(function(){tok=null;me=null;showWho()});
 renderLib();render();
 window.__sp={P:function(){return P},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();
