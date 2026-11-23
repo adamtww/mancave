@@ -449,6 +449,18 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
   crec:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><rect x="13" y="14" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 17v4 M22.5 17v4" stroke-width="1.8"/>'),
   c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')};
  return {o15:I0.duplex,o20:I0.duplex,d20:I0.ded,v20:I0.r30,v30:I0.r30,v50:I0.r50,p30:I0.p3,p60:I0.p3,floor:I0.floor,drop:I0.drop,reel:I0.reel,hw:I0.jbox,chw:I0.cjb,c20:I0.crec,c30:I0.c240}})();
+// after an object is moved or dropped: if it has no working power, plug it into the nearest outlet that fits and has room.
+// Objects that are already powered keep their outlet.
+function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it)return null;var sp=pspec(defOf(it));if(!sp)return null;var st=pstat(it);if(st&&st.lv!=='red')return null;
+ var ceil=isC(it),b=ibox(it),best=null,bd=1e9;
+ P.pw.outlets.forEach(function(o){if(!pfits(o,sp,ceil))return;var c=circBy(o.c),ownC=o.man?!!o.ded||o.ty==='hw':!!(c&&c.ded);if(sp.ded&&!ownC&&!o.any)return;
+  var on=P.items.filter(function(x){return x!==it&&P.pw.links[x.u]===o.id}),cap=o.cap||(ownC?1:2);if(on.length>=cap)return;
+  if(!ownC&&!o.any){var w=on.reduce(function(a,x){var q=pspec(defOf(x));return a+(q?q.W:0)},0);if(w+sp.W>o.V*o.A*CAP80)return;if(c&&circLoad(c)+sp.W>(o.ph===3?1.732:1)*o.V*o.A*CAP80)return}
+  var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
+ if(!best)return null;P.pw.links[u]=best.id;P.pw.sig[u]=sigOf(it);
+ if(best.any&&!P.items.some(function(x){return x!==it&&P.pw.links[x.u]===best.id})){best.V=sp.V;best.A=sp.A;best.ph=sp.ph;best.ty=sp.hw?'hw':sp.t}
+ best.sk=P.items.filter(function(x){return P.pw.links[x.u]===best.id}).length;best.w=pwLoad(best).w;return best}
+function plugToast(o){if(o)toast('Plugged into '+(o.man?PK[pkK(o.k)].n:tName(o.ty,o))+' on C'+o.c)}
 function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
 function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall or the floor. Objects plug into the nearest one that fits. Ceiling drops and reels are in Ceiling view.'}
 function renderPwLib(){pwHead();renderPwCat()}
@@ -574,7 +586,7 @@ sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType
  if(!d.moved){sel=it.u;selO=null;render();return}
  var before=snapP();sel=it.u;selO=null;it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
- if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}hist.push(before);fut=[];persist();render()});
+ if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}var po=autoPlug(it.u);hist.push(before);fut=[];persist();render();plugToast(po)});
 
 /* ---------------- left: library ---------------- */
 var openCats={},q='';if(VW.lv==='c'){openCats['Lighting – General']=true;ceilSeen=1}
@@ -622,7 +634,7 @@ function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.
  if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':'No free spot for it there');return}
  var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
  if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
- hist.push(before);fut=[];sel=it.u;selO=null;lastFail=null;persist();render();pop(it.u)}
+ var po=autoPlug(it.u);hist.push(before);fut=[];sel=it.u;selO=null;lastFail=null;persist();render();pop(it.u);plugToast(po)}
 $('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0||ldrag)return;
  ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
  if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
