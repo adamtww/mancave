@@ -2,6 +2,9 @@ var CATS=[
  ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Built-ins & Counters","#8d7b68"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],
  ["Kitchen – Residential","#ffd166"],["Kitchen – Commercial","#ffb000"],["Fitness","#3ddc97"],["Court & Rink","#34c3ff"],
  ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Home Theater & Music","#6c7cff"],["Auto & Garage","#e5533d"],["Metal & Fabrication","#6f87a6"],["Crafts & Office","#3fb5a8"],["Storage & Utility","#a39e8f"],["Indoor Garden","#7bd389"]];
+/* ceiling categories (objects with ceiling:true live on the ceiling, not the floor) */
+CATS.push(["Lighting – General","#f2b33d"],["Lighting – Task & Accent","#ef8f35"],["Lighting – Specialty","#9b6ade"],["Sound","#5b6ee1"],["Comfort","#3fa7b5"]);
+var CEILCATS=["Lighting – General","Lighting – Task & Accent","Lighting – Specialty","Sound","Comfort"];
 var CATCOLOR={};CATS.forEach(function(c){CATCOLOR[c[0]]=c[1]});
 var ALERTS={
  truck:["Truck parked inside","A space where vehicles park is usually classed as Group S-2 (parking) under the California Building Code, which can mean a fire-rated wall between it and other uses, plus other fire-code steps. The city/fire marshal decides. Look for units that already have a grade-level roll-up door, ask the broker/city early whether parking inside is allowed, and keep the bay away from welding and lasers."],
@@ -334,7 +337,33 @@ var CATALOG=[
  {r:"g-beerpong",c:"Arcade & Gaming",n:"Beer pong table",w:2,d:8,cl:3,cost:[100,500]},
  {r:"g-putt",c:"Arcade & Gaming",n:"Indoor putting green",w:6,d:15,cl:1,cost:[500,3000]},
  {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",req:{ceil:10},w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
- {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."}
+ {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."},
+ {r:"cl-hbr",c:"Lighting – General",n:"LED high-bay, round",ceiling:true,w:1.5,d:1.5,k:[0,0,0,0],reach:12,drop:1.5,p:[120,150,20,0],cost:[120,350],no:"UFO-style fixture for ceilings about 15 ft and up. Space them roughly as far apart as they are high."},
+ {r:"cl-hbl",c:"Lighting – General",n:"LED high-bay, linear",ceiling:true,w:2,d:1,k:[0,0,0,0],reach:11,drop:1.5,p:[120,220,20,0],cost:[150,400],no:"Long fixture that throws light along aisles and over work areas; good between racking."},
+ {r:"cl-shop",c:"Lighting – General",n:"LED shop light",ceiling:true,w:4,d:0.5,k:[0,0,0,0],reach:6,drop:0.5,p:[120,45,20,0],cost:[25,80],no:"Strip fixture for garage and basement heights (8–12 ft). Often linked end to end."},
+ {r:"cl-panel",c:"Lighting – General",n:"LED flat panel",ceiling:true,w:2,d:2,k:[0,0,0,0],reach:5,drop:0,p:[120,40,20,0],cost:[40,120],no:"Flush panel for an office, drop ceiling or lounge corner. Even, glare-free light."},
+ {r:"cl-vapor",c:"Lighting – General",n:"Vapor-tight fixture",ceiling:true,w:4,d:0.5,k:[0,0,0,0],reach:6,drop:0.5,p:[120,40,20,0],cost:[50,150],no:"Sealed fixture for damp or dusty spots: wash bay, grow room, spray area."},
+ {r:"cl-cage",c:"Lighting – General",n:"Caged fixture",ceiling:true,w:1.5,d:1.5,k:[0,0,0,0],reach:10,drop:1,p:[120,150,20,0],cost:[150,400],no:"High-bay with a wire guard, for the court and drone area where balls and drones hit things."},
+ {r:"cl-pool",c:"Lighting – Task & Accent",n:"Pool table light",ceiling:true,w:5,d:1,k:[0,0,0,0],reach:5,drop:3,p:[120,60,20,0],cost:[150,600],no:"Hangs about 30–36 in above the table so the whole bed is evenly lit."},
+ {r:"cl-pend",c:"Lighting – Task & Accent",n:"Bar pendants",ceiling:true,w:6,d:1,k:[0,0,0,0],reach:4,drop:3,p:[120,45,20,0],cost:[150,900],no:"A row of pendants over a bar, island or high-top."},
+ {r:"cl-track",c:"Lighting – Task & Accent",n:"Track lighting",ceiling:true,w:8,d:0.5,k:[0,0,0,0],reach:5,drop:0.5,p:[120,60,20,0],cost:[100,400],no:"Adjustable heads on a rail for art, a feature wall or a display."},
+ {r:"cl-down",c:"Lighting – Task & Accent",n:"Recessed downlight",ceiling:true,w:0.5,d:0.5,k:[0,0,0,0],reach:3,drop:0,p:[120,12,20,0],cost:[20,80],no:"Small can light set into a finished ceiling. Use several in a grid over a lounge or theater."},
+ {r:"cl-task",c:"Lighting – Task & Accent",n:"Workbench task light",ceiling:true,w:4,d:0.5,k:[0,0,0,0],reach:4,drop:2,p:[120,40,20,0],cost:[40,150],no:"Hangs low over a bench so the work surface is bright and shadow-free."},
+ {r:"cl-wash",c:"Lighting – Task & Accent",n:"Accent / wall-wash light",ceiling:true,w:1,d:0.5,k:[0,0,0,0],reach:4,drop:0.5,p:[120,20,20,0],cost:[40,200],no:"Aims light down a wall to show off a feature, a bar back or memorabilia."},
+ {r:"cl-growb",c:"Lighting – Specialty",n:"Grow light, bar-style",ceiling:true,w:4,d:4,k:[0,0,0,0],reach:2.5,drop:2,p:[120,320,20,0],cost:[250,900],no:"Bars of LEDs over a grow rack or tray table. Hangs low over the plants."},
+ {r:"cl-growp",c:"Lighting – Specialty",n:"Grow light, panel",ceiling:true,w:2,d:2,k:[0,0,0,0],reach:2,drop:2,p:[120,150,20,0],cost:[100,400],no:"Square full-spectrum panel for a shelf, tent or sprouting tray."},
+ {r:"cl-stage",c:"Lighting – Specialty",n:"Stage / party light",ceiling:true,w:1,d:1,k:[0,0,0,0],reach:10,drop:1,p:[120,150,20,0],cost:[100,800],no:"Moving-head or wash light for a dance floor, stage or party corner."},
+ {r:"cl-black",c:"Lighting – Specialty",n:"Blacklight strip",ceiling:true,w:4,d:0.3,k:[0,0,0,0],reach:5,drop:0.3,p:[120,30,20,0],cost:[30,120],no:"UV strip for the arcade, bowling or a glow-in-the-dark corner."},
+ {r:"cs-inceil",c:"Sound",n:"In-ceiling speaker",ceiling:true,w:0.8,d:0.8,k:[0,0,0,0],reach:8,drop:0,p:null,cost:[60,400],no:"Flush speaker for background music. Space them about 8–12 ft apart; powered from an amp."},
+ {r:"cs-pend",c:"Sound",n:"Pendant speaker",ceiling:true,w:1,d:1,k:[0,0,0,0],reach:12,drop:3,p:null,cost:[150,600],no:"Hangs on a cable for high or open ceilings where in-ceiling speakers won't work."},
+ {r:"cs-surf",c:"Sound",n:"Surface-mount speaker",ceiling:true,w:1,d:0.8,k:[0,0,0,0],reach:10,drop:0.8,p:null,cost:[100,500],no:"Bracket-mounted speaker aimed at an area: shop, gym or bar."},
+ {r:"cs-sub",c:"Sound",n:"Ceiling subwoofer",ceiling:true,w:2,d:2,k:[0,0,0,0],reach:20,drop:2,p:[120,300,20,0],cost:[300,1200],no:"Hung bass speaker that fills a big room. Powered, so it needs an outlet or circuit."},
+ {r:"cs-impact",c:"Sound",n:"Impact-resistant speaker",ceiling:true,w:1,d:1,k:[0,0,0,0],reach:12,drop:1,p:null,cost:[200,700],no:"Tough, guarded speaker for the court or gym where balls fly."},
+ {r:"cc-hvls",c:"Comfort",n:"Big warehouse fan (HVLS)",ceiling:true,w:16,d:16,k:[0,0,0,0],reach:30,drop:3,p:[240,1500,20,1],cost:[5000,15000],no:"High-volume, low-speed fan, 8–24 ft across. Moves air through a whole warehouse; blades need about 10 ft above the floor."},
+ {r:"cc-fan",c:"Comfort",n:"Ceiling fan",ceiling:true,w:5,d:5,k:[0,0,0,0],reach:8,drop:1.5,p:[120,75,20,0],cost:[100,500],no:"Standard fan for a lounge, office or garage."},
+ {r:"cc-unith",c:"Comfort",n:"Hanging unit heater",ceiling:true,w:3,d:2,k:[0,0,0,0],reach:20,drop:2,p:[120,250,20,0],cost:[800,2500],no:"Gas or electric box heater hung near the ceiling, aimed down at the work area."},
+ {r:"cc-irtube",c:"Comfort",n:"Infrared tube heater",ceiling:true,w:20,d:1,k:[0,0,0,0],reach:12,drop:1,p:[120,200,20,0],cost:[1500,4000],no:"Long radiant tube that warms people and floors directly; good for drafty shops."},
+ {r:"cc-cassette",c:"Comfort",n:"Mini-split cassette",ceiling:true,w:2,d:2,k:[0,0,0,0],reach:12,drop:1,p:[240,1500,20,1],cost:[2000,5000],no:"Ceiling cassette for a ductless heat pump: heating and cooling for a lounge, office or grow room."}
 ];
 /* Clearance ("keep this empty to use it") per side, relative to the object's front: k = [front, back, left, right],
    left and right as you stand facing the front. Older data has cl (feet) + cf (front only); normObj fills k from those,
