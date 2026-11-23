@@ -262,8 +262,8 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
   if(dd)circ.push({id:0,ty:o.ty,V:o.V,A:o.A,ph:o.ph,ded:1,feed:o.s===-3?1:0,out:[o.id]});else if(o.s===-3){o.feed=1;feeds.push(o)}else mshared.push(o)});
  group(mshared,false);
  var n0=circ.length;group(feeds,false);for(var ci=n0;ci<circ.length;ci++)circ[ci].feed=1;
- // general-purpose outlets every ~12 ft of wall (chargers, hand tools, vacuums), on their own circuits
- if(auto&&(!P.pwo||P.pwo.gp!==false)){var gps=[];for(var s=0;s<4;s++){var Ln=s%2===0?W:D,n=Ln<6?0:Math.max(1,Math.round(Ln/12));
+ // (general-purpose wall outlets are no longer built: place your own from the Power panel)
+ if(false){var gps=[];for(var s=0;s<4;s++){var Ln=s%2===0?W:D,n=Ln<6?0:Math.max(1,Math.round(Ln/12));
    for(var i=0;i<n;i++){var a=h2((i+.5)*Ln/n),q={s:s,a:a},pq=opos(q);if(out.some(function(o){var p=opos(o);return o.s===s&&!o.gp&&o.ty==='120-20'&&Math.hypot(p.x-pq.x,p.y-pq.y)<3}))continue;
     gps.push(mk(nudge(q,out,{x:pq.x-REACH,y:pq.y-REACH,w:2*REACH,d:2*REACH}),{ty:'120-20',V:120,A:20,ph:1,sk:0,w:0,gp:1}))}}group(gps,true)}
  circ.forEach(function(c){c.k=Math.min.apply(null,c.out.map(function(id){return perim(out.filter(function(o){return o.id===id})[0])}))});
@@ -510,7 +510,7 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  if(it.pin)h+='<circle cx="'+(m.w-.35)+'" cy=".35" r="'+(6*k)+'" fill="#e07b1f" stroke="#fff" stroke-width="'+(1.5*k)+'"/>';
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
-function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-obj"></g><g id="g-pw"></g><g id="g-ghost"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost')}
+function render(){if(P.pw&&P.pw.outlets.some(function(o){return o.gp}))buildPower();var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-obj"></g><g id="g-pw"></g><g id="g-ghost"></g>';G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost')}
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj'+(isC(it)?' ceil':''));el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
