@@ -235,7 +235,7 @@ var CEILP='M4 4h16M12 7v13M9 10l3-3 3 3M9 17l3 3 3-3';
 function drawCeil(k){var g='';lowCeil().forEach(function(x){var b=ibox(x.it),cx=b.x+Math.max(b.w-Math.min(.45,b.w/3),b.w/2),cy=b.y+b.d-Math.min(.45,b.d/3),r=7*k;
  g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#d6453d" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+CEILP+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></g>'});return g}
 var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
-function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
+function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
  if(grp){P.items.forEach(function(it){var oid=grp.items[it.u];if(!oid)return;var b=ibox(it),col=grp.out[oid],p=opos(outBy(oid)),pd=3*k;
    g+='<rect x="'+(b.x-pd)+'" y="'+(b.y-pd)+'" width="'+(b.w+2*pd)+'" height="'+(b.d+2*pd)+'" rx="'+(2*k)+'" fill="none" stroke="'+col+'" stroke-width="'+(2.2*k)+'" pointer-events="none"/>';
    lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#fff" stroke-width="'+(4*k)+'" stroke-linecap="round" pointer-events="none"/><line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="'+col+'" stroke-width="'+(2*k)+'" stroke-dasharray="'+(6*k)+' '+(4*k)+'" stroke-linecap="round" pointer-events="none"/><circle cx="'+(b.x+b.w/2)+'" cy="'+(b.y+b.d/2)+'" r="'+(3*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+k+'" pointer-events="none"/>'})}
@@ -245,7 +245,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))retu
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+REACH+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines;
- P.pw.outlets.forEach(function(o){var inG=grp&&grp.out[o.id];if(grp&&!inG&&P.pw.show===false)return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
@@ -262,6 +262,13 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(P.pw.show===false&&!grp))retu
  return g}
 // an object's load as watts and amps; ≈ marks catalog estimates
 function ldTxt(c){var sp=pspec(c);if(!sp)return '';var a=sp.W/((sp.ph===3?1.732:1)*sp.V);return (c.est?'≈ ':'')+Math.round(sp.W).toLocaleString()+' W · '+(a<10?fmt(a):Math.round(a))+' A'}
+// what the plan shows: level g(round)/c(eiling), mode o(bjects)/p(ower)
+var VW={lv:'g',md:'o'};try{var vw0=JSON.parse(localStorage.getItem('sp-view')||'{}');if(vw0.lv==='c')VW.lv='c';if(vw0.md==='p')VW.md='p'}catch(_){}
+function setView(k,v){if(VW[k]===v)return;VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
+function vbar(){var el=$('#vbar');if(!el)return;var I={g:'<path d="M3 17l9 4 9-4M3 12l9 4 9-4M12 3l9 4-9 4-9-4z"/>',c:'<path d="M3 4h18M8 4v4M16 4v4"/><circle cx="8" cy="11" r="3"/><circle cx="16" cy="11" r="3"/>',o:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',p:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'},
+  b=function(k,v,t){return '<button class="vb'+(VW[k]===v?' on':'')+'" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(VW[k]===v)+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[v]+'</svg>'+t+'</button>'};
+ el.innerHTML='<div class="vseg" role="group" aria-label="Level">'+b('lv','g','Ground')+b('lv','c','Ceiling')+'</div><i class="vsep"></i><div class="vseg" role="group" aria-label="Show">'+b('md','o','Objects')+b('md','p','Power')+'</div>';
+ el.querySelectorAll('.vb').forEach(function(x){x.onclick=function(){setView(x.dataset.k,x.dataset.v)}})}
 var pwOpenK=null,CCOL=['#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#854F0B','#3B6D11','#A32D2D'];
 function gkey(c){var o=outBy(c.out[0]);return c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared')}
 // the opened group: its circuits (each with a colour), their outlets and the objects on them
@@ -284,7 +291,7 @@ function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab
   h+='<div><b>'+(pw.items?(pw.est?'≈ ':'')+fmtW(pw.w)+'</b> connected · ≈ '+fmtW(pw.peak)+' peak':'No powered objects yet</b>')+'</div>'+(pw.circ.length?'<p class="muted">Roughly '+esc(pw.circ.join(' · '))+'</p>':'');
   h+='<label class="ck"><input type="checkbox" id="pw-gp"'+(gpOn?' checked':'')+'> General-purpose outlets every ~12 ft of wall</label><button class="btn pri" id="pw-build">Build out power</button></div>';return h}
  var ch=pwChanges(),cv=converter(),red=P.items.filter(function(it){var s=pstat(it);return s&&s.lv==='red'}).length;
- h+='<label class="sw"><input type="checkbox" id="pw-show"'+(P.pw.show!==false?' checked':'')+'> Show outlets</label>';
+ 
  h+='<div><b>'+P.pw.circ.length+' circuit'+(P.pw.circ.length===1?'':'s')+'</b> · '+P.pw.outlets.length+' outlet'+(P.pw.outlets.length===1?'':'s')+' and connections · '+(pw.est?'≈ ':'')+fmtW(pw.w)+' connected</div>';
  h+='<div>'+pwSummary()+'</div>';
  if(cv)h+='<div class="warn"><b>3-phase:</b> '+cv.n+' machine'+(cv.n>1?'s need':' needs')+' 3-phase power. If the building only has single-phase, plan on a rotary phase converter of about '+cv.hp+' HP (roughly '+money(cv.lo)+'–'+money(cv.hi)+').</div>';
@@ -304,8 +311,8 @@ function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLo
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
 // view: z = zoom (1 = whole room fits), cx/cy = centre in feet (null = room centre)
 var V={z:1,cx:null,cy:null};
-function dimOff(){var o={t:0,l:0};if(!P.pw||P.pw.show===false)return o;var big=scale()>=16;P.pw.outlets.forEach(function(q){if(q.s===0)o.t=Math.max(o.t,big?30:16);if(q.s===3)o.l=Math.max(o.l,big?14+((q.gp?0:tShort(q.ty,q).length+1)+String(q.c).length+1)*5.8:16)});return o}
-function fitVb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12)+(P.pw&&P.pw.show!==false?Math.max(3.5,Math.max(P.room.w,P.room.d)*.08):0);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
+function dimOff(){var o={t:0,l:0};if(!P.pw||VW.md!=='p')return o;var big=scale()>=16;P.pw.outlets.forEach(function(q){if(q.s===0)o.t=Math.max(o.t,big?30:16);if(q.s===3)o.l=Math.max(o.l,big?14+((q.gp?0:tShort(q.ty,q).length+1)+String(q.c).length+1)*5.8:16)});return o}
+function fitVb(){var M=Math.max(2,Math.max(P.room.w,P.room.d)*.12)+(P.pw&&VW.md==='p'?Math.max(3.5,Math.max(P.room.w,P.room.d)*.08):0);return {x:-M,y:-M,w:P.room.w+2*M,h:P.room.d+2*M}}
 function zoomed(){return Math.abs(V.z-1)>1e-3||V.cx!=null}
 function vb(){var b=fitVb();if(!zoomed())return b;var w=b.w/V.z,h=b.h/V.z,cx=V.cx==null?b.x+b.w/2:V.cx,cy=V.cy==null?b.y+b.h/2:V.cy;return {x:cx-w/2,y:cy-h/2,w:w,h:h}}
 function setVb(){var v=vb();sv.setAttribute('viewBox',v.x+' '+v.y+' '+v.w+' '+v.h)}
@@ -334,7 +341,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=drawPower(k)+drawCeil(k);
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=(VW.md==='p'?drawPower(k):'')+(VW.lv==='g'?drawCeil(k):'');G.obj.setAttribute('class',VW.lv==='c'?'v-ceil':VW.md==='p'?'v-pow':'');var cn=$('#cnote');if(cn)cn.hidden=VW.lv!=='c';vbar();
  $('#rname').value=P.name;side();markLib();$('#b-fit').style.display=zoomed()?'':'none';$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length}
 var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
@@ -346,7 +353,7 @@ function howRows(){var kb=function(t){return '<span class="kb">'+t+'</span>'},ro
  return row(kb('Click'),'Add an object; it finds its own spot')+row(kb('Drag'),'Place it yourself on the plan')+row(kb('Right-click')+kb('✎'),'Edit an object\'s details')+row(kb('Drag'),'Move an object on the plan')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('R')+kb('Shift R'),'Turn right / left')+row(kb('Del'),'Remove the selected one')+row(kb('Scroll'),'Zoom (pinch on a trackpad)')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Double-click'),'Fit the whole room')+(pw?row(kb('Click outlet'),'See its circuit and what it powers'):'')+row(kb('Esc'),'Deselect')}
 // "How to use the plan": one line, opens to the controls
 function howTo(){return '<details class="howto" id="howto"'+(howOpen?' open':'')+'><summary><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f5b52" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/></svg><span>How to Use</span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a867c" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="hkeys">'+howRows()+'</div></details>'}
-function hintTxt(){return P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&P.pw.show!==false?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
+function hintTxt(){return P.items.length?'Drag to move · push into a wall to turn it · R / Shift+R turn · scroll or pinch to zoom'+(P.pw&&VW.md==='p'?' · click an outlet to see its circuit':''):'Click an object on the left to add it'}
 function pop(u){popU=u;setTimeout(function(){popU=null},400)}
 window.addEventListener('resize',function(){G.obj&&Array.prototype.forEach.call(G.obj.children,function(e){e.dataset.k=''});render()});
 
@@ -480,7 +487,7 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(selO)h+=outletCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it);h+='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+esc(c.n)+'</b>'+(it.pin?'<span class="pin" style="align-self:flex-start">Pinned here</span>':'')+
   '<div class="irow"><span>Size</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></div><div class="irow"><span>Clearance</span><b>'+clrTxt(c)+'</b></div>'+(costTxt(c)?'<div class="irow"><span>Typical cost</span><b>'+costTxt(c)+'</b></div>':'')+(c.p?'<div class="irow"><span>Power</span><b>'+c.p[0]+'V · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps?(ps.o?'<div class="irow"><span>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+(ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':''):'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. The room is '+fmt(P.room.h)+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+
   '<div class="row"><button class="btn" id="o-rl" title="Turn left (Shift+R)">↺ Turn left</button><button class="btn" id="o-rr" title="Turn right (R)">↻ Turn right</button></div><div class="row"><button class="btn" id="o-pin">'+(it.pin?'Unpin':'Pin here')+'</button><button class="btn red" id="o-del">Remove</button></div><button class="btn" id="o-edit" style="align-self:flex-start">✎ Edit details</button></div>'}
- h+=powerCard();h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
+ if(VW.md==='p')h+=powerCard();if(VW.md!=='p')h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
  if(P.items.length){var cnt={};h+='<div class="card"><span class="lab">In this room · '+P.items.length+'</span><div class="ol">'+P.items.map(function(i){var c=defOf(i),m=dims(i,i.rot);return '<button class="oi'+(sel===i.u?' on':'')+'" data-u="'+i.u+'"><span class="nm">'+esc(c.n)+'</span>'+(i.pin?'<span class="pin">pinned</span>':'')+'<span class="sz">'+fmt(m.w)+'×'+fmt(m.d)+'</span></button>'}).join('')+'</div></div>'}
  var S=$('#side');S.innerHTML=h;strip();
  var gb=$('#r-grow');if(gb)gb.onclick=function(){var r=lastFail.r,c=LIB[r],before=snapP(),nit={u:'o'+(P.uid++),r:r,x:0,y:0,rot:0,n:P.uid};P.defs[r]=JSON.parse(JSON.stringify(c));P.items.push(nit);if(!relayout({force:true})){P=JSON.parse(before);toast('Even a much bigger room can\'t fit that');render();return}hist.push(before);fut=[];sel=nit.u;lastFail=null;persist();render()};
@@ -489,7 +496,6 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
  var ht=$('#howto');if(ht)ht.ontoggle=function(){howOpen=ht.open;try{localStorage.setItem('sp-howto',howOpen?'1':'0')}catch(_){}};
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
- var ps2=$('#pw-show');if(ps2)ps2.onchange=function(){P.pw.show=this.checked;if(!this.checked)selO=null;persist();render()};
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)};$('#o-edit').onclick=function(){editObj(it.r)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
 
