@@ -164,7 +164,22 @@ dialog.wide{max-width:min(880px,96vw)}
 .oed .rch{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center;margin:auto 0}
 .oed .rdisk{width:110px;height:110px;border-radius:50%;border:2px dashed #9cc0f3;background:radial-gradient(circle,#fff6d6 0 18%,#eaf1fd 19% 100%);display:flex;align-items:center;justify-content:center}
 .oed .rdisk i{width:22px;height:22px;border-radius:50%;background:#3a3936;border:3px solid #ffd666}
-@media (max-width:720px){.oed .cols{grid-template-columns:1fr}}.fg.two{grid-template-columns:1fr 1fr}
+@media (max-width:720px){.oed .cols{grid-template-columns:1fr}}
+dialog.it2{max-width:min(760px,96vw)}
+.oed .ph{display:flex;gap:10px;align-items:flex-start}
+.oed .ph>svg{color:#fff;background:var(--hc);border-radius:9px;padding:6px;width:34px;height:34px;box-sizing:border-box;flex:none}
+.oed .ph h2{margin:0;font-size:17px}.oed .ph p{margin:2px 0 0;font-size:12.5px;color:#6b6960;line-height:1.4}
+.oed .cd h3 .etag{margin-left:4px}
+.oed .btn[disabled]{opacity:.45;cursor:default}
+/* selected card: size + clearance in one tappable box */
+.fbox{display:flex;align-items:stretch;width:100%;border:1px solid #d9d6ce;border-radius:10px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);font:inherit;padding:0;cursor:pointer;text-align:left;margin:2px 0 4px;overflow:hidden;color:inherit}
+.fbox:hover{border-color:#2f7de1}.fbox:hover .pe{color:#2f7de1;background:#f3f7fe}
+.fbox .ln{flex:1;display:flex;flex-direction:column;min-width:0}
+.fbox .rw{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 8px;padding:8px 10px;font-size:13px}
+.fbox .rw+.rw{border-top:1px solid #f0ede6}
+.fbox .rw>span{color:#6b6960;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.fbox .rw b{font-weight:600;color:#2b2a27;text-align:right;margin-left:auto;white-space:nowrap}
+.fbox .pe{display:flex;align-items:center;justify-content:center;width:38px;flex:none;border-left:1px solid #f0ede6;color:#8a867c;background:#fafaf8}.fg.two{grid-template-columns:1fr 1fr}
 .explore{display:none}body.exploring .main{display:none}body.exploring .explore{display:block;position:relative;margin:12px;border-radius:14px;overflow:hidden;background:#141416;min-height:0}
 .explore canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .exhud{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(20,20,22,.7);color:#eee;font-size:12.5px;padding:7px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
