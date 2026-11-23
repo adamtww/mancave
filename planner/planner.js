@@ -233,7 +233,7 @@ function nudge(sp,list,b){var same=function(q){return list.some(function(o){var 
 function sigOf(it){return [it.r,it.x,it.y,it.rot].join('|')}
 function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.auto:!!(prev&&prev.auto),out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
  // outlets you placed stay where they are; everything plugs into them first
- var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});delete q.c;delete q.feed;delete q.ld;
+ var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;
   if(q.s>=0)q.a=Math.max(.5,Math.min((q.s%2===0?W:D)-.5,q.a));else{q.x=Math.max(.5,Math.min(W-.5,q.x));q.y=Math.max(.5,Math.min(D-.5,q.y))}return q});out=man.slice();
  var mk=function(sp,f){var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
  var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.man||opt.fresh||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
@@ -368,7 +368,7 @@ function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab
  if(ch)h+='<div class="warn">'+(red?red+' object'+(red>1?'s aren\'t':' isn\'t')+' powered yet. ':'')+(P.pw.auto?'Rebuild to update the outlets.':'Place outlets for them, or build out power.')+'</div>';
  h+='<p class="muted">Click an outlet to see its circuit. A plan for the electrician to price, not a wiring design.</p></div>';return h}
 function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLoad(o),cw=c?circLoad(c):l.w,cap=(o.ph===3?1.732:1)*o.V*o.A*CAP80,pct=Math.min(100,cw/cap*100),many=c&&c.out.length>1;
- var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.man?esc(PK[o.k].n)+' <small class="muted" style="font-weight:500">'+esc(pkBadge(o.k).replace('⚡',''))+'</small>':o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>'+(o.man?'<p class="muted" style="margin:0">Placed by you. Drag it on the plan to move it.</p>':'');
+ var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.man?esc(PK[pkK(o.k)].n):o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>'+(o.man?'<p class="muted" style="margin:0">Placed by you. Drag it on the plan to move it.</p>':'');
  h+='<div class="irow"><span>Circuit</span><b>C'+o.c+(o.ty==='hw'||!many?' · own circuit':' · '+c.out.length+' outlets')+'</b></div>';
  h+='<div class="irow"><span>Where</span><b>'+(o.man?pkWhere(o):o.s===-3?'Wired at the fixture (ceiling)':o.s<0?'Floor box or ceiling drop':'On the wall')+'</b></div>';
  if(!o.gp||cw){h+='<div><div class="irow" style="border:0;padding-bottom:2px"><span>Circuit load</span><b>'+Math.round(cw).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</b></div><div class="bar"><i style="width:'+pct+'%;background:'+(cw>cap?'#d6453d':cw>cap*.9?'#e0a21f':'#3ba776')+'"></i></div><p class="muted" style="margin-top:4px">80% of '+o.A+'A, the limit for loads that run for hours.</p></div>'}
@@ -382,33 +382,34 @@ function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLo
    and power floor objects; ceiling boxes feed lights, fans and heaters. Objects plug into the nearest outlet
    that fits. Placed outlets stay put when power is rebuilt; build-out only fills in what's still missing. */
 var PK={
- duplex:{n:'Duplex outlet',g:'Standard',ty:'120-15',cap:2,at:'wall'},
- gfci:{n:'GFCI outlet',g:'Standard',ty:'120-20',cap:2,at:'wall'},
- quad:{n:'Quad outlet',g:'Standard',ty:'120-20',cap:4,at:'wall'},
- usb:{n:'Outlet + USB',g:'Standard',ty:'120-15',cap:2,at:'wall'},
- ded:{n:'Dedicated circuit',g:'Dedicated & 240V',ty:'120-20',cap:1,ded:1,at:'wall'},
- r30:{n:'Dryer / tool outlet',g:'Dedicated & 240V',ty:'240-30',cap:1,ded:1,at:'wall'},
- r50:{n:'EV / welder outlet',g:'Dedicated & 240V',ty:'240-50',cap:1,ded:1,at:'wall'},
- p3:{n:'3-phase outlet',g:'Dedicated & 240V',ty:'3p60',cap:1,ded:1,at:'wall'},
- floor:{n:'Floor box',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'floor'},
+ o15:{n:'120V 15A outlet',g:'120V',ty:'120-15',cap:2,at:'wall'},
+ o20:{n:'120V 20A outlet',g:'120V',ty:'120-20',cap:2,at:'wall'},
+ d20:{n:'120V 20A dedicated',g:'120V',ty:'120-20',cap:1,ded:1,at:'wall'},
+ v20:{n:'240V 20A outlet',g:'240V',ty:'240-20',cap:1,ded:1,at:'wall'},
+ v30:{n:'240V 30A outlet',g:'240V',ty:'240-30',cap:1,ded:1,at:'wall'},
+ v50:{n:'240V 50A outlet',g:'240V',ty:'240-50',cap:1,ded:1,at:'wall'},
+ p30:{n:'3-phase 30A outlet',g:'3-phase',ty:'3p30',cap:1,ded:1,at:'wall'},
+ p60:{n:'3-phase 60A outlet',g:'3-phase',ty:'3p60',cap:1,ded:1,at:'wall'},
+ floor:{n:'Floor outlet',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'floor'},
  drop:{n:'Ceiling drop',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'drop'},
- reel:{n:'Cord reel',g:'Floor & ceiling drops',ty:'120-20',cap:3,at:'drop',reach:15},
- jbox:{n:'Junction box',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
- disc:{n:'Disconnect switch',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
- cjb:{n:'Fixture box',g:'Ceiling fixtures',ty:'any',cap:1,at:'ceil'},
- crec:{n:'Ceiling outlet',g:'Ceiling fixtures',ty:'120-20',cap:2,at:'ceil'},
- c240:{n:'Ceiling 240V outlet',g:'Ceiling fixtures',ty:'240-30',cap:1,ded:1,at:'ceil'},
- cdisc:{n:'Heater / fan disconnect',g:'Ceiling fixtures',ty:'any',cap:1,ded:1,at:'ceil'}};
-var PKG={g:[['Standard','#2f7de1'],['Dedicated & 240V','#e0701f'],['Floor & ceiling drops','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Floor & ceiling drops','#b8862e']]};
+ reel:{n:'Cord reel',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'drop',reach:15},
+ hw:{n:'Hardwired connection',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
+ chw:{n:'Hardwired fixture',g:'Ceiling',ty:'any',cap:1,at:'ceil'},
+ c20:{n:'Ceiling 120V 20A outlet',g:'Ceiling',ty:'120-20',cap:2,at:'ceil'},
+ c30:{n:'Ceiling 240V 30A outlet',g:'Ceiling',ty:'240-30',cap:1,ded:1,at:'ceil'}};
+// earlier outlet types, folded into the generic ones
+var PKA={duplex:'o15',usb:'o15',gfci:'o20',quad:'o20',ded:'d20',r30:'v30',r50:'v50',p3:'p60',jbox:'hw',disc:'hw',cjb:'chw',cdisc:'chw',crec:'c20',c240:'c30'};
+function pkK(k){return PK[k]?k:PKA[k]||'o20'}
+var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Floor & ceiling drops','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling','#d6a01c'],['Floor & ceiling drops','#b8862e']]};
 var PKO={};
-function pkBase(k){var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
+function pkBase(k){k=pkK(k);var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
  if(t==='any')return Object.assign(o,{ty:'hw',V:240,A:60,ph:1});if(t.slice(0,2)==='3p')return Object.assign(o,{ty:t,V:240,A:+t.slice(2),ph:3});var s=t.split('-');return Object.assign(o,{ty:t,V:+s[0],A:+s[1],ph:1})}
-function pkBadge(k){var K=PK[k],t=K.ty;if(t==='any')return K.at==='ceil'?'wired':'hardwire';if(t.slice(0,2)==='3p')return '⚡208V 3φ';var s=t.split('-');return '⚡'+s[0]+'V '+s[1]+'A'}
+function pkBadge(k){var K=PK[pkK(k)];return K.ty==='any'?'Wired in':K.reach?K.reach+' ft cord':K.ded?'Own circuit':'Shared circuit'}
 // can this outlet power this load at all (not counting how full it already is)?
 function pfits(o,sp,ceil){var lv=o.s===-3?'c':'g';if(ceil!==(lv==='c'))return false;
  if(o.any)return ceil||sp.hw;if(sp.hw)return o.ty==='hw'&&(o.A>=sp.A||!!o.any);if(o.ty==='hw')return false;
  if(sp.ded&&o.man&&!o.ded)return false;return (o.ph===3)===(sp.ph===3)&&o.V===sp.V&&(o.V===120&&!sp.ded||o.A>=sp.A)}
-function pkSpot(k,p){var K=PK[k],W=P.room.w,D=P.room.d,cl=function(v,L){return Math.max(.5,Math.min(L-.5,h2(v)))},dist=[p.y,W-p.x,D-p.y,p.x],s=dist.indexOf(Math.min.apply(null,dist)),inside=p.x>0&&p.x<W&&p.y>0&&p.y<D;
+function pkSpot(k,p){var K=PK[pkK(k)],W=P.room.w,D=P.room.d,cl=function(v,L){return Math.max(.5,Math.min(L-.5,h2(v)))},dist=[p.y,W-p.x,D-p.y,p.x],s=dist.indexOf(Math.min.apply(null,dist)),inside=p.x>0&&p.x<W&&p.y>0&&p.y<D;
  if(K.at==='wall'||(K.at==='wallfloor'&&(!inside||dist[s]<2.5)))return {s:s,a:s%2===0?cl(p.x,W):cl(p.y,D)};
  return {s:K.at==='ceil'?-3:K.at==='drop'?-2:-1,x:cl(p.x,W),y:cl(p.y,D)}}
 function pkWhere(o){return o.s===-3?'On the ceiling':o.s===-2?'Hangs from the ceiling':o.s===-1?'On the floor':'On the wall'}
@@ -431,7 +432,7 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
   R='<rect x="4" y="4" width="32" height="32" rx="4" fill="#f6f4ee"/>',q='';for(var x=6;x<=22;x+=16)for(var y=8;y<=22;y+=14)q+='<rect x="'+x+'" y="'+y+'" width="12" height="10" rx="4" fill="#fff"/><path d="M'+(x+3.5)+' '+(y+3)+'v3 M'+(x+8.5)+' '+(y+3)+'v3" stroke-width="1.6"/>';
  var JB='<rect x="6" y="6" width="28" height="28" rx="3" fill="#b8bcc0"/><circle cx="12" cy="12" r="1.4" fill="#3a3936" stroke="none"/><circle cx="28" cy="12" r="1.4" fill="#3a3936" stroke="none"/><circle cx="12" cy="28" r="1.4" fill="#3a3936" stroke="none"/><circle cx="28" cy="28" r="1.4" fill="#3a3936" stroke="none"/><path d="M15 20h10 M20 15v10" stroke="#d92b2b"/>',
   DS='<rect x="8" y="3" width="24" height="34" rx="3" fill="#8d939a"/><rect x="24" y="12" width="4" height="12" rx="1" fill="#d92b2b" stroke="none"/><rect x="12" y="8" width="9" height="5" rx="1" fill="#f6f4ee"/>';
- return {duplex:S(PL+F(6)+F(22)),usb:S(PL+F(5)+'<rect x="14" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/><rect x="21" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/>'+F(25)),
+ var I0={duplex:S(PL+F(6)+F(22)),usb:S(PL+F(5)+'<rect x="14" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/><rect x="21" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/>'+F(25)),
   gfci:S(PL+'<rect x="13" y="5" width="14" height="10" rx="4" fill="#fff"/><path d="M17.5 8v3.5M22.5 8v3.5" stroke-width="1.8"/><rect x="15" y="17.5" width="4.5" height="4" rx="1" fill="#d92b2b" stroke="none"/><rect x="20.5" y="17.5" width="4.5" height="4" rx="1" fill="#2b2b2b" stroke="none"/><rect x="13" y="24" width="14" height="10" rx="4" fill="#fff"/><path d="M17.5 27v3.5M22.5 27v3.5" stroke-width="1.8"/>'),
   quad:S('<rect x="3" y="5" width="34" height="30" rx="3" fill="#f6f4ee"/>'+q),
   ded:S(PL+'<rect x="13" y="6" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 9v4 M22.5 9v4 M22.5 11h2" stroke-width="1.8"/><circle cx="20" cy="15.2" r="1.2" fill="#3a3936" stroke="none"/><rect x="11.5" y="24" width="17" height="8" rx="2" fill="#e0701f" stroke="none"/><text x="20" y="30.3" font-size="6.2" font-family="sans-serif" font-weight="700" fill="#fff" text-anchor="middle" stroke="none">20A</text>'),
@@ -444,8 +445,9 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
   jbox:S(JB),disc:S(DS),cdisc:S(DS),
   cjb:S('<circle cx="20" cy="20" r="15" fill="#b8bcc0"/><circle cx="20" cy="20" r="6" fill="#fff6d0"/><path d="M20 5v4M20 31v4M5 20h4M31 20h4"/>'),
   crec:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><rect x="13" y="14" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 17v4 M22.5 17v4" stroke-width="1.8"/>'),
-  c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')}})();
-function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span'+(PK[k].ty==='any'?'':' class="p"')+'>'+pkBadge(k)+'</span></div></div>'}
+  c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')};
+ return {o15:I0.duplex,o20:I0.duplex,d20:I0.ded,v20:I0.r30,v30:I0.r30,v50:I0.r50,p30:I0.p3,p60:I0.p3,floor:I0.floor,drop:I0.drop,reel:I0.reel,hw:I0.jbox,chw:I0.cjb,c20:I0.crec,c30:I0.c240}})();
+function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
 function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall, the floor or a ceiling drop. Objects plug into the nearest one that fits.'}
 function renderPwLib(){pwHead();renderPwCat()}
 function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
@@ -467,11 +469,11 @@ function renderPwCat(){var h='';PKG[VW.lv==='c'?'c':'g'].forEach(function(gg){va
 }
 // dragging from the Power panel
 function pkGhost(k,sp){var kk=1/scale(),o=Object.assign({s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y}),p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*kk:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=tCol(Object.assign({gp:0},pkBase(k))),r=7*kk;
- G.ghost.innerHTML='<g pointer-events="none"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+(PK[k].reach||REACH)+'" fill="rgba(47,125,225,.06)" stroke="#2f7de1" stroke-width="'+kk+'" stroke-dasharray="'+(4*kk)+' '+(4*kk)+'"/>'+
+ G.ghost.innerHTML='<g pointer-events="none"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+(PK[pkK(k)].reach||REACH)+'" fill="rgba(47,125,225,.06)" stroke="#2f7de1" stroke-width="'+kk+'" stroke-dasharray="'+(4*kk)+' '+(4*kk)+'"/>'+
   (o.s<0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"':'<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(2.5*kk)+'"')+' fill="'+col+'" stroke="#fff" stroke-width="'+(1.5*kk)+'"/>'+
   '<rect x="'+(cx-r-4*kk)+'" y="'+(cy-r-4*kk)+'" width="'+(2*r+8*kk)+'" height="'+(2*r+8*kk)+'" rx="'+(4*kk)+'" fill="none" stroke="#2f7de1" stroke-width="'+(1.6*kk)+'" stroke-dasharray="'+(4*kk)+' '+(3*kk)+'"/></g>'}
 function pkMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';if(!ldOver(e)){d.spot=null;d.chip.classList.remove('over');ghost(null);return}d.chip.classList.add('over');
- d.spot=pkSpot(d.pk,toFt(e));pkGhost(d.pk,d.spot);var w=d.spot.s>=0?'Snaps to wall':d.spot.s===-3?'Ceiling':d.spot.s===-2?'Hangs from ceiling':'Floor';d.chip.querySelector('span').textContent=w+' · '+pkBadge(d.pk).replace('⚡','')}
+ d.spot=pkSpot(d.pk,toFt(e));pkGhost(d.pk,d.spot);var w=d.spot.s>=0?'Snaps to wall':d.spot.s===-3?'Ceiling':d.spot.s===-2?'Hangs from ceiling':'Floor';d.chip.querySelector('span').textContent=w+' · '+PK[d.pk].n}
 function pkDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e)||!d.spot)return;var before=snapP(),o=pkPlace(d.pk,d.spot);pkAfter(o,before)}
 // moving a placed outlet on the plan
 var odrag=null;
@@ -599,7 +601,7 @@ window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.
    It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */
 var ldrag=null,ldClick=0,ldCard=null;
 function ldCancel(){if(!ldrag)return;clearTimeout(ldrag.timer);if(ldrag.chip)ldrag.chip.remove();if(ldrag.card)ldrag.card.classList.remove('lifting');ghost(null);document.body.classList.remove('ldragging');ldrag=null}
-function ldStart(){var d=ldrag;d.started=true;d.timer=null;if(d.pk){d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}var c0=document.createElement('div');c0.className='ldchip';c0.innerHTML='<div class="lart">'+PICON[d.pk]+'</div><span>'+esc(PK[d.pk].n)+'</span>';document.body.appendChild(c0);d.chip=c0;return}var c=LIB[d.r];d.it={u:'__new',r:d.r,x:0,y:0,rot:0};d.obs=others(d.it);
+function ldStart(){var d=ldrag;d.started=true;d.timer=null;if(d.pk){d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}var c0=document.createElement('div');c0.className='ldchip';c0.innerHTML='<div class="lart">'+PICON[pkK(d.pk)]+'</div><span>'+esc(PK[d.pk].n)+'</span>';document.body.appendChild(c0);d.chip=c0;return}var c=LIB[d.r];d.it={u:'__new',r:d.r,x:0,y:0,rot:0};d.obs=others(d.it);
  d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}
  var ch=document.createElement('div');ch.className='ldchip';ch.innerHTML='<div class="lart">'+libArt(c,getComputedStyle(d.card).getPropertyValue('--c')||'#888')+'</div><span>'+esc(c.n)+'</span>';document.body.appendChild(ch);d.chip=ch}
 function ldOver(e){var r=sv.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
