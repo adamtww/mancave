@@ -181,6 +181,14 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .sb.red{color:#b42336;border-color:#f0c8c8}.sb.red:hover{background:#fdf1f1}
 .spin{font-size:12.5px;color:#6b6960}.lnk{border:0;background:none;padding:0;font:inherit;color:#1d4f91;font-weight:600;cursor:pointer}
 .srows{display:flex;flex-direction:column}.srw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:13px}.srw:last-child{border:0}.srw span{display:flex;align-items:center;gap:7px;color:#6b6960;white-space:nowrap}.srw b{font-weight:600;text-align:right}
+.explore{display:none}body.exploring .main{display:none}body.exploring .explore{display:block;position:relative;margin:12px;border-radius:14px;overflow:hidden;background:#141416;min-height:0}
+.explore canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.exhud{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(20,20,22,.7);color:#eee;font-size:12.5px;padding:7px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.exnote{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:rgba(255,244,220,.92);color:#5a4400;font-size:12.5px;padding:7px 12px;border-radius:10px;pointer-events:none;max-width:min(520px,calc(100% - 24px));text-align:center}
+.exload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px}
+.exjoy{display:none;position:absolute;left:28px;bottom:56px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);pointer-events:none}body.touch .exjoy{display:block}
+.exjoy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.75);transition:transform .05s}
+.mseg2 .vb{padding:5px 10px}
 .bar{height:8px;border-radius:4px;background:#ece9e2;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kgrid .muted{grid-column:1/-1;margin:2px 0 0}
 </style>
@@ -197,6 +205,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
   <button class="btn pri" id="b-save">Save</button>
  </div>
  <div class="strip" id="strip"></div>
+ <div id="explore" class="explore"></div>
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
    <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
@@ -263,294 +272,294 @@ var CATALOG=[
  {r:"r-truck",c:"Rooms & Zones",n:"Truck bay + roll-up door",w:14,d:26,z:1,a:["truck"],no:"Full-size pickup ≈ 7×20 ft; 14×26 leaves room to open doors. Roll-up door ~12 ft wide."},
  // Building & Support
  {r:"b-elec",c:"Building & Support",n:"Electrical room / main panel",w:6,d:8,z:1,no:"Code requires ~3 ft clear working space in front of panels."},
- {r:"b-net",c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
+ {r:"b-net",h:6.5,c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
  {r:"b-mop",c:"Building & Support",n:"Janitor closet / mop sink",w:5,d:6,z:1,a:["plumbing"]},
- {r:"b-gas",c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
- {r:"b-hvac",c:"Building & Support",n:"AC air handler (floor, ducted)",w:4,d:4,cl:3,cf:1,p:[240,6000,40,1],est:1,a:["hvac"],cost:[4000,12000],no:"Indoor half of a ducted split system, in a closet or on the floor; the condenser sits outside."},
+ {r:"b-gas",h:6,c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
+ {r:"b-hvac",h:6,c:"Building & Support",n:"AC air handler (floor, ducted)",w:4,d:4,cl:3,cf:1,p:[240,6000,40,1],est:1,a:["hvac"],cost:[4000,12000],no:"Indoor half of a ducted split system, in a closet or on the floor; the condenser sits outside."},
  // Arcade & Gaming
- {r:"g-sim",c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added).",cost:[3000,12000]},
- {r:"g-cab",c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,4500]},
- {r:"g-pin",c:"Arcade & Gaming",n:"Virtual pinball machine",w:3,d:5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[4000,9000]},
- {r:"g-gun",c:"Arcade & Gaming",n:"Dual light-gun shooter",w:5,d:4,cl:6,cf:1,p:[120,600,20,0],est:1,cost:[6000,15000]},
- {r:"g-airh",c:"Arcade & Gaming",n:"Air hockey table",w:4,d:8,cl:3,p:[120,300,20,0],est:1,cost:[600,3500]},
- {r:"g-foos",c:"Arcade & Gaming",n:"Foosball table",w:2.5,d:5,cl:3,cost:[300,2000]},
- {r:"g-skee",c:"Arcade & Gaming",n:"Skee-Ball lane",w:2.5,d:10,cl:4,cf:1,p:[120,200,20,0],est:1,cost:[4000,9000]},
- {r:"g-bball",c:"Arcade & Gaming",n:"Basketball arcade game",w:4,d:9,cl:4,cf:1,p:[120,500,20,0],est:1,cost:[2000,6000]},
- {r:"g-darts",c:"Arcade & Gaming",n:"Darts (board + throw lane)",w:3,d:10,cl:1,cf:1,cost:[150,1200]},
- {r:"g-shuffle",c:"Arcade & Gaming",n:"Shuffleboard table",w:2,d:22,cl:3,cost:[1500,9000]},
- {r:"g-pool",c:"Arcade & Gaming",n:"Pool table",w:4.5,d:8.5,cl:4.5,no:"Clearance sized for standard 58\" cues (room ≈ 13.5×17.5 ft).",cost:[1500,12000]},
- {r:"g-console",c:"Arcade & Gaming",n:"Console / PC gaming station",w:6,d:4,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[800,4000]},
+ {r:"g-sim",h:4.5,c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added).",cost:[3000,12000]},
+ {r:"g-cab",h:6,c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,4500]},
+ {r:"g-pin",h:6.3,c:"Arcade & Gaming",n:"Virtual pinball machine",w:3,d:5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[4000,9000]},
+ {r:"g-gun",h:7,c:"Arcade & Gaming",n:"Dual light-gun shooter",w:5,d:4,cl:6,cf:1,p:[120,600,20,0],est:1,cost:[6000,15000]},
+ {r:"g-airh",h:2.6,c:"Arcade & Gaming",n:"Air hockey table",w:4,d:8,cl:3,p:[120,300,20,0],est:1,cost:[600,3500]},
+ {r:"g-foos",h:3,c:"Arcade & Gaming",n:"Foosball table",w:2.5,d:5,cl:3,cost:[300,2000]},
+ {r:"g-skee",h:8,c:"Arcade & Gaming",n:"Skee-Ball lane",w:2.5,d:10,cl:4,cf:1,p:[120,200,20,0],est:1,cost:[4000,9000]},
+ {r:"g-bball",h:9,c:"Arcade & Gaming",n:"Basketball arcade game",w:4,d:9,cl:4,cf:1,p:[120,500,20,0],est:1,cost:[2000,6000]},
+ {r:"g-darts",h:7,c:"Arcade & Gaming",n:"Darts (board + throw lane)",w:3,d:10,cl:1,cf:1,cost:[150,1200]},
+ {r:"g-shuffle",h:2.6,c:"Arcade & Gaming",n:"Shuffleboard table",w:2,d:22,cl:3,cost:[1500,9000]},
+ {r:"g-pool",h:2.6,c:"Arcade & Gaming",n:"Pool table",w:4.5,d:8.5,cl:4.5,no:"Clearance sized for standard 58\" cues (room ≈ 13.5×17.5 ft).",cost:[1500,12000]},
+ {r:"g-console",h:4.5,c:"Arcade & Gaming",n:"Console / PC gaming station",w:6,d:4,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[800,4000]},
  // Bar & Lounge
- {r:"b-wall",c:"Built-ins & Counters",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it.",cost:[400,2000]},
- {r:"b-stage",c:"Built-ins & Counters",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets.",cost:[2000,8000]},
- {r:"l-bar",c:"Built-ins & Counters",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license.",cost:[6000,25000]},
- {r:"l-keg",c:"Bar & Lounge",n:"Kegerator",w:2,d:2.5,cl:2,cf:1,p:[120,300,20,0],ov:1,est:1,cost:[700,2500]},
- {r:"l-ice",c:"Bar & Lounge",n:"Ice maker (residential)",w:1.5,d:2,cl:2,cf:1,p:[120,400,15,1],ov:1,est:1,no:"Needs water line + drain.",cost:[600,2000]},
- {r:"l-icec",c:"Bar & Lounge",n:"Ice machine (commercial)",w:2.5,d:2.5,cl:2.5,cf:1,p:[120,1200,20,1],est:1,a:["commercial"],cost:[3000,7000]},
- {r:"l-fridge",c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1,cost:[300,1500]},
- {r:"l-seat",c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0,cost:[3000,12000]},
- {r:"l-tv",c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1,cost:[2500,9000]},
- {r:"l-barc",c:"Built-ins & Counters",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights.",cost:[3000,12000]},
- {r:"l-rail",c:"Built-ins & Counters",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft).",cost:[800,3500]},
- {r:"f-stool",c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center.",cost:[60,350]},
- {r:"f-sofa",c:"Furniture & Seating",n:"Sofa",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table.",cost:[900,4000]},
- {r:"f-chair",c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw).",cost:[400,2500]},
- {r:"f-coffee",c:"Furniture & Seating",n:"Coffee table",w:4,d:2,cl:1.5,p:null,no:"About two-thirds the sofa's length; leave 14–18 in to the sofa.",cost:[150,1200]},
- {r:"f-tv",c:"Furniture & Seating",n:"TV + media console",w:6.5,d:1.5,cl:0,p:[120,500,20,0],est:1,no:"An 85 in TV draws roughly 200–475 W depending on the model; the rest covers a soundbar or console.",cost:[1200,4500]},
- {r:"f-dine8",c:"Furniture & Seating",n:"Dining table",w:7,d:3.5,cl:3,p:null,no:"84 × 40 in is a common 8-seat size. Clearance is the 36 in needed to pull chairs out.",cost:[1000,5000]},
- {r:"f-round4",c:"Furniture & Seating",n:"Round table",w:4,d:4,cl:3,p:null,no:"42–48 in round seats four. Clearance is for pulling chairs out.",cost:[400,2500]},
+ {r:"b-wall",h:10,c:"Built-ins & Counters",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it.",cost:[400,2000]},
+ {r:"b-stage",h:2,c:"Built-ins & Counters",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets.",cost:[2000,8000]},
+ {r:"l-bar",h:7,c:"Built-ins & Counters",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license.",cost:[6000,25000]},
+ {r:"l-keg",h:3.4,c:"Bar & Lounge",n:"Kegerator",w:2,d:2.5,cl:2,cf:1,p:[120,300,20,0],ov:1,est:1,cost:[700,2500]},
+ {r:"l-ice",h:2.8,c:"Bar & Lounge",n:"Ice maker (residential)",w:1.5,d:2,cl:2,cf:1,p:[120,400,15,1],ov:1,est:1,no:"Needs water line + drain.",cost:[600,2000]},
+ {r:"l-icec",h:6.5,c:"Bar & Lounge",n:"Ice machine (commercial)",w:2.5,d:2.5,cl:2.5,cf:1,p:[120,1200,20,1],est:1,a:["commercial"],cost:[3000,7000]},
+ {r:"l-fridge",h:2.8,c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1,cost:[300,1500]},
+ {r:"l-seat",h:2.8,c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0,cost:[3000,12000]},
+ {r:"l-tv",h:9,c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1,cost:[2500,9000]},
+ {r:"l-barc",h:3.5,c:"Built-ins & Counters",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights.",cost:[3000,12000]},
+ {r:"l-rail",h:3.5,c:"Built-ins & Counters",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft).",cost:[800,3500]},
+ {r:"f-stool",h:2.6,c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center.",cost:[60,350]},
+ {r:"f-sofa",h:2.8,c:"Furniture & Seating",n:"Sofa",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table.",cost:[900,4000]},
+ {r:"f-chair",h:3.4,c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw).",cost:[400,2500]},
+ {r:"f-coffee",h:1.5,c:"Furniture & Seating",n:"Coffee table",w:4,d:2,cl:1.5,p:null,no:"About two-thirds the sofa's length; leave 14–18 in to the sofa.",cost:[150,1200]},
+ {r:"f-tv",h:5,c:"Furniture & Seating",n:"TV + media console",w:6.5,d:1.5,cl:0,p:[120,500,20,0],est:1,no:"An 85 in TV draws roughly 200–475 W depending on the model; the rest covers a soundbar or console.",cost:[1200,4500]},
+ {r:"f-dine8",h:2.5,c:"Furniture & Seating",n:"Dining table",w:7,d:3.5,cl:3,p:null,no:"84 × 40 in is a common 8-seat size. Clearance is the 36 in needed to pull chairs out.",cost:[1000,5000]},
+ {r:"f-round4",h:2.5,c:"Furniture & Seating",n:"Round table",w:4,d:4,cl:3,p:null,no:"42–48 in round seats four. Clearance is for pulling chairs out.",cost:[400,2500]},
  // Kitchen residential
- {r:"kr-range",c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1,cost:[700,3000]},
- {r:"kr-fridge",c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1],cost:[1200,4000]},
- {r:"kr-dw",c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1,cost:[500,1500]},
- {r:"kr-micro",c:"Kitchen – Residential",n:"Base cabinet + microwave",w:3,d:2,cl:3,cf:1,p:[120,1500,20,1],cost:[400,1500],no:"Microwave on a 3 ft run of counter. Microwaves want their own 20 A circuit."},
- {r:"kr-counter",c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
- {r:"kr-prep",c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
- {r:"kr-sink",c:"Kitchen – Residential",n:"Kitchen sink + disposal",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit.",cost:[500,2000]},
- {r:"kr-freezer",c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it.",cost:[600,1800]},
- {r:"kr-gasrange",c:"Kitchen – Residential",n:"Gas range (home)",w:2.5,d:2.5,k:[3.5,0,0,0],p:[120,300,20,1],cost:[800,4000],no:"Needs a gas line and a hood vented outside; 120V only for the igniters and clock."},
- {r:"kr-wallov",c:"Kitchen – Residential",n:"Wall oven tower (double oven)",w:2.5,d:2.25,k:[3.5,0,0,0],p:[240,8000,40,1],est:1,cost:[2000,6000],no:"Tall cabinet with two ovens stacked; leave counter space next to it for hot pans."},
- {r:"kr-island",c:"Kitchen – Residential",n:"Kitchen island with seating",w:6,d:3.5,k:[3.5,3.5,3.5,3.5],p:[120,1800,20,0],cost:[2000,10000],no:"Counter on all-round cabinets with a seating overhang. 42 in aisles all round; the outlets are a code requirement on islands."},
- {r:"kr-islsink",c:"Kitchen – Residential",n:"Kitchen island with sink",w:7,d:3.5,k:[3.5,3.5,3.5,3.5],p:[120,1500,20,1],a:["plumbing"],cost:[3500,15000],no:"Plumbing has to come up through the floor, so it is easiest on a slab you can trench."},
- {r:"kr-cooktop",c:"Kitchen – Residential",n:"Cooktop on a base cabinet",w:3,d:2,k:[3.5,0,0,0],p:[240,7400,40,1],est:1,cost:[700,4000],no:"Induction or electric cooktop in a counter run. Pair it with a hood."},
- {r:"kr-tall",c:"Kitchen – Residential",n:"Tall pantry cabinet",w:2.5,d:2,k:[3.5,0,0,0],cost:[400,2000]},
- {r:"kr-chest",c:"Kitchen – Residential",n:"Chest freezer",w:4,d:2.5,k:[3,0.25,0,0],p:[120,300,15,1],cost:[300,1200],no:"The lid opens up, so keep shelves off the wall above it."},
- {r:"kr-trash",c:"Kitchen – Residential",n:"Trash / recycling pull-out cabinet",w:1.5,d:2,k:[3.5,0,0,0],cost:[200,800]},
- {r:"kr-bev",c:"Kitchen – Residential",n:"Beverage fridge (under-counter)",w:2,d:2,k:[3.5,0,0,0],p:[120,200,20,0],cost:[600,2500]},
- {r:"kr-pantry",c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
+ {r:"kr-range",h:3.1,c:"Kitchen – Residential",n:"Electric range (home)",w:2.5,d:2.5,cl:3,cf:1,p:[240,8000,50,1],est:1,cost:[700,3000]},
+ {r:"kr-fridge",h:5.8,c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1],cost:[1200,4000]},
+ {r:"kr-dw",h:2.9,c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1,cost:[500,1500]},
+ {r:"kr-micro",h:3,c:"Kitchen – Residential",n:"Base cabinet + microwave",w:3,d:2,cl:3,cf:1,p:[120,1500,20,1],cost:[400,1500],no:"Microwave on a 3 ft run of counter. Microwaves want their own 20 A circuit."},
+ {r:"kr-counter",h:3,c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
+ {r:"kr-prep",h:3,c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
+ {r:"kr-sink",h:3,c:"Kitchen – Residential",n:"Kitchen sink + disposal",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit.",cost:[500,2000]},
+ {r:"kr-freezer",h:5.8,c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it.",cost:[600,1800]},
+ {r:"kr-gasrange",h:3.1,c:"Kitchen – Residential",n:"Gas range (home)",w:2.5,d:2.5,k:[3.5,0,0,0],p:[120,300,20,1],cost:[800,4000],no:"Needs a gas line and a hood vented outside; 120V only for the igniters and clock."},
+ {r:"kr-wallov",h:7,c:"Kitchen – Residential",n:"Wall oven tower (double oven)",w:2.5,d:2.25,k:[3.5,0,0,0],p:[240,8000,40,1],est:1,cost:[2000,6000],no:"Tall cabinet with two ovens stacked; leave counter space next to it for hot pans."},
+ {r:"kr-island",h:3,c:"Kitchen – Residential",n:"Kitchen island with seating",w:6,d:3.5,k:[3.5,3.5,3.5,3.5],p:[120,1800,20,0],cost:[2000,10000],no:"Counter on all-round cabinets with a seating overhang. 42 in aisles all round; the outlets are a code requirement on islands."},
+ {r:"kr-islsink",h:3,c:"Kitchen – Residential",n:"Kitchen island with sink",w:7,d:3.5,k:[3.5,3.5,3.5,3.5],p:[120,1500,20,1],a:["plumbing"],cost:[3500,15000],no:"Plumbing has to come up through the floor, so it is easiest on a slab you can trench."},
+ {r:"kr-cooktop",h:3,c:"Kitchen – Residential",n:"Cooktop on a base cabinet",w:3,d:2,k:[3.5,0,0,0],p:[240,7400,40,1],est:1,cost:[700,4000],no:"Induction or electric cooktop in a counter run. Pair it with a hood."},
+ {r:"kr-tall",h:7,c:"Kitchen – Residential",n:"Tall pantry cabinet",w:2.5,d:2,k:[3.5,0,0,0],cost:[400,2000]},
+ {r:"kr-chest",h:2.8,c:"Kitchen – Residential",n:"Chest freezer",w:4,d:2.5,k:[3,0.25,0,0],p:[120,300,15,1],cost:[300,1200],no:"The lid opens up, so keep shelves off the wall above it."},
+ {r:"kr-trash",h:3,c:"Kitchen – Residential",n:"Trash / recycling pull-out cabinet",w:1.5,d:2,k:[3.5,0,0,0],cost:[200,800]},
+ {r:"kr-bev",h:2.8,c:"Kitchen – Residential",n:"Beverage fridge (under-counter)",w:2,d:2,k:[3.5,0,0,0],p:[120,200,20,0],cost:[600,2500]},
+ {r:"kr-pantry",h:6,c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
  // Kitchen commercial
- {r:"kc-range",c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"],cost:[2500,8000]},
- {r:"kc-hood",c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],hide:1,cost:[8000,30000],no:"Retired: hangs over the cooking line. The commercial-kitchen alert covers it."},
- {r:"kc-fridge",c:"Kitchen – Commercial",n:"Reach-in refrigerator",w:2.5,d:3,cl:3,cf:1,p:[120,800,20,1],est:1,a:["commercial"],cost:[2500,6000]},
- {r:"kc-dw",c:"Kitchen – Commercial",n:"Commercial dishwasher (high-temp)",w:2,d:2.5,cl:3,cf:1,p:[240,6000,30,1],est:1,a:["commercial"],cost:[5000,15000]},
- {r:"kc-3sink",c:"Kitchen – Commercial",n:"3-compartment sink",w:8,d:2.5,cl:3,cf:1,a:["commercial"],cost:[800,3000]},
- {r:"kc-hand",c:"Kitchen – Commercial",n:"Hand-wash sink",w:1.5,d:1.5,cl:2,cf:1,a:["commercial"],cost:[200,800]},
- {r:"kc-conv",c:"Kitchen – Commercial",n:"Convection oven (double stack)",w:3.5,d:3.5,k:[3.5,0.5,0.5,0.5],p:[240,11000,60,1],est:1,a:["commercial"],cost:[6000,16000],no:"Electric shown; gas models need a gas line instead. Goes under the hood."},
- {r:"kc-griddle",c:"Kitchen – Commercial",n:"Flat-top griddle on a stand",w:3,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1500,5000],no:"Gas; goes under the hood with the other cooking."},
- {r:"kc-fryer",c:"Kitchen – Commercial",n:"Deep fryer",w:1.5,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1000,5000],no:"Gas floor fryer. Keep 16 in from an open flame or use a splash guard."},
- {r:"kc-broiler",c:"Kitchen – Commercial",n:"Charbroiler on a stand",w:3,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1500,6000]},
- {r:"kc-pizza",c:"Kitchen – Commercial",n:"Deck pizza oven",w:5,d:4,k:[4,0.5,0.5,0.5],a:["commercial"],cost:[8000,25000],no:"Gas deck oven; needs the hood and a sturdy floor."},
- {r:"kc-steam",c:"Kitchen – Commercial",n:"Steam table / hot food well",w:5,d:2.5,k:[3.5,0,0,0],p:[240,3000,20,1],est:1,cost:[1000,4000]},
- {r:"kc-mixer",c:"Kitchen – Commercial",n:"Floor mixer",w:2,d:2.5,k:[3,0.5,1,1],p:[240,2200,20,1],est:1,cost:[4000,15000]},
- {r:"kc-table",c:"Kitchen – Commercial",n:"Stainless prep table",w:6,d:2.5,k:[3.5,0,0,0],cost:[200,800]},
- {r:"kc-prepfr",c:"Kitchen – Commercial",n:"Sandwich / salad prep refrigerator",w:5,d:2.5,k:[3.5,0,0,0],p:[120,800,20,1],cost:[2000,6000]},
- {r:"kc-under",c:"Kitchen – Commercial",n:"Worktop under-counter refrigerator",w:4,d:2.5,k:[3.5,0,0,0],p:[120,600,20,1],cost:[1500,4500]},
- {r:"kc-freezer",c:"Kitchen – Commercial",n:"Reach-in freezer",w:4.5,d:3,k:[3.5,0,0,0],p:[120,1200,20,1],cost:[3500,8000]},
- {r:"kc-walkin",c:"Kitchen – Commercial",n:"Walk-in cooler",w:8,d:10,k:[4,0.5,0.5,0.5],p:[240,3500,30,1],est:1,cost:[10000,30000],no:"Insulated box with a door and a refrigeration unit; the condenser can sit outside or on the roof. Needs a floor drain nearby."},
- {r:"kc-dish",c:"Kitchen – Commercial",n:"Dish tables (soiled and clean)",w:8,d:2.5,k:[3.5,0,0,0],a:["plumbing"],cost:[1000,4000],no:"Soiled table with a pre-rinse sprayer on one side of the dishwasher, clean table on the other."},
- {r:"kc-shelf",c:"Kitchen – Commercial",n:"Dry storage shelving (NSF)",w:4,d:2,k:[3,0,0,0],cost:[200,700]},
- {r:"kc-rack",c:"Kitchen – Commercial",n:"Sheet pan rack (mobile)",w:2,d:2.25,k:[2.5,0,0,0],cost:[150,500]},
- {r:"kc-mop",c:"Kitchen – Commercial",n:"Mop sink",w:2,d:2,k:[3,0,0,0],a:["plumbing"],cost:[300,1200],no:"Floor-level basin; most health codes require one."},
- {r:"kc-grease",c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"],hide:1,cost:[1000,5000],no:"Retired: below the floor or under a sink."},
+ {r:"kc-range",h:4.8,c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"],cost:[2500,8000]},
+ {r:"kc-hood",h:8,c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],hide:1,cost:[8000,30000],no:"Retired: hangs over the cooking line. The commercial-kitchen alert covers it."},
+ {r:"kc-fridge",h:6.8,c:"Kitchen – Commercial",n:"Reach-in refrigerator",w:2.5,d:3,cl:3,cf:1,p:[120,800,20,1],est:1,a:["commercial"],cost:[2500,6000]},
+ {r:"kc-dw",h:6.5,c:"Kitchen – Commercial",n:"Commercial dishwasher (high-temp)",w:2,d:2.5,cl:3,cf:1,p:[240,6000,30,1],est:1,a:["commercial"],cost:[5000,15000]},
+ {r:"kc-3sink",h:3.6,c:"Kitchen – Commercial",n:"3-compartment sink",w:8,d:2.5,cl:3,cf:1,a:["commercial"],cost:[800,3000]},
+ {r:"kc-hand",h:3.5,c:"Kitchen – Commercial",n:"Hand-wash sink",w:1.5,d:1.5,cl:2,cf:1,a:["commercial"],cost:[200,800]},
+ {r:"kc-conv",h:5.7,c:"Kitchen – Commercial",n:"Convection oven (double stack)",w:3.5,d:3.5,k:[3.5,0.5,0.5,0.5],p:[240,11000,60,1],est:1,a:["commercial"],cost:[6000,16000],no:"Electric shown; gas models need a gas line instead. Goes under the hood."},
+ {r:"kc-griddle",h:3.4,c:"Kitchen – Commercial",n:"Flat-top griddle on a stand",w:3,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1500,5000],no:"Gas; goes under the hood with the other cooking."},
+ {r:"kc-fryer",h:3.8,c:"Kitchen – Commercial",n:"Deep fryer",w:1.5,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1000,5000],no:"Gas floor fryer. Keep 16 in from an open flame or use a splash guard."},
+ {r:"kc-broiler",h:3.4,c:"Kitchen – Commercial",n:"Charbroiler on a stand",w:3,d:2.75,k:[3.5,0,0,0],a:["commercial"],cost:[1500,6000]},
+ {r:"kc-pizza",h:5,c:"Kitchen – Commercial",n:"Deck pizza oven",w:5,d:4,k:[4,0.5,0.5,0.5],a:["commercial"],cost:[8000,25000],no:"Gas deck oven; needs the hood and a sturdy floor."},
+ {r:"kc-steam",h:3,c:"Kitchen – Commercial",n:"Steam table / hot food well",w:5,d:2.5,k:[3.5,0,0,0],p:[240,3000,20,1],est:1,cost:[1000,4000]},
+ {r:"kc-mixer",h:5.3,c:"Kitchen – Commercial",n:"Floor mixer",w:2,d:2.5,k:[3,0.5,1,1],p:[240,2200,20,1],est:1,cost:[4000,15000]},
+ {r:"kc-table",h:3,c:"Kitchen – Commercial",n:"Stainless prep table",w:6,d:2.5,k:[3.5,0,0,0],cost:[200,800]},
+ {r:"kc-prepfr",h:3.6,c:"Kitchen – Commercial",n:"Sandwich / salad prep refrigerator",w:5,d:2.5,k:[3.5,0,0,0],p:[120,800,20,1],cost:[2000,6000]},
+ {r:"kc-under",h:2.8,c:"Kitchen – Commercial",n:"Worktop under-counter refrigerator",w:4,d:2.5,k:[3.5,0,0,0],p:[120,600,20,1],cost:[1500,4500]},
+ {r:"kc-freezer",h:6.8,c:"Kitchen – Commercial",n:"Reach-in freezer",w:4.5,d:3,k:[3.5,0,0,0],p:[120,1200,20,1],cost:[3500,8000]},
+ {r:"kc-walkin",h:7.6,c:"Kitchen – Commercial",n:"Walk-in cooler",w:8,d:10,k:[4,0.5,0.5,0.5],p:[240,3500,30,1],est:1,cost:[10000,30000],no:"Insulated box with a door and a refrigeration unit; the condenser can sit outside or on the roof. Needs a floor drain nearby."},
+ {r:"kc-dish",h:3,c:"Kitchen – Commercial",n:"Dish tables (soiled and clean)",w:8,d:2.5,k:[3.5,0,0,0],a:["plumbing"],cost:[1000,4000],no:"Soiled table with a pre-rinse sprayer on one side of the dishwasher, clean table on the other."},
+ {r:"kc-shelf",h:6,c:"Kitchen – Commercial",n:"Dry storage shelving (NSF)",w:4,d:2,k:[3,0,0,0],cost:[200,700]},
+ {r:"kc-rack",h:5.8,c:"Kitchen – Commercial",n:"Sheet pan rack (mobile)",w:2,d:2.25,k:[2.5,0,0,0],cost:[150,500]},
+ {r:"kc-mop",h:2,c:"Kitchen – Commercial",n:"Mop sink",w:2,d:2,k:[3,0,0,0],a:["plumbing"],cost:[300,1200],no:"Floor-level basin; most health codes require one."},
+ {r:"kc-grease",h:1.2,c:"Kitchen – Commercial",n:"Grease interceptor",w:3,d:3,cl:0,ov:1,a:["commercial"],hide:1,cost:[1000,5000],no:"Retired: below the floor or under a sink."},
  // Fitness
- {r:"f-gym",c:"Fitness",n:"Weight machine (home gym)",w:7,d:7,cl:2,cost:[1500,6000]},
- {r:"f-tread",c:"Fitness",n:"Treadmill",w:3,d:7,cl:6.5,cf:1,p:[120,1800,20,1],no:"Most manufacturers call for a dedicated 20A circuit and ~6.5 ft clear behind.",cost:[1000,5000]},
- {r:"f-row",c:"Fitness",n:"Rowing machine",w:2,d:8,cl:2,cost:[600,2000]},
- {r:"f-bike",c:"Fitness",n:"Exercise bike",w:2,d:5,cl:2,p:[120,100,20,0],cost:[400,2500]},
- {r:"f-free",c:"Fitness",n:"Free weights / mat area",w:8,d:8,cl:0,cost:[800,4000]},
+ {r:"f-gym",h:6.8,c:"Fitness",n:"Weight machine (home gym)",w:7,d:7,cl:2,cost:[1500,6000]},
+ {r:"f-tread",h:5,c:"Fitness",n:"Treadmill",w:3,d:7,cl:6.5,cf:1,p:[120,1800,20,1],no:"Most manufacturers call for a dedicated 20A circuit and ~6.5 ft clear behind.",cost:[1000,5000]},
+ {r:"f-row",h:1.8,c:"Fitness",n:"Rowing machine",w:2,d:8,cl:2,cost:[600,2000]},
+ {r:"f-bike",h:4.2,c:"Fitness",n:"Exercise bike",w:2,d:5,cl:2,p:[120,100,20,0],cost:[400,2500]},
+ {r:"f-free",h:4,c:"Fitness",n:"Free weights / mat area",w:8,d:8,cl:0,cost:[800,4000]},
  // Court & rink
- {r:"c-pp",c:"Court & Rink",n:"Ping-pong table",w:5,d:9,cl:6,cost:[400,2500]},
- {r:"c-robot",c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1,hide:1,cost:[200,1500],no:"Retired: sits on the table, not the floor."},
- {r:"c-hoop",c:"Court & Rink",n:"Basketball shooting area (hoop on the wall)",req:{ceil:15},w:12,d:15,cl:0,a:["ceiling"],cost:[1500,5000],no:"Wall- or ceiling-mounted hoop; the floor area is the shooting space in front of it."},
- {r:"c-net",c:"Court & Rink",n:"Divider / ceiling net",w:45,d:1,cl:0,ov:1,cost:[1000,4000]},
+ {r:"c-pp",h:2.5,c:"Court & Rink",n:"Ping-pong table",w:5,d:9,cl:6,cost:[400,2500]},
+ {r:"c-robot",h:3,c:"Court & Rink",n:"Ping-pong robot",w:2,d:2,cl:0,p:[120,100,20,0],ov:1,hide:1,cost:[200,1500],no:"Retired: sits on the table, not the floor."},
+ {r:"c-hoop",h:13,c:"Court & Rink",n:"Basketball shooting area (hoop on the wall)",req:{ceil:15},w:12,d:15,cl:0,a:["ceiling"],cost:[1500,5000],no:"Wall- or ceiling-mounted hoop; the floor area is the shooting space in front of it."},
+ {r:"c-net",h:12,c:"Court & Rink",n:"Divider / ceiling net",w:45,d:1,cl:0,ov:1,cost:[1000,4000]},
  // Creator
- {r:"m-laser1",c:"Creator / Maker",n:"Laser cutter — hobby, on a bench (10–40 W)",w:4,d:2.5,cl:2,p:[120,300,20,0],est:1,a:["co2"],cost:[600,2500],no:"Enclosed desktop diode or small CO2 laser. Sits on a bench; vent the fumes out a window or through a filter."},
- {r:"m-laser2",c:"Creator / Maker",n:"Laser cutter — mid (55–80 W CO2)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"],cost:[3000,8000],no:"Prosumer CO2 cutter, often with a camera and add-on modules (diode, fiber or UV). Needs fume exhaust or a filter unit."},
- {r:"m-laser3",c:"Creator / Maker",n:"Laser cutter — pro (100–150 W CO2)",w:6.5,d:4,cl:3,p:[240,3000,20,1],est:1,a:["co2"],cost:[10000,30000],no:"Large-bed production CO2 laser with a water chiller and exhaust blower. Duct the exhaust outside."},
- {r:"m-fiber",c:"Creator / Maker",n:"Fiber laser engraver, on its stand (metal marking)",w:2,d:2,cl:2,cf:1,p:[120,500,20,0],est:1,a:["co2"],cost:[2500,8000],no:"Galvo fiber laser for marking metal and plastics. Small, but still a Class 4 laser: enclose it or use a laser curtain."},
- {r:"m-weld1",c:"Creator / Maker",n:"Laser welder — compact (≈1 kW, air-cooled)",w:2.5,d:2,cl:4,p:[240,3000,20,1],est:1,a:["weld","gas"],cost:[4000,8000],no:"Handheld welder on a small cart. Uses argon or nitrogen shielding gas."},
- {r:"m-weld2",c:"Creator / Maker",n:"Laser welder + CNC cutting table (1–1.5 kW)",w:5,d:4,cl:4,p:[240,4200,25,1],est:1,a:["weld","gas"],cost:[10000,20000],no:"Workstation that welds by hand and cuts sheet metal on a small CNC table."},
- {r:"m-weld3",c:"Creator / Maker",n:"Laser welder — industrial (2–3 kW, water-cooled)",w:3,d:2.5,cl:4,p:[240,7500,40,1],est:1,a:["weld","gas"],cost:[15000,30000],no:"Production welder with a built-in chiller. Plan a 40 A 240V circuit."},
- {r:"m-comp",c:"Creator / Maker",n:"Air compressor for laser cutting",w:2,d:2,cl:2,p:[240,2200,15,1],est:1,cost:[800,2000],no:"High-pressure compressor that feeds assist air to a metal-cutting laser."},
- {r:"m-dryer",c:"Creator / Maker",n:"Compressed-air dryer",w:1.5,d:1.5,cl:1,p:[120,380,20,0],ov:1,est:1,cost:[300,1200],no:"Keeps moisture out of the air line."},
- {r:"m-fume",c:"Creator / Maker",n:"Laser fume extractor / filter",w:2,d:2,cl:1,p:[120,900,20,0],est:1,cost:[600,2500],no:"Filters laser smoke when you can't duct it outside. Filters are a running cost."},
- {r:"m-dtf",c:"Creator / Maker",n:"DTF / sublimation printer + heat press",w:4,d:3,cl:3,p:[120,2000,20,1],est:1,a:["fumes"],cost:[2000,8000],no:"Printer, powder shaker/oven and a heat press. The press drives the power."},
- {r:"m-emb1",c:"Creator / Maker",n:"Embroidery machine — single-needle, on a table",w:3,d:2,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[400,1500],no:"Sits on a table; one thread colour at a time."},
- {r:"m-emb2",c:"Creator / Maker",n:"Embroidery machine — multi-needle",w:2.5,d:2.5,cl:2,cf:1,p:[120,200,20,0],est:1,cost:[5000,15000],no:"6–15 needles, runs whole designs without re-threading. Often on its own stand."},
- {r:"m-emb3",c:"Creator / Maker",n:"Embroidery machine — commercial (multi-head)",w:7,d:3.5,cl:3,cf:1,p:[120,600,20,1],est:1,cost:[20000,45000],no:"2–6 heads stitching identical pieces at once."},
- {r:"m-print1",c:"Creator / Maker",n:"3D printers — entry, on a bench",w:4,d:2,cl:2.5,cf:1,p:[120,350,20,0],est:1,cost:[200,600]},
- {r:"m-print2",c:"Creator / Maker",n:"3D printer — enclosed multi-colour, on a stand",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,cost:[800,3000],no:"Enclosed CoreXY printer with a tool changer or filament switcher."},
- {r:"m-print3",c:"Creator / Maker",n:"3D print farm rack",w:6,d:2,cl:3,cf:1,p:[120,3000,20,1],est:1,cost:[4000,15000],no:"Shelving with several printers running at once. Two circuits are safer than one."},
- {r:"m-resin",c:"Creator / Maker",n:"Resin printing bench (printer + wash/cure)",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
- {r:"m-vinyl",c:"Creator / Maker",n:"Vinyl cutter / plotter on a stand",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
- {r:"m-mill",c:"Creator / Maker",n:"Desktop CNC router / mill, on a stand",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
- {r:"m-bench",c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
- {r:"m-filament",c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
+ {r:"m-laser1",h:3.5,c:"Creator / Maker",n:"Laser cutter — hobby, on a bench (10–40 W)",w:4,d:2.5,cl:2,p:[120,300,20,0],est:1,a:["co2"],cost:[600,2500],no:"Enclosed desktop diode or small CO2 laser. Sits on a bench; vent the fumes out a window or through a filter."},
+ {r:"m-laser2",h:3.6,c:"Creator / Maker",n:"Laser cutter — mid (55–80 W CO2)",w:4,d:3,cl:3,p:[120,1200,20,1],est:1,a:["co2"],cost:[3000,8000],no:"Prosumer CO2 cutter, often with a camera and add-on modules (diode, fiber or UV). Needs fume exhaust or a filter unit."},
+ {r:"m-laser3",h:3.7,c:"Creator / Maker",n:"Laser cutter — pro (100–150 W CO2)",w:6.5,d:4,cl:3,p:[240,3000,20,1],est:1,a:["co2"],cost:[10000,30000],no:"Large-bed production CO2 laser with a water chiller and exhaust blower. Duct the exhaust outside."},
+ {r:"m-fiber",h:5,c:"Creator / Maker",n:"Fiber laser engraver, on its stand (metal marking)",w:2,d:2,cl:2,cf:1,p:[120,500,20,0],est:1,a:["co2"],cost:[2500,8000],no:"Galvo fiber laser for marking metal and plastics. Small, but still a Class 4 laser: enclose it or use a laser curtain."},
+ {r:"m-weld1",h:3,c:"Creator / Maker",n:"Laser welder — compact (≈1 kW, air-cooled)",w:2.5,d:2,cl:4,p:[240,3000,20,1],est:1,a:["weld","gas"],cost:[4000,8000],no:"Handheld welder on a small cart. Uses argon or nitrogen shielding gas."},
+ {r:"m-weld2",h:4,c:"Creator / Maker",n:"Laser welder + CNC cutting table (1–1.5 kW)",w:5,d:4,cl:4,p:[240,4200,25,1],est:1,a:["weld","gas"],cost:[10000,20000],no:"Workstation that welds by hand and cuts sheet metal on a small CNC table."},
+ {r:"m-weld3",h:4,c:"Creator / Maker",n:"Laser welder — industrial (2–3 kW, water-cooled)",w:3,d:2.5,cl:4,p:[240,7500,40,1],est:1,a:["weld","gas"],cost:[15000,30000],no:"Production welder with a built-in chiller. Plan a 40 A 240V circuit."},
+ {r:"m-comp",h:2.6,c:"Creator / Maker",n:"Air compressor for laser cutting",w:2,d:2,cl:2,p:[240,2200,15,1],est:1,cost:[800,2000],no:"High-pressure compressor that feeds assist air to a metal-cutting laser."},
+ {r:"m-dryer",h:2.5,c:"Creator / Maker",n:"Compressed-air dryer",w:1.5,d:1.5,cl:1,p:[120,380,20,0],ov:1,est:1,cost:[300,1200],no:"Keeps moisture out of the air line."},
+ {r:"m-fume",h:3.5,c:"Creator / Maker",n:"Laser fume extractor / filter",w:2,d:2,cl:1,p:[120,900,20,0],est:1,cost:[600,2500],no:"Filters laser smoke when you can't duct it outside. Filters are a running cost."},
+ {r:"m-dtf",h:4.5,c:"Creator / Maker",n:"DTF / sublimation printer + heat press",w:4,d:3,cl:3,p:[120,2000,20,1],est:1,a:["fumes"],cost:[2000,8000],no:"Printer, powder shaker/oven and a heat press. The press drives the power."},
+ {r:"m-emb1",h:3.6,c:"Creator / Maker",n:"Embroidery machine — single-needle, on a table",w:3,d:2,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[400,1500],no:"Sits on a table; one thread colour at a time."},
+ {r:"m-emb2",h:5,c:"Creator / Maker",n:"Embroidery machine — multi-needle",w:2.5,d:2.5,cl:2,cf:1,p:[120,200,20,0],est:1,cost:[5000,15000],no:"6–15 needles, runs whole designs without re-threading. Often on its own stand."},
+ {r:"m-emb3",h:6,c:"Creator / Maker",n:"Embroidery machine — commercial (multi-head)",w:7,d:3.5,cl:3,cf:1,p:[120,600,20,1],est:1,cost:[20000,45000],no:"2–6 heads stitching identical pieces at once."},
+ {r:"m-print1",h:4,c:"Creator / Maker",n:"3D printers — entry, on a bench",w:4,d:2,cl:2.5,cf:1,p:[120,350,20,0],est:1,cost:[200,600]},
+ {r:"m-print2",h:5,c:"Creator / Maker",n:"3D printer — enclosed multi-colour, on a stand",w:2.5,d:2.5,cl:2,p:[120,600,20,0],est:1,cost:[800,3000],no:"Enclosed CoreXY printer with a tool changer or filament switcher."},
+ {r:"m-print3",h:6,c:"Creator / Maker",n:"3D print farm rack",w:6,d:2,cl:3,cf:1,p:[120,3000,20,1],est:1,cost:[4000,15000],no:"Shelving with several printers running at once. Two circuits are safer than one."},
+ {r:"m-resin",h:4.5,c:"Creator / Maker",n:"Resin printing bench (printer + wash/cure)",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
+ {r:"m-vinyl",h:4,c:"Creator / Maker",n:"Vinyl cutter / plotter on a stand",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
+ {r:"m-mill",h:5,c:"Creator / Maker",n:"Desktop CNC router / mill, on a stand",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
+ {r:"m-bench",h:5,c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
+ {r:"m-filament",h:6,c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
  // Woodworking
- {r:"w-tsaw",c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"],cost:[3000,6000]},
- {r:"w-band",c:"Woodworking",n:"Bandsaw",w:3,d:3,cl:3,p:[120,1500,20,1],est:1,cost:[900,2500]},
- {r:"w-router",c:"Woodworking",n:"Router table",w:3,d:4,cl:3,p:[120,1800,20,1],est:1,cost:[400,1500]},
- {r:"w-miter",c:"Woodworking",n:"Miter saw station",w:12,d:2.5,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[800,3000]},
- {r:"w-jointer",c:"Woodworking",n:"Jointer",w:2,d:7,cl:3,p:[240,2600,20,1],est:1,cost:[1500,4000]},
- {r:"w-planer",c:"Woodworking",n:"Thickness planer",w:2.5,d:3,cl:6,p:[240,3000,20,1],est:1,no:"Big clearance for infeed/outfeed.",cost:[1500,4000]},
- {r:"w-drill",c:"Woodworking",n:"Floor drill press",w:2,d:2.5,cl:2,p:[120,900,20,0],est:1,cost:[600,2000]},
- {r:"w-sander",c:"Woodworking",n:"Spindle / belt sander",w:2,d:2,cl:2,p:[120,600,20,0],est:1,cost:[300,1200]},
- {r:"w-dust",c:"Woodworking",n:"Dust collector 2 HP",w:3,d:5,cl:2,p:[240,2400,20,1],est:1,a:["dust"],cost:[1000,3000]},
- {r:"w-cnc",c:"Woodworking",n:"CNC router table",w:6,d:10,cl:3,p:[240,3000,20,1],est:1,cost:[8000,25000]},
- {r:"w-comp",c:"Woodworking",n:"Shop air compressor",w:3,d:3,cl:2,p:[240,3700,30,1],est:1,cost:[800,2500]},
- {r:"w-bench",c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
- {r:"w-assy",c:"Built-ins & Counters",n:"Assembly table",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
- {r:"w-lumber",c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
- {r:"w-wall",c:"Built-ins & Counters",n:"Tool wall + charging bench",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
+ {r:"w-tsaw",h:3.3,c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"],cost:[3000,6000]},
+ {r:"w-band",h:6,c:"Woodworking",n:"Bandsaw",w:3,d:3,cl:3,p:[120,1500,20,1],est:1,cost:[900,2500]},
+ {r:"w-router",h:3.3,c:"Woodworking",n:"Router table",w:3,d:4,cl:3,p:[120,1800,20,1],est:1,cost:[400,1500]},
+ {r:"w-miter",h:3.8,c:"Woodworking",n:"Miter saw station",w:12,d:2.5,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[800,3000]},
+ {r:"w-jointer",h:3.2,c:"Woodworking",n:"Jointer",w:2,d:7,cl:3,p:[240,2600,20,1],est:1,cost:[1500,4000]},
+ {r:"w-planer",h:4,c:"Woodworking",n:"Thickness planer",w:2.5,d:3,cl:6,p:[240,3000,20,1],est:1,no:"Big clearance for infeed/outfeed.",cost:[1500,4000]},
+ {r:"w-drill",h:5.8,c:"Woodworking",n:"Floor drill press",w:2,d:2.5,cl:2,p:[120,900,20,0],est:1,cost:[600,2000]},
+ {r:"w-sander",h:3.8,c:"Woodworking",n:"Spindle / belt sander",w:2,d:2,cl:2,p:[120,600,20,0],est:1,cost:[300,1200]},
+ {r:"w-dust",h:6.5,c:"Woodworking",n:"Dust collector 2 HP",w:3,d:5,cl:2,p:[240,2400,20,1],est:1,a:["dust"],cost:[1000,3000]},
+ {r:"w-cnc",h:4.5,c:"Woodworking",n:"CNC router table",w:6,d:10,cl:3,p:[240,3000,20,1],est:1,cost:[8000,25000]},
+ {r:"w-comp",h:5.5,c:"Woodworking",n:"Shop air compressor",w:3,d:3,cl:2,p:[240,3700,30,1],est:1,cost:[800,2500]},
+ {r:"w-bench",h:3,c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
+ {r:"w-assy",h:3,c:"Built-ins & Counters",n:"Assembly table",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
+ {r:"w-lumber",h:7,c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
+ {r:"w-wall",h:7,c:"Built-ins & Counters",n:"Tool wall + charging bench",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
  // Garden
- {r:"h-rack",c:"Indoor Garden",n:"Hydroponic rack with LEDs",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
- {r:"h-micro",c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
- {r:"h-sink",c:"Indoor Garden",n:"Utility sink",w:2,d:2,cl:2,cf:1,a:["plumbing"],cost:[200,700]},
- {r:"x-batting",c:"Court & Rink",n:"Batting cage (tunnel)",req:{ceil:12},w:12,d:55,cl:1,p:[120,1000,20,1],est:1,a:["ceiling"],no:"Tunnels typically ~55–70 ft long.",cost:[2000,8000]},
- {r:"x-tennis",c:"Court & Rink",n:"Tennis ball machine lane",req:{ceil:14},w:12,d:40,cl:0,a:["ceiling"],no:"Machine is battery powered; size is the hitting lane.",cost:[700,3500]},
- {r:"x-return",c:"Court & Rink",n:"Basketball ball-return machine",w:6,d:10,cl:0,p:[120,500,20,0],ov:1,est:1,cost:[2500,8000]},
- {r:"x-motion",c:"Arcade & Gaming",n:"Motion platform for a sim rig",w:6,d:6,cl:2,p:[120,1500,20,1],ov:1,est:1,no:"The 'up-and-down stuff'.",cost:[3000,12000]},
+ {r:"h-rack",h:6.5,c:"Indoor Garden",n:"Hydroponic rack with LEDs",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
+ {r:"h-micro",h:6,c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
+ {r:"h-sink",h:3,c:"Indoor Garden",n:"Utility sink",w:2,d:2,cl:2,cf:1,a:["plumbing"],cost:[200,700]},
+ {r:"x-batting",h:12,c:"Court & Rink",n:"Batting cage (tunnel)",req:{ceil:12},w:12,d:55,cl:1,p:[120,1000,20,1],est:1,a:["ceiling"],no:"Tunnels typically ~55–70 ft long.",cost:[2000,8000]},
+ {r:"x-tennis",h:3.5,c:"Court & Rink",n:"Tennis ball machine lane",req:{ceil:14},w:12,d:40,cl:0,a:["ceiling"],no:"Machine is battery powered; size is the hitting lane.",cost:[700,3500]},
+ {r:"x-return",h:12,c:"Court & Rink",n:"Basketball ball-return machine",w:6,d:10,cl:0,p:[120,500,20,0],ov:1,est:1,cost:[2500,8000]},
+ {r:"x-motion",h:4.5,c:"Arcade & Gaming",n:"Motion platform for a sim rig",w:6,d:6,cl:2,p:[120,1500,20,1],ov:1,est:1,no:"The 'up-and-down stuff'.",cost:[3000,12000]},
  // Arcade & Gaming (more)
- {r:"g-vr",c:"Arcade & Gaming",n:"VR play space",w:8,d:8,cl:0,p:[120,800,20,0],est:1,cost:[600,4000],no:"About 8 × 8 ft clear floor with nothing to trip on. Power is for a gaming PC."},
- {r:"g-poker",c:"Arcade & Gaming",n:"Poker table",w:8,d:4,cl:3,cost:[600,4000],no:"Oval 96 × 48 in. Clearance is for pulling chairs out."},
- {r:"g-claw",c:"Arcade & Gaming",n:"Claw crane machine",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,6000]},
- {r:"g-bubble",c:"Arcade & Gaming",n:"Bubble hockey (dome hockey)",w:3.5,d:5,cl:3,p:[120,200,20,0],est:1,cost:[3000,7000]},
- {r:"g-cocktail",c:"Arcade & Gaming",n:"Cocktail-table arcade",w:2.5,d:2,cl:2.5,p:[120,200,20,0],est:1,cost:[1000,3000],no:"Sit-down cabinet; players sit at each end."},
- {r:"g-cornhole",c:"Arcade & Gaming",n:"Cornhole lane",w:4,d:35,cl:0,cost:[100,600],no:"Boards 27 ft apart front to front, plus room to stand behind each."},
+ {r:"g-vr",h:0.1,c:"Arcade & Gaming",n:"VR play space",w:8,d:8,cl:0,p:[120,800,20,0],est:1,cost:[600,4000],no:"About 8 × 8 ft clear floor with nothing to trip on. Power is for a gaming PC."},
+ {r:"g-poker",h:2.5,c:"Arcade & Gaming",n:"Poker table",w:8,d:4,cl:3,cost:[600,4000],no:"Oval 96 × 48 in. Clearance is for pulling chairs out."},
+ {r:"g-claw",h:6.3,c:"Arcade & Gaming",n:"Claw crane machine",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,6000]},
+ {r:"g-bubble",h:4.5,c:"Arcade & Gaming",n:"Bubble hockey (dome hockey)",w:3.5,d:5,cl:3,p:[120,200,20,0],est:1,cost:[3000,7000]},
+ {r:"g-cocktail",h:2.4,c:"Arcade & Gaming",n:"Cocktail-table arcade",w:2.5,d:2,cl:2.5,p:[120,200,20,0],est:1,cost:[1000,3000],no:"Sit-down cabinet; players sit at each end."},
+ {r:"g-cornhole",h:1,c:"Arcade & Gaming",n:"Cornhole lane",w:4,d:35,cl:0,cost:[100,600],no:"Boards 27 ft apart front to front, plus room to stand behind each."},
  // Court & Rink (more)
- {r:"c-golf1",c:"Court & Rink",n:"Golf simulator — entry (net + launch monitor)",req:{ceil:9},w:10,d:12,cl:0,p:[120,500,20,0],est:1,a:["ceiling"],cost:[1500,6000],no:"Hitting net and mat with a launch monitor and a tablet or TV. Wants about 9 ft clear height."},
- {r:"c-golf2",c:"Court & Rink",n:"Golf simulator — mid (enclosure + projector)",req:{ceil:9.5},w:12,d:16,cl:0,p:[120,1200,20,1],est:1,a:["ceiling"],cost:[10000,25000],no:"Impact screen enclosure, projector and gaming PC. 10 ft clear height is comfortable."},
- {r:"c-golf3",c:"Court & Rink",n:"Golf simulator — pro (full bay)",req:{ceil:10},w:16,d:22,cl:0,p:[120,2000,20,1],est:1,a:["ceiling"],cost:[30000,70000],no:"Camera-based tracking, large screen and turf with a putting area. 10–12 ft clear height."},
- {r:"c-bowl",c:"Court & Rink",n:"Bowling lane (regulation, with pinsetter)",w:6,d:88,cl:0,p:[240,2500,20,1],est:1,cost:[60000,150000],no:"Lane, approach and pinsetter. Usually installed in pairs."},
- {r:"c-bowlmini",c:"Court & Rink",n:"Mini bowling lane",w:4,d:42,cl:0,p:[120,1200,20,1],est:1,cost:[25000,60000],no:"Shorter lane with small balls and a string pinsetter."},
- {r:"c-pickle",c:"Court & Rink",n:"Pickleball court",req:{ceil:18},w:30,d:60,cl:0,a:["ceiling"],cost:[3000,15000],no:"20 × 44 ft court plus run-off. Lines can be taped onto an existing floor."},
- {r:"c-half",c:"Court & Rink",n:"Half basketball court",req:{ceil:18},w:30,d:30,cl:0,a:["ceiling"],cost:[5000,25000],no:"Three-point arc and key with a little run-off. Hoop sold separately."},
- {r:"c-climb",c:"Court & Rink",n:"Bouldering wall + crash pads",req:{ceil:13},w:12,d:10,cl:0,a:["ceiling"],cost:[3000,15000],no:"Wall along the back edge; the rest is padded fall zone."},
- {r:"c-ninja",c:"Court & Rink",n:"Ninja / rig training frame",req:{ceil:12},w:10,d:12,cl:2,a:["ceiling"],cost:[1500,6000]},
+ {r:"c-golf1",h:9,c:"Court & Rink",n:"Golf simulator — entry (net + launch monitor)",req:{ceil:9},w:10,d:12,cl:0,p:[120,500,20,0],est:1,a:["ceiling"],cost:[1500,6000],no:"Hitting net and mat with a launch monitor and a tablet or TV. Wants about 9 ft clear height."},
+ {r:"c-golf2",h:10,c:"Court & Rink",n:"Golf simulator — mid (enclosure + projector)",req:{ceil:9.5},w:12,d:16,cl:0,p:[120,1200,20,1],est:1,a:["ceiling"],cost:[10000,25000],no:"Impact screen enclosure, projector and gaming PC. 10 ft clear height is comfortable."},
+ {r:"c-golf3",h:10,c:"Court & Rink",n:"Golf simulator — pro (full bay)",req:{ceil:10},w:16,d:22,cl:0,p:[120,2000,20,1],est:1,a:["ceiling"],cost:[30000,70000],no:"Camera-based tracking, large screen and turf with a putting area. 10–12 ft clear height."},
+ {r:"c-bowl",h:4,c:"Court & Rink",n:"Bowling lane (regulation, with pinsetter)",w:6,d:88,cl:0,p:[240,2500,20,1],est:1,cost:[60000,150000],no:"Lane, approach and pinsetter. Usually installed in pairs."},
+ {r:"c-bowlmini",h:3.5,c:"Court & Rink",n:"Mini bowling lane",w:4,d:42,cl:0,p:[120,1200,20,1],est:1,cost:[25000,60000],no:"Shorter lane with small balls and a string pinsetter."},
+ {r:"c-pickle",h:3,c:"Court & Rink",n:"Pickleball court",req:{ceil:18},w:30,d:60,cl:0,a:["ceiling"],cost:[3000,15000],no:"20 × 44 ft court plus run-off. Lines can be taped onto an existing floor."},
+ {r:"c-half",h:13,c:"Court & Rink",n:"Half basketball court",req:{ceil:18},w:30,d:30,cl:0,a:["ceiling"],cost:[5000,25000],no:"Three-point arc and key with a little run-off. Hoop sold separately."},
+ {r:"c-climb",h:13,c:"Court & Rink",n:"Bouldering wall + crash pads",req:{ceil:13},w:12,d:10,cl:0,a:["ceiling"],cost:[3000,15000],no:"Wall along the back edge; the rest is padded fall zone."},
+ {r:"c-ninja",h:11,c:"Court & Rink",n:"Ninja / rig training frame",req:{ceil:12},w:10,d:12,cl:2,a:["ceiling"],cost:[1500,6000]},
  // Fitness (more)
- {r:"f-rack",c:"Fitness",n:"Power rack + platform",w:8,d:8,cl:2,cost:[1000,4000],no:"Squat rack on an 8 × 8 lifting platform with room to load plates."},
- {r:"f-cable",c:"Fitness",n:"Functional trainer (cable crossover)",w:6,d:4,cl:4,cf:1,cost:[1500,5000]},
- {r:"f-ellip",c:"Fitness",n:"Elliptical",w:3,d:7,cl:2,p:[120,300,20,0],cost:[800,4000]},
- {r:"f-stair",c:"Fitness",n:"Stair climber",w:3,d:5,cl:2,p:[120,500,20,1],cost:[2000,6000]},
- {r:"f-turf",c:"Fitness",n:"Turf lane (sled / sprints)",w:6,d:30,cl:0,cost:[800,3000]},
- {r:"f-sauna",c:"Fitness",n:"Sauna",w:6,d:5,cl:2,cf:1,p:[240,6000,40,1],est:1,cost:[4000,12000],no:"Electric heater on its own 240V circuit; infrared models can run on 120V."},
- {r:"f-plunge",c:"Fitness",n:"Cold plunge tub",w:3,d:6,cl:2,p:[120,1200,20,1],est:1,a:["plumbing"],cost:[2000,10000],no:"Chiller needs its own circuit. Plan a drain nearby for water changes."},
+ {r:"f-rack",h:7.5,c:"Fitness",n:"Power rack + platform",w:8,d:8,cl:2,cost:[1000,4000],no:"Squat rack on an 8 × 8 lifting platform with room to load plates."},
+ {r:"f-cable",h:7.5,c:"Fitness",n:"Functional trainer (cable crossover)",w:6,d:4,cl:4,cf:1,cost:[1500,5000]},
+ {r:"f-ellip",h:5.5,c:"Fitness",n:"Elliptical",w:3,d:7,cl:2,p:[120,300,20,0],cost:[800,4000]},
+ {r:"f-stair",h:6,c:"Fitness",n:"Stair climber",w:3,d:5,cl:2,p:[120,500,20,1],cost:[2000,6000]},
+ {r:"f-turf",h:0.1,c:"Fitness",n:"Turf lane (sled / sprints)",w:6,d:30,cl:0,cost:[800,3000]},
+ {r:"f-sauna",h:7,c:"Fitness",n:"Sauna",w:6,d:5,cl:2,cf:1,p:[240,6000,40,1],est:1,cost:[4000,12000],no:"Electric heater on its own 240V circuit; infrared models can run on 120V."},
+ {r:"f-plunge",h:3,c:"Fitness",n:"Cold plunge tub",w:3,d:6,cl:2,p:[120,1200,20,1],est:1,a:["plumbing"],cost:[2000,10000],no:"Chiller needs its own circuit. Plan a drain nearby for water changes."},
  // Woodworking (more)
- {r:"w-tsawj",c:"Woodworking",n:"Table saw — jobsite / contractor",w:3,d:3,cl:4,p:[120,1800,20,1],est:1,a:["dust"],cost:[500,2000],no:"Folding-stand saw; much smaller than a cabinet saw but needs the same infeed and outfeed room."},
- {r:"w-lathe",c:"Woodworking",n:"Wood lathe",w:6,d:2,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["dust"],cost:[1000,5000]},
- {r:"w-scroll",c:"Woodworking",n:"Scroll saw",w:2.5,d:1.5,cl:2,cf:1,p:[120,200,20,0],cost:[150,1500]},
- {r:"w-panel",c:"Woodworking",n:"Wall-mounted panel saw",w:9,d:2,cl:4,cf:1,p:[120,1800,20,1],est:1,a:["dust"],cost:[2000,6000],no:"Cuts full 4 × 8 sheets standing up, against a wall."},
+ {r:"w-tsawj",h:3,c:"Woodworking",n:"Table saw — jobsite / contractor",w:3,d:3,cl:4,p:[120,1800,20,1],est:1,a:["dust"],cost:[500,2000],no:"Folding-stand saw; much smaller than a cabinet saw but needs the same infeed and outfeed room."},
+ {r:"w-lathe",h:4,c:"Woodworking",n:"Wood lathe",w:6,d:2,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["dust"],cost:[1000,5000]},
+ {r:"w-scroll",h:4,c:"Woodworking",n:"Scroll saw",w:2.5,d:1.5,cl:2,cf:1,p:[120,200,20,0],cost:[150,1500]},
+ {r:"w-panel",h:7,c:"Woodworking",n:"Wall-mounted panel saw",w:9,d:2,cl:4,cf:1,p:[120,1800,20,1],est:1,a:["dust"],cost:[2000,6000],no:"Cuts full 4 × 8 sheets standing up, against a wall."},
  // Home Theater & Music
- {r:"ht-row3",c:"Home Theater & Music",n:"Theater recliner row",w:9,d:3.5,cl:2,cf:1,p:[120,300,20,0],est:1,cost:[2000,12000],no:"Power recliners need about 2 ft more in front when reclined."},
- {r:"ht-riser",c:"Home Theater & Music",n:"Theater riser (for a second row)",w:14,d:6,cl:0,cost:[1000,4000],no:"12–18 in platform so the back row sees over the front."},
- {r:"ht-screen",c:"Home Theater & Music",n:"Projector + screen wall",w:12,d:1.5,cl:0,p:[120,1000,20,0],est:1,cost:[1500,8000],no:"Screen plus speakers; the projector hangs mid-room. Seat about 1.2–1.5 × the screen width back."},
- {r:"ht-proj",c:"Home Theater & Music",n:"Ceiling projector",w:1.5,d:1.5,cl:0,ov:1,p:[120,400,20,0],est:1,hide:1,cost:[1500,6000],no:"Retired: now part of the projection screen wall."},
- {r:"ht-sub",c:"Home Theater & Music",n:"Subwoofer",w:2,d:2,cl:0.5,p:[120,500,20,0],est:1,cost:[400,3000]},
- {r:"ht-speaker",c:"Home Theater & Music",n:"Floor-standing speaker",w:1.2,d:1.2,cl:0.5,cost:[300,3000]},
- {r:"ht-rack",c:"Home Theater & Music",n:"AV equipment rack",w:2,d:2,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[500,3000]},
- {r:"mu-drums",c:"Home Theater & Music",n:"Drum kit (acoustic)",w:6,d:5,cl:2,cost:[700,5000],no:"Loud: put it on a rug or riser and away from the lounge if you can."},
- {r:"mu-edrums",c:"Home Theater & Music",n:"Electronic drum kit",w:5,d:4,cl:2,p:[120,100,20,0],cost:[500,4000]},
- {r:"mu-upright",c:"Home Theater & Music",n:"Upright piano",w:5,d:2,cl:3,cf:1,cost:[3000,12000],no:"Keep it off outside walls and away from heaters. Front clearance is for the bench."},
- {r:"mu-grand",c:"Home Theater & Music",n:"Baby grand piano",w:5,d:5.5,cl:3,cf:1,cost:[8000,30000],no:"About 5 ft wide and 5–5.5 ft deep; leave room for the bench and the open lid."},
- {r:"mu-keys",c:"Home Theater & Music",n:"Keyboard / synth station",w:5,d:1.5,cl:2.5,cf:1,p:[120,200,20,0],cost:[300,4000]},
- {r:"mu-guitar",c:"Home Theater & Music",n:"Guitar & bass rig (amps + stands)",w:6,d:2.5,cl:3,cf:1,p:[120,600,20,0],est:1,cost:[1000,5000]},
- {r:"mu-desk",c:"Home Theater & Music",n:"Recording / mixing desk",w:6,d:3,cl:3,cf:1,p:[120,800,20,0],est:1,cost:[1500,8000],no:"Desk with monitors and interface. Monitor speakers want space from the wall behind."},
- {r:"mu-booth",c:"Home Theater & Music",n:"Vocal isolation booth",w:6,d:4,cl:2.5,cf:1,p:[120,200,20,0],est:1,cost:[3000,12000],no:"Prefab booth; check the ceiling height (7.5–8 ft tall)."},
- {r:"mu-dj",c:"Home Theater & Music",n:"DJ booth",w:6,d:2.5,cl:3,cf:1,p:[120,1500,20,0],est:1,cost:[1000,6000],no:"Controller, monitors and lights."},
- {r:"mu-karaoke",c:"Home Theater & Music",n:"Karaoke setup (screen + PA)",w:6,d:2,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[500,3000]},
+ {r:"ht-row3",h:3.4,c:"Home Theater & Music",n:"Theater recliner row",w:9,d:3.5,cl:2,cf:1,p:[120,300,20,0],est:1,cost:[2000,12000],no:"Power recliners need about 2 ft more in front when reclined."},
+ {r:"ht-riser",h:1.2,c:"Home Theater & Music",n:"Theater riser (for a second row)",w:14,d:6,cl:0,cost:[1000,4000],no:"12–18 in platform so the back row sees over the front."},
+ {r:"ht-screen",h:9,c:"Home Theater & Music",n:"Projector + screen wall",w:12,d:1.5,cl:0,p:[120,1000,20,0],est:1,cost:[1500,8000],no:"Screen plus speakers; the projector hangs mid-room. Seat about 1.2–1.5 × the screen width back."},
+ {r:"ht-proj",h:1,c:"Home Theater & Music",n:"Ceiling projector",w:1.5,d:1.5,cl:0,ov:1,p:[120,400,20,0],est:1,hide:1,cost:[1500,6000],no:"Retired: now part of the projection screen wall."},
+ {r:"ht-sub",h:1.7,c:"Home Theater & Music",n:"Subwoofer",w:2,d:2,cl:0.5,p:[120,500,20,0],est:1,cost:[400,3000]},
+ {r:"ht-speaker",h:3.8,c:"Home Theater & Music",n:"Floor-standing speaker",w:1.2,d:1.2,cl:0.5,cost:[300,3000]},
+ {r:"ht-rack",h:4,c:"Home Theater & Music",n:"AV equipment rack",w:2,d:2,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[500,3000]},
+ {r:"mu-drums",h:4.5,c:"Home Theater & Music",n:"Drum kit (acoustic)",w:6,d:5,cl:2,cost:[700,5000],no:"Loud: put it on a rug or riser and away from the lounge if you can."},
+ {r:"mu-edrums",h:4.5,c:"Home Theater & Music",n:"Electronic drum kit",w:5,d:4,cl:2,p:[120,100,20,0],cost:[500,4000]},
+ {r:"mu-upright",h:4.2,c:"Home Theater & Music",n:"Upright piano",w:5,d:2,cl:3,cf:1,cost:[3000,12000],no:"Keep it off outside walls and away from heaters. Front clearance is for the bench."},
+ {r:"mu-grand",h:3.3,c:"Home Theater & Music",n:"Baby grand piano",w:5,d:5.5,cl:3,cf:1,cost:[8000,30000],no:"About 5 ft wide and 5–5.5 ft deep; leave room for the bench and the open lid."},
+ {r:"mu-keys",h:4,c:"Home Theater & Music",n:"Keyboard / synth station",w:5,d:1.5,cl:2.5,cf:1,p:[120,200,20,0],cost:[300,4000]},
+ {r:"mu-guitar",h:4,c:"Home Theater & Music",n:"Guitar & bass rig (amps + stands)",w:6,d:2.5,cl:3,cf:1,p:[120,600,20,0],est:1,cost:[1000,5000]},
+ {r:"mu-desk",h:3.5,c:"Home Theater & Music",n:"Recording / mixing desk",w:6,d:3,cl:3,cf:1,p:[120,800,20,0],est:1,cost:[1500,8000],no:"Desk with monitors and interface. Monitor speakers want space from the wall behind."},
+ {r:"mu-booth",h:7.2,c:"Home Theater & Music",n:"Vocal isolation booth",w:6,d:4,cl:2.5,cf:1,p:[120,200,20,0],est:1,cost:[3000,12000],no:"Prefab booth; check the ceiling height (7.5–8 ft tall)."},
+ {r:"mu-dj",h:3.7,c:"Home Theater & Music",n:"DJ booth",w:6,d:2.5,cl:3,cf:1,p:[120,1500,20,0],est:1,cost:[1000,6000],no:"Controller, monitors and lights."},
+ {r:"mu-karaoke",h:6,c:"Home Theater & Music",n:"Karaoke setup (screen + PA)",w:6,d:2,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[500,3000]},
  // Auto & Garage
- {r:"a-car",c:"Auto & Garage",n:"Parking bay — car / SUV",w:10,d:20,cl:0,a:["truck"],cost:[0,0],no:"About 10 × 20 ft lets you open the doors."},
- {r:"a-pickup",c:"Auto & Garage",n:"Parking bay — full-size pickup",w:11,d:23,cl:0,a:["truck"],cost:[0,0]},
- {r:"a-moto",c:"Auto & Garage",n:"Motorcycle",w:3,d:8,cl:2,cost:[0,0],no:"Space for one bike plus room to walk around it."},
- {r:"a-lift2",c:"Auto & Garage",n:"2-post car lift",req:{ceil:12},w:12,d:22,cl:2,p:[240,2200,30,1],est:1,a:["ceiling","truck"],cost:[3000,7000],no:"Posts are about 11.5 ft apart; needs 4–6 in concrete and roughly 12 ft clear height to lift fully."},
- {r:"a-lift4",c:"Auto & Garage",n:"4-post storage lift",req:{ceil:12},w:9.5,d:19,cl:2,p:[120,1800,20,1],est:1,a:["ceiling","truck"],cost:[3500,8000],no:"Parks one car above another. Needs about 12–13 ft clear height."},
- {r:"a-scissor",c:"Auto & Garage",n:"Mid-rise scissor lift",w:7,d:7,cl:3,ov:1,p:[120,1500,20,1],est:1,cost:[2000,5000],no:"Portable; rolls out of the way. Lifts about 4 ft."},
- {r:"a-chest1",c:"Auto & Garage",n:"Rolling tool chest — standard",w:3.5,d:2,cl:3,cf:1,cost:[300,1500]},
- {r:"a-chest2",c:"Auto & Garage",n:"Rolling tool chest — pro",w:6,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[2000,8000],no:"Many have a power strip and USB in the top."},
- {r:"a-tire",c:"Auto & Garage",n:"Tire changer",w:3.5,d:3.5,cl:3,p:[120,1100,20,0],est:1,cost:[1500,6000],no:"Also needs shop air."},
- {r:"a-balance",c:"Auto & Garage",n:"Wheel balancer",w:3,d:3,cl:3,cf:1,p:[120,500,20,0],est:1,cost:[1500,6000]},
- {r:"a-press",c:"Auto & Garage",n:"Shop press (20-ton)",w:2.5,d:2,cl:3,cf:1,cost:[300,1500]},
- {r:"a-mig1",c:"Auto & Garage",n:"MIG welder — hobby (120V)",w:1.5,d:2.5,cl:4,p:[120,2400,20,1],est:1,a:["gas"],cost:[400,1200],no:"Flux-core or MIG with a small gas bottle on a cart."},
- {r:"a-mig2",c:"Auto & Garage",n:"MIG / TIG welder — shop (240V)",w:2,d:3,cl:4,p:[240,7000,50,1],est:1,a:["gas"],cost:[1500,6000],no:"Needs a 240V welder outlet (often 50 A) and gas bottles chained to the cart or wall."},
- {r:"a-blast",c:"Auto & Garage",n:"Sandblast cabinet",w:4,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,a:["dust"],cost:[500,3000],no:"Needs plenty of shop air and a dust collector."},
- {r:"a-parts",c:"Auto & Garage",n:"Parts washer",w:3,d:2,cl:3,cf:1,p:[120,200,20,0],a:["fumes"],cost:[200,1500]},
- {r:"a-hoist",c:"Auto & Garage",n:"Engine hoist + engine stand",w:4,d:7,cl:2,ov:1,cost:[300,1200],no:"Folds up when not in use."},
- {r:"a-ev",c:"Auto & Garage",n:"EV charger (Level 2)",w:1,d:0.5,cl:0,ov:1,p:[240,11500,60,1],a:["ev"],hide:1,cost:[500,2000],no:"Retired: wall unit. Use the EV parking bay."},
+ {r:"a-car",h:5.5,c:"Auto & Garage",n:"Parking bay — car / SUV",w:10,d:20,cl:0,a:["truck"],cost:[0,0],no:"About 10 × 20 ft lets you open the doors."},
+ {r:"a-pickup",h:6.4,c:"Auto & Garage",n:"Parking bay — full-size pickup",w:11,d:23,cl:0,a:["truck"],cost:[0,0]},
+ {r:"a-moto",h:4,c:"Auto & Garage",n:"Motorcycle",w:3,d:8,cl:2,cost:[0,0],no:"Space for one bike plus room to walk around it."},
+ {r:"a-lift2",h:12,c:"Auto & Garage",n:"2-post car lift",req:{ceil:12},w:12,d:22,cl:2,p:[240,2200,30,1],est:1,a:["ceiling","truck"],cost:[3000,7000],no:"Posts are about 11.5 ft apart; needs 4–6 in concrete and roughly 12 ft clear height to lift fully."},
+ {r:"a-lift4",h:7.5,c:"Auto & Garage",n:"4-post storage lift",req:{ceil:12},w:9.5,d:19,cl:2,p:[120,1800,20,1],est:1,a:["ceiling","truck"],cost:[3500,8000],no:"Parks one car above another. Needs about 12–13 ft clear height."},
+ {r:"a-scissor",h:4,c:"Auto & Garage",n:"Mid-rise scissor lift",w:7,d:7,cl:3,ov:1,p:[120,1500,20,1],est:1,cost:[2000,5000],no:"Portable; rolls out of the way. Lifts about 4 ft."},
+ {r:"a-chest1",h:3.6,c:"Auto & Garage",n:"Rolling tool chest — standard",w:3.5,d:2,cl:3,cf:1,cost:[300,1500]},
+ {r:"a-chest2",h:5,c:"Auto & Garage",n:"Rolling tool chest — pro",w:6,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[2000,8000],no:"Many have a power strip and USB in the top."},
+ {r:"a-tire",h:4,c:"Auto & Garage",n:"Tire changer",w:3.5,d:3.5,cl:3,p:[120,1100,20,0],est:1,cost:[1500,6000],no:"Also needs shop air."},
+ {r:"a-balance",h:4.5,c:"Auto & Garage",n:"Wheel balancer",w:3,d:3,cl:3,cf:1,p:[120,500,20,0],est:1,cost:[1500,6000]},
+ {r:"a-press",h:6,c:"Auto & Garage",n:"Shop press (20-ton)",w:2.5,d:2,cl:3,cf:1,cost:[300,1500]},
+ {r:"a-mig1",h:2.5,c:"Auto & Garage",n:"MIG welder — hobby (120V)",w:1.5,d:2.5,cl:4,p:[120,2400,20,1],est:1,a:["gas"],cost:[400,1200],no:"Flux-core or MIG with a small gas bottle on a cart."},
+ {r:"a-mig2",h:3.5,c:"Auto & Garage",n:"MIG / TIG welder — shop (240V)",w:2,d:3,cl:4,p:[240,7000,50,1],est:1,a:["gas"],cost:[1500,6000],no:"Needs a 240V welder outlet (often 50 A) and gas bottles chained to the cart or wall."},
+ {r:"a-blast",h:5.5,c:"Auto & Garage",n:"Sandblast cabinet",w:4,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,a:["dust"],cost:[500,3000],no:"Needs plenty of shop air and a dust collector."},
+ {r:"a-parts",h:3.5,c:"Auto & Garage",n:"Parts washer",w:3,d:2,cl:3,cf:1,p:[120,200,20,0],a:["fumes"],cost:[200,1500]},
+ {r:"a-hoist",h:6.5,c:"Auto & Garage",n:"Engine hoist + engine stand",w:4,d:7,cl:2,ov:1,cost:[300,1200],no:"Folds up when not in use."},
+ {r:"a-ev",h:4.5,c:"Auto & Garage",n:"EV charger (Level 2)",w:1,d:0.5,cl:0,ov:1,p:[240,11500,60,1],a:["ev"],hide:1,cost:[500,2000],no:"Retired: wall unit. Use the EV parking bay."},
  // Crafts & Office
- {r:"o-desk",c:"Crafts & Office",n:"Desk + chair",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[300,2000],no:"Front clearance is the room for the chair."},
- {r:"o-ldesk",c:"Crafts & Office",n:"L-shaped desk + chair",w:6,d:6,cl:2,p:[120,500,20,0],est:1,cost:[500,3000]},
- {r:"o-stand",c:"Crafts & Office",n:"Standing desk",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[400,2000]},
- {r:"o-conf",c:"Crafts & Office",n:"Conference table",w:8,d:4,cl:3,p:[120,200,20,0],cost:[1000,5000],no:"Clearance is for chairs; add a TV on the end wall for calls."},
- {r:"o-file",c:"Crafts & Office",n:"Filing cabinet",w:1.5,d:2.5,cl:3,cf:1,cost:[150,800]},
- {r:"o-copier",c:"Crafts & Office",n:"Printer / copier",w:2,d:2,cl:3,cf:1,p:[120,1200,20,0],est:1,cost:[300,4000]},
- {r:"o-books",c:"Crafts & Office",n:"Bookshelf",w:3,d:1,cl:3,cf:1,cost:[100,800]},
- {r:"cr-sew",c:"Crafts & Office",n:"Sewing table + machine",w:4,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[300,2500]},
- {r:"cr-serger",c:"Crafts & Office",n:"Serger / overlocker station",w:3,d:2,cl:3,cf:1,p:[120,150,20,0],cost:[300,1500]},
- {r:"cr-quilt",c:"Crafts & Office",n:"Long-arm quilting frame",w:12,d:4,cl:2.5,p:[120,400,20,0],est:1,cost:[8000,25000],no:"You walk along both long sides while quilting."},
- {r:"cr-cut",c:"Crafts & Office",n:"Craft cutting table (counter height)",w:6,d:3,cl:3,cost:[300,1500]},
- {r:"cr-wheel",c:"Crafts & Office",n:"Pottery wheel",w:2,d:3,cl:2,cf:1,p:[120,400,20,0],a:["plumbing"],cost:[600,2000],no:"Messy: a utility sink with a clay trap nearby helps."},
- {r:"cr-kiln1",c:"Crafts & Office",n:"Kiln — hobby (120V)",w:2,d:2,cl:2,p:[120,1800,20,1],a:["fumes"],cost:[800,2000],no:"Keep 1–1.5 ft from walls and vent the fumes."},
- {r:"cr-kiln2",c:"Crafts & Office",n:"Kiln — studio (240V)",w:3,d:3,cl:2,p:[240,11500,60,1],est:1,a:["fumes"],cost:[2500,6000],no:"Usually a 48 A load on a 60 A circuit. Vent it."},
- {r:"cr-easel",c:"Crafts & Office",n:"Art easel / painting station",w:4,d:4,cl:1,cost:[100,800]},
+ {r:"o-desk",h:2.5,c:"Crafts & Office",n:"Desk + chair",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[300,2000],no:"Front clearance is the room for the chair."},
+ {r:"o-ldesk",h:2.5,c:"Crafts & Office",n:"L-shaped desk + chair",w:6,d:6,cl:2,p:[120,500,20,0],est:1,cost:[500,3000]},
+ {r:"o-stand",h:3.5,c:"Crafts & Office",n:"Standing desk",w:5,d:2.5,cl:3,cf:1,p:[120,400,20,0],est:1,cost:[400,2000]},
+ {r:"o-conf",h:2.5,c:"Crafts & Office",n:"Conference table",w:8,d:4,cl:3,p:[120,200,20,0],cost:[1000,5000],no:"Clearance is for chairs; add a TV on the end wall for calls."},
+ {r:"o-file",h:4.5,c:"Crafts & Office",n:"Filing cabinet",w:1.5,d:2.5,cl:3,cf:1,cost:[150,800]},
+ {r:"o-copier",h:4,c:"Crafts & Office",n:"Printer / copier",w:2,d:2,cl:3,cf:1,p:[120,1200,20,0],est:1,cost:[300,4000]},
+ {r:"o-books",h:6,c:"Crafts & Office",n:"Bookshelf",w:3,d:1,cl:3,cf:1,cost:[100,800]},
+ {r:"cr-sew",h:3,c:"Crafts & Office",n:"Sewing table + machine",w:4,d:2,cl:3,cf:1,p:[120,200,20,0],cost:[300,2500]},
+ {r:"cr-serger",h:3,c:"Crafts & Office",n:"Serger / overlocker station",w:3,d:2,cl:3,cf:1,p:[120,150,20,0],cost:[300,1500]},
+ {r:"cr-quilt",h:4,c:"Crafts & Office",n:"Long-arm quilting frame",w:12,d:4,cl:2.5,p:[120,400,20,0],est:1,cost:[8000,25000],no:"You walk along both long sides while quilting."},
+ {r:"cr-cut",h:3,c:"Crafts & Office",n:"Craft cutting table (counter height)",w:6,d:3,cl:3,cost:[300,1500]},
+ {r:"cr-wheel",h:2,c:"Crafts & Office",n:"Pottery wheel",w:2,d:3,cl:2,cf:1,p:[120,400,20,0],a:["plumbing"],cost:[600,2000],no:"Messy: a utility sink with a clay trap nearby helps."},
+ {r:"cr-kiln1",h:2.5,c:"Crafts & Office",n:"Kiln — hobby (120V)",w:2,d:2,cl:2,p:[120,1800,20,1],a:["fumes"],cost:[800,2000],no:"Keep 1–1.5 ft from walls and vent the fumes."},
+ {r:"cr-kiln2",h:4,c:"Crafts & Office",n:"Kiln — studio (240V)",w:3,d:3,cl:2,p:[240,11500,60,1],est:1,a:["fumes"],cost:[2500,6000],no:"Usually a 48 A load on a 60 A circuit. Vent it."},
+ {r:"cr-easel",h:6,c:"Crafts & Office",n:"Art easel / painting station",w:4,d:4,cl:1,cost:[100,800]},
  // Storage & Utility
- {r:"s-shelf",c:"Storage & Utility",n:"Steel shelving unit",w:4,d:2,cl:3,cf:1,cost:[100,400]},
- {r:"s-heavy",c:"Storage & Utility",n:"Heavy-duty rack",w:8,d:3,cl:3,cf:1,cost:[300,1200]},
- {r:"s-pallet",c:"Storage & Utility",n:"Pallet racking bay",req:{ceil:14},w:9,d:4,cl:4,cf:1,a:["ceiling"],cost:[500,1500],no:"Aisle shown is for a hand-pallet jack; a forklift needs 10–12 ft."},
- {r:"s-cab",c:"Storage & Utility",n:"Locking storage cabinet",w:3,d:2,cl:3,cf:1,cost:[200,900]},
- {r:"s-bins",c:"Storage & Utility",n:"Bin shelving (floor-standing)",w:6,d:1.5,cl:3,cf:1,cost:[150,700]},
- {r:"s-overhead",c:"Storage & Utility",n:"Overhead ceiling rack",w:4,d:8,cl:0,ov:1,a:["ceiling"],hide:1,cost:[200,600],no:"Retired: hangs from the ceiling."},
- {r:"s-safe",c:"Storage & Utility",n:"Safe / gun safe",w:3,d:2.5,cl:3,cf:1,cost:[800,4000],no:"Heavy: bolt it to the slab."},
- {r:"s-flam",c:"Storage & Utility",n:"Flammables cabinet",w:3.5,d:1.5,cl:3,cf:1,cost:[600,2000],no:"For paints, solvents and fuel. Keep it away from heat and lasers."},
- {r:"s-laundry",c:"Storage & Utility",n:"Washer + dryer",w:5.5,d:2.5,cl:3.5,cf:1,p:[240,5600,30,1],est:1,a:["plumbing"],cost:[1500,4000],no:"Electric dryer on a 30 A 240V circuit, washer on its own 20 A, plus a dryer vent to outside."},
- {r:"s-heater",c:"Storage & Utility",n:"Water heater (tank)",w:2,d:2,cl:2.5,cf:1,p:[240,4500,30,1],est:1,a:["plumbing"],cost:[1000,3000],no:"Electric tank shown; a heat pump model is larger and pulls heat from the room."},
- {r:"s-mini",c:"Storage & Utility",n:"Mini fridge",w:1.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],cost:[150,400]},
- {r:"s-recycle",c:"Storage & Utility",n:"Trash & recycling station",w:3,d:2,cl:2.5,cf:1,cost:[100,600]},
+ {r:"s-shelf",h:6,c:"Storage & Utility",n:"Steel shelving unit",w:4,d:2,cl:3,cf:1,cost:[100,400]},
+ {r:"s-heavy",h:7,c:"Storage & Utility",n:"Heavy-duty rack",w:8,d:3,cl:3,cf:1,cost:[300,1200]},
+ {r:"s-pallet",h:12,c:"Storage & Utility",n:"Pallet racking bay",req:{ceil:14},w:9,d:4,cl:4,cf:1,a:["ceiling"],cost:[500,1500],no:"Aisle shown is for a hand-pallet jack; a forklift needs 10–12 ft."},
+ {r:"s-cab",h:6,c:"Storage & Utility",n:"Locking storage cabinet",w:3,d:2,cl:3,cf:1,cost:[200,900]},
+ {r:"s-bins",h:7,c:"Storage & Utility",n:"Bin shelving (floor-standing)",w:6,d:1.5,cl:3,cf:1,cost:[150,700]},
+ {r:"s-overhead",h:1,c:"Storage & Utility",n:"Overhead ceiling rack",w:4,d:8,cl:0,ov:1,a:["ceiling"],hide:1,cost:[200,600],no:"Retired: hangs from the ceiling."},
+ {r:"s-safe",h:5,c:"Storage & Utility",n:"Safe / gun safe",w:3,d:2.5,cl:3,cf:1,cost:[800,4000],no:"Heavy: bolt it to the slab."},
+ {r:"s-flam",h:5.4,c:"Storage & Utility",n:"Flammables cabinet",w:3.5,d:1.5,cl:3,cf:1,cost:[600,2000],no:"For paints, solvents and fuel. Keep it away from heat and lasers."},
+ {r:"s-laundry",h:3.2,c:"Storage & Utility",n:"Washer + dryer",w:5.5,d:2.5,cl:3.5,cf:1,p:[240,5600,30,1],est:1,a:["plumbing"],cost:[1500,4000],no:"Electric dryer on a 30 A 240V circuit, washer on its own 20 A, plus a dryer vent to outside."},
+ {r:"s-heater",h:5,c:"Storage & Utility",n:"Water heater (tank)",w:2,d:2,cl:2.5,cf:1,p:[240,4500,30,1],est:1,a:["plumbing"],cost:[1000,3000],no:"Electric tank shown; a heat pump model is larger and pulls heat from the room."},
+ {r:"s-mini",h:2.8,c:"Storage & Utility",n:"Mini fridge",w:1.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],cost:[150,400]},
+ {r:"s-recycle",h:3,c:"Storage & Utility",n:"Trash & recycling station",w:3,d:2,cl:2.5,cf:1,cost:[100,600]},
  // Metal & Fabrication
- {r:"mf-water1",c:"Metal & Fabrication",n:"Waterjet cutter — desktop",w:5,d:3,cl:3,cf:1,p:[120,1800,20,1],est:1,a:["plumbing"],cost:[8000,15000],no:"Benchtop waterjet with its own stand and pump. Needs a water supply and a place to settle and empty the spent garnet."},
- {r:"mf-water2",c:"Metal & Fabrication",n:"Waterjet cutter — industrial",w:9,d:15,cl:3,p:[240,500,20,1],est:1,a:["plumbing","threephase"],cost:[80000,250000],no:"The tank holds tons of water: check the slab can take it. Add the high-pressure pump as its own object; it sits nearby."},
- {r:"mf-wpump",c:"Metal & Fabrication",n:"Waterjet high-pressure pump",w:5,d:3,cl:3,p:[240,37000,150,1],est:1,a:["threephase"],cost:[0,0],no:"Comes with the industrial waterjet. A 50 HP pump usually wants 3-phase 480V. Loud; also needs cooling water."},
- {r:"mf-plasma1",c:"Metal & Fabrication",n:"CNC plasma table — shop",w:7,d:7,cl:3,p:[240,9600,50,1],est:1,a:["fumes"],cost:[5000,15000],no:"Water table or down-draft with fume extraction. Plus a compressor for the torch."},
- {r:"mf-plasma2",c:"Metal & Fabrication",n:"CNC plasma table — production",w:8,d:14,cl:3,p:[240,14400,70,1],est:1,a:["fumes","threephase"],cost:[25000,80000],no:"Production plasma; the bigger cutters often run on 3-phase."},
- {r:"mf-fiber",c:"Metal & Fabrication",n:"Fiber laser sheet-metal cutter (enclosed)",w:12,d:20,cl:4,p:[240,30000,100,1],est:1,a:["co2","threephase"],cost:[80000,300000],no:"Enclosed fiber laser with an exchange table, chiller and dust/fume collector. Needs 3-phase power."},
- {r:"mf-brake",c:"Metal & Fabrication",n:"Press brake",w:9,d:6,cl:4,cf:1,p:[240,11000,50,1],est:1,a:["threephase"],cost:[15000,60000],no:"Front clearance is for handling long parts. Hydraulic and CNC brakes are usually 3-phase."},
- {r:"mf-shear",c:"Metal & Fabrication",n:"Sheet-metal shear",w:8,d:5,cl:4,cf:1,p:[240,5600,30,1],est:1,cost:[3000,25000]},
- {r:"mf-finger",c:"Metal & Fabrication",n:"Box & pan (finger) brake",w:5,d:3,cl:4,cf:1,cost:[800,4000],no:"Manual; no power needed."},
- {r:"mf-roll",c:"Metal & Fabrication",n:"Slip roll / plate roll",w:4,d:2,cl:3,cf:1,cost:[300,4000]},
- {r:"mf-lathe",c:"Metal & Fabrication",n:"Metal lathe",w:7,d:3,cl:3,cf:1,p:[240,2200,20,1],est:1,cost:[3000,15000],no:"Heavy: put it on the slab, not a raised floor."},
- {r:"mf-mill",c:"Metal & Fabrication",n:"Knee mill",w:6,d:6,cl:3,p:[240,2200,20,1],est:1,cost:[4000,20000],no:"Older mills are often 3-phase; a phase converter runs them on 240V single-phase."},
- {r:"mf-hband",c:"Metal & Fabrication",n:"Horizontal metal bandsaw",w:5,d:2,cl:3,p:[120,1100,20,0],est:1,cost:[700,4000],no:"Leave room at both ends for long stock."},
- {r:"mf-grind",c:"Metal & Fabrication",n:"Pedestal grinder / belt grinder",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,0],est:1,cost:[300,2500],no:"Sparks: keep it away from sawdust and flammables."},
- {r:"mf-table",c:"Metal & Fabrication",n:"Welding / fixture table",w:8,d:4,cl:3,cost:[1500,8000],no:"Steel table with fixture holes; doubles as a layout bench."},
- {r:"mf-spray",c:"Metal & Fabrication",n:"Paint spray booth (walk-in)",w:10,d:14,cl:3,cf:1,p:[240,3000,30,1],est:1,a:["fumes","spray"],cost:[8000,40000],no:"Ducted exhaust, explosion-proof lights and fire protection. Inspected by the fire marshal."},
- {r:"mf-pcbooth",c:"Metal & Fabrication",n:"Powder-coat booth + gun",w:5,d:5,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["spray"],cost:[1500,8000],no:"Filtered booth to catch overspray."},
- {r:"mf-pcoven",c:"Metal & Fabrication",n:"Powder-coat curing oven (walk-in)",w:6,d:5,cl:3,cf:1,p:[240,12000,60,1],est:1,cost:[3000,15000],no:"Electric batch oven; plan a 60 A 240V circuit."},
- {r:"mf-chiller",c:"Metal & Fabrication",n:"Water chiller",w:2,d:3,cl:2,p:[240,3000,20,1],est:1,cost:[1500,8000],no:"For lasers, welders and spindles. Gives off heat: don't box it in."},
+ {r:"mf-water1",h:3.5,c:"Metal & Fabrication",n:"Waterjet cutter — desktop",w:5,d:3,cl:3,cf:1,p:[120,1800,20,1],est:1,a:["plumbing"],cost:[8000,15000],no:"Benchtop waterjet with its own stand and pump. Needs a water supply and a place to settle and empty the spent garnet."},
+ {r:"mf-water2",h:5,c:"Metal & Fabrication",n:"Waterjet cutter — industrial",w:9,d:15,cl:3,p:[240,500,20,1],est:1,a:["plumbing","threephase"],cost:[80000,250000],no:"The tank holds tons of water: check the slab can take it. Add the high-pressure pump as its own object; it sits nearby."},
+ {r:"mf-wpump",h:5,c:"Metal & Fabrication",n:"Waterjet high-pressure pump",w:5,d:3,cl:3,p:[240,37000,150,1],est:1,a:["threephase"],cost:[0,0],no:"Comes with the industrial waterjet. A 50 HP pump usually wants 3-phase 480V. Loud; also needs cooling water."},
+ {r:"mf-plasma1",h:5,c:"Metal & Fabrication",n:"CNC plasma table — shop",w:7,d:7,cl:3,p:[240,9600,50,1],est:1,a:["fumes"],cost:[5000,15000],no:"Water table or down-draft with fume extraction. Plus a compressor for the torch."},
+ {r:"mf-plasma2",h:5.5,c:"Metal & Fabrication",n:"CNC plasma table — production",w:8,d:14,cl:3,p:[240,14400,70,1],est:1,a:["fumes","threephase"],cost:[25000,80000],no:"Production plasma; the bigger cutters often run on 3-phase."},
+ {r:"mf-fiber",h:6,c:"Metal & Fabrication",n:"Fiber laser sheet-metal cutter (enclosed)",w:12,d:20,cl:4,p:[240,30000,100,1],est:1,a:["co2","threephase"],cost:[80000,300000],no:"Enclosed fiber laser with an exchange table, chiller and dust/fume collector. Needs 3-phase power."},
+ {r:"mf-brake",h:8,c:"Metal & Fabrication",n:"Press brake",w:9,d:6,cl:4,cf:1,p:[240,11000,50,1],est:1,a:["threephase"],cost:[15000,60000],no:"Front clearance is for handling long parts. Hydraulic and CNC brakes are usually 3-phase."},
+ {r:"mf-shear",h:4,c:"Metal & Fabrication",n:"Sheet-metal shear",w:8,d:5,cl:4,cf:1,p:[240,5600,30,1],est:1,cost:[3000,25000]},
+ {r:"mf-finger",h:4,c:"Metal & Fabrication",n:"Box & pan (finger) brake",w:5,d:3,cl:4,cf:1,cost:[800,4000],no:"Manual; no power needed."},
+ {r:"mf-roll",h:3.5,c:"Metal & Fabrication",n:"Slip roll / plate roll",w:4,d:2,cl:3,cf:1,cost:[300,4000]},
+ {r:"mf-lathe",h:4.5,c:"Metal & Fabrication",n:"Metal lathe",w:7,d:3,cl:3,cf:1,p:[240,2200,20,1],est:1,cost:[3000,15000],no:"Heavy: put it on the slab, not a raised floor."},
+ {r:"mf-mill",h:7.5,c:"Metal & Fabrication",n:"Knee mill",w:6,d:6,cl:3,p:[240,2200,20,1],est:1,cost:[4000,20000],no:"Older mills are often 3-phase; a phase converter runs them on 240V single-phase."},
+ {r:"mf-hband",h:3.5,c:"Metal & Fabrication",n:"Horizontal metal bandsaw",w:5,d:2,cl:3,p:[120,1100,20,0],est:1,cost:[700,4000],no:"Leave room at both ends for long stock."},
+ {r:"mf-grind",h:4,c:"Metal & Fabrication",n:"Pedestal grinder / belt grinder",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,0],est:1,cost:[300,2500],no:"Sparks: keep it away from sawdust and flammables."},
+ {r:"mf-table",h:3,c:"Metal & Fabrication",n:"Welding / fixture table",w:8,d:4,cl:3,cost:[1500,8000],no:"Steel table with fixture holes; doubles as a layout bench."},
+ {r:"mf-spray",h:8,c:"Metal & Fabrication",n:"Paint spray booth (walk-in)",w:10,d:14,cl:3,cf:1,p:[240,3000,30,1],est:1,a:["fumes","spray"],cost:[8000,40000],no:"Ducted exhaust, explosion-proof lights and fire protection. Inspected by the fire marshal."},
+ {r:"mf-pcbooth",h:8,c:"Metal & Fabrication",n:"Powder-coat booth + gun",w:5,d:5,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["spray"],cost:[1500,8000],no:"Filtered booth to catch overspray."},
+ {r:"mf-pcoven",h:8,c:"Metal & Fabrication",n:"Powder-coat curing oven (walk-in)",w:6,d:5,cl:3,cf:1,p:[240,12000,60,1],est:1,cost:[3000,15000],no:"Electric batch oven; plan a 60 A 240V circuit."},
+ {r:"mf-chiller",h:4,c:"Metal & Fabrication",n:"Water chiller",w:2,d:3,cl:2,p:[240,3000,20,1],est:1,cost:[1500,8000],no:"For lasers, welders and spindles. Gives off heat: don't box it in."},
  // Print & finishing (Creator / Maker)
- {r:"m-uvflat",c:"Creator / Maker",n:"Flatbed UV printer",w:6,d:4,cl:3,p:[120,1500,20,1],est:1,a:["fumes"],cost:[15000,60000],no:"Prints directly on panels, blanks and signs."},
- {r:"m-large",c:"Creator / Maker",n:"Large-format printer",w:9,d:3,cl:3,cf:1,p:[120,1200,20,1],est:1,cost:[8000,25000],no:"Banners, vinyl wraps and posters. Pair it with a laminator or a cutter."},
- {r:"m-screen",c:"Creator / Maker",n:"Screen-printing press (4-colour)",w:6,d:6,cl:3,cost:[500,4000]},
- {r:"m-expose",c:"Creator / Maker",n:"Screen exposure unit",w:3,d:3,cl:2,cf:1,p:[120,400,20,0],cost:[500,3000],no:"Wants a darkroom corner and a washout sink nearby."},
- {r:"m-tunnel",c:"Creator / Maker",n:"Conveyor dryer (screen printing)",w:3,d:8,cl:2,p:[240,6000,30,1],est:1,cost:[3000,10000]},
+ {r:"m-uvflat",h:4.5,c:"Creator / Maker",n:"Flatbed UV printer",w:6,d:4,cl:3,p:[120,1500,20,1],est:1,a:["fumes"],cost:[15000,60000],no:"Prints directly on panels, blanks and signs."},
+ {r:"m-large",h:4.2,c:"Creator / Maker",n:"Large-format printer",w:9,d:3,cl:3,cf:1,p:[120,1200,20,1],est:1,cost:[8000,25000],no:"Banners, vinyl wraps and posters. Pair it with a laminator or a cutter."},
+ {r:"m-screen",h:4.5,c:"Creator / Maker",n:"Screen-printing press (4-colour)",w:6,d:6,cl:3,cost:[500,4000]},
+ {r:"m-expose",h:3.5,c:"Creator / Maker",n:"Screen exposure unit",w:3,d:3,cl:2,cf:1,p:[120,400,20,0],cost:[500,3000],no:"Wants a darkroom corner and a washout sink nearby."},
+ {r:"m-tunnel",h:4,c:"Creator / Maker",n:"Conveyor dryer (screen printing)",w:3,d:8,cl:2,p:[240,6000,30,1],est:1,cost:[3000,10000]},
  // Woodworking (more)
- {r:"w-cyclone",c:"Woodworking",n:"Cyclone dust collector (central)",w:4,d:4,cl:2,p:[240,3700,30,1],est:1,a:["dust"],cost:[2500,6000],no:"Ducted to all the big machines. Quieter in a closet."},
+ {r:"w-cyclone",h:10,c:"Woodworking",n:"Cyclone dust collector (central)",w:4,d:4,cl:2,p:[240,3700,30,1],est:1,a:["dust"],cost:[2500,6000],no:"Ducted to all the big machines. Quieter in a closet."},
  // Storage & Utility (more)
- {r:"s-pack",c:"Storage & Utility",n:"Packing & shipping station",w:6,d:3,cl:3,cf:1,p:[120,300,20,0],cost:[500,2500],no:"Bench, box shelf above, tape and a scale."},
- {r:"s-sheet",c:"Storage & Utility",n:"Sheet-goods cart / rack",w:5,d:2,cl:3,cf:1,cost:[200,1200],no:"Holds 4×8 sheets on edge."},
- {r:"s-palletjack",c:"Storage & Utility",n:"Pallet jack (parked)",w:2,d:5,cl:1,cost:[300,800]},
- {r:"s-gantry",c:"Storage & Utility",n:"Gantry crane (2-ton)",req:{ceil:12},w:10,d:6,cl:2,a:["ceiling"],cost:[1500,5000],no:"Rolls over a machine or a truck bed; check the height."},
- {r:"s-lockers",c:"Storage & Utility",n:"Coat lockers / cubbies",w:6,d:1.5,cl:3,cf:1,cost:[300,1500]},
+ {r:"s-pack",h:5,c:"Storage & Utility",n:"Packing & shipping station",w:6,d:3,cl:3,cf:1,p:[120,300,20,0],cost:[500,2500],no:"Bench, box shelf above, tape and a scale."},
+ {r:"s-sheet",h:5,c:"Storage & Utility",n:"Sheet-goods cart / rack",w:5,d:2,cl:3,cf:1,cost:[200,1200],no:"Holds 4×8 sheets on edge."},
+ {r:"s-palletjack",h:4,c:"Storage & Utility",n:"Pallet jack (parked)",w:2,d:5,cl:1,cost:[300,800]},
+ {r:"s-gantry",h:11,c:"Storage & Utility",n:"Gantry crane (2-ton)",req:{ceil:12},w:10,d:6,cl:2,a:["ceiling"],cost:[1500,5000],no:"Rolls over a machine or a truck bed; check the height."},
+ {r:"s-lockers",h:6,c:"Storage & Utility",n:"Coat lockers / cubbies",w:6,d:1.5,cl:3,cf:1,cost:[300,1500]},
  // Lounge (more)
- {r:"f-sectL",c:"Furniture & Seating",n:"Sectional sofa (L-shaped)",w:9,d:7,cl:1.5,cost:[1500,6000]},
- {r:"f-sectU",c:"Furniture & Seating",n:"Sectional sofa (U-shaped)",w:11,d:8,cl:1.5,cost:[2500,9000]},
- {r:"f-fire",c:"Furniture & Seating",n:"Fire table (electric / water-vapour)",w:4,d:2.5,cl:2,p:[120,400,20,0],cost:[800,4000],no:"Indoors, use an electric or water-vapour flame: real gas fire pits aren't for inside."},
- {r:"f-fireplace",c:"Furniture & Seating",n:"Electric fireplace console",w:5,d:1.5,cl:3,cf:1,p:[120,1500,20,1],cost:[400,2500]},
- {r:"f-hightop",c:"Furniture & Seating",n:"High-top table + stools",w:3,d:3,cl:2,cost:[400,1800]},
- {r:"f-game4",c:"Furniture & Seating",n:"Game table (cards & board games)",w:3.5,d:3.5,cl:3,cost:[400,2500]},
- {r:"f-chess",c:"Furniture & Seating",n:"Chess table + chairs",w:2.5,d:2.5,cl:2.5,cost:[300,1500]},
- {r:"f-massage",c:"Furniture & Seating",n:"Massage chair",w:3,d:5,cl:1,p:[120,200,20,0],cost:[1500,8000],no:"Needs room behind to recline."},
- {r:"l-wine",c:"Bar & Lounge",n:"Wine fridge (freestanding)",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],cost:[500,2500]},
- {r:"l-winewall",c:"Bar & Lounge",n:"Wine wall / cellar racking",w:8,d:1.5,cl:3,cf:1,cost:[1000,8000],no:"Keep it out of sun and off warm walls."},
- {r:"l-coffee",c:"Bar & Lounge",n:"Coffee bar (counter + espresso machine)",w:5,d:2,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[1500,6000],no:"Plumbed espresso machines also need a water line and drain."},
- {r:"l-glass",c:"Bar & Lounge",n:"Undercounter glass washer",w:2,d:2,cl:2.5,cf:1,p:[120,1800,20,1],a:["plumbing"],cost:[1500,5000],ov:1},
- {r:"l-popcorn",c:"Bar & Lounge",n:"Popcorn machine (cart)",w:2.5,d:2,cl:2,cf:1,p:[120,1400,20,0],cost:[300,1500]},
- {r:"l-pizza",c:"Bar & Lounge",n:"Electric pizza oven (on a stand)",w:3,d:3,cl:3,cf:1,p:[240,5000,30,1],est:1,cost:[1000,6000],no:"Indoor electric ovens avoid the hood that gas or wood would need."},
- {r:"l-jukebox",c:"Bar & Lounge",n:"Jukebox",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],cost:[2000,9000]},
- {r:"l-tvwall",c:"Bar & Lounge",n:"Sports TV wall (multi-screen + console)",w:12,d:1.5,cl:0,p:[120,1200,20,1],est:1,cost:[3000,10000]},
- {r:"l-records",c:"Bar & Lounge",n:"Record console + shelf (vinyl corner)",w:5,d:1.5,cl:3,cf:1,p:[120,200,20,0],cost:[500,3000]},
- {r:"g-beerpong",c:"Arcade & Gaming",n:"Beer pong table",w:2,d:8,cl:3,cost:[100,500]},
- {r:"g-putt",c:"Arcade & Gaming",n:"Indoor putting green",w:6,d:15,cl:1,cost:[500,3000]},
- {r:"g-axe",c:"Arcade & Gaming",n:"Axe-throwing lane",req:{ceil:10},w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
- {r:"a-evbay",c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."},
+ {r:"f-sectL",h:2.8,c:"Furniture & Seating",n:"Sectional sofa (L-shaped)",w:9,d:7,cl:1.5,cost:[1500,6000]},
+ {r:"f-sectU",h:2.8,c:"Furniture & Seating",n:"Sectional sofa (U-shaped)",w:11,d:8,cl:1.5,cost:[2500,9000]},
+ {r:"f-fire",h:2,c:"Furniture & Seating",n:"Fire table (electric / water-vapour)",w:4,d:2.5,cl:2,p:[120,400,20,0],cost:[800,4000],no:"Indoors, use an electric or water-vapour flame: real gas fire pits aren't for inside."},
+ {r:"f-fireplace",h:3,c:"Furniture & Seating",n:"Electric fireplace console",w:5,d:1.5,cl:3,cf:1,p:[120,1500,20,1],cost:[400,2500]},
+ {r:"f-hightop",h:3.5,c:"Furniture & Seating",n:"High-top table + stools",w:3,d:3,cl:2,cost:[400,1800]},
+ {r:"f-game4",h:2.5,c:"Furniture & Seating",n:"Game table (cards & board games)",w:3.5,d:3.5,cl:3,cost:[400,2500]},
+ {r:"f-chess",h:2.5,c:"Furniture & Seating",n:"Chess table + chairs",w:2.5,d:2.5,cl:2.5,cost:[300,1500]},
+ {r:"f-massage",h:3.8,c:"Furniture & Seating",n:"Massage chair",w:3,d:5,cl:1,p:[120,200,20,0],cost:[1500,8000],no:"Needs room behind to recline."},
+ {r:"l-wine",h:5.8,c:"Bar & Lounge",n:"Wine fridge (freestanding)",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],cost:[500,2500]},
+ {r:"l-winewall",h:7,c:"Bar & Lounge",n:"Wine wall / cellar racking",w:8,d:1.5,cl:3,cf:1,cost:[1000,8000],no:"Keep it out of sun and off warm walls."},
+ {r:"l-coffee",h:3,c:"Bar & Lounge",n:"Coffee bar (counter + espresso machine)",w:5,d:2,cl:3,cf:1,p:[120,1800,20,1],est:1,cost:[1500,6000],no:"Plumbed espresso machines also need a water line and drain."},
+ {r:"l-glass",h:2.8,c:"Bar & Lounge",n:"Undercounter glass washer",w:2,d:2,cl:2.5,cf:1,p:[120,1800,20,1],a:["plumbing"],cost:[1500,5000],ov:1},
+ {r:"l-popcorn",h:5,c:"Bar & Lounge",n:"Popcorn machine (cart)",w:2.5,d:2,cl:2,cf:1,p:[120,1400,20,0],cost:[300,1500]},
+ {r:"l-pizza",h:4,c:"Bar & Lounge",n:"Electric pizza oven (on a stand)",w:3,d:3,cl:3,cf:1,p:[240,5000,30,1],est:1,cost:[1000,6000],no:"Indoor electric ovens avoid the hood that gas or wood would need."},
+ {r:"l-jukebox",h:5.3,c:"Bar & Lounge",n:"Jukebox",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],cost:[2000,9000]},
+ {r:"l-tvwall",h:8,c:"Bar & Lounge",n:"Sports TV wall (multi-screen + console)",w:12,d:1.5,cl:0,p:[120,1200,20,1],est:1,cost:[3000,10000]},
+ {r:"l-records",h:4,c:"Bar & Lounge",n:"Record console + shelf (vinyl corner)",w:5,d:1.5,cl:3,cf:1,p:[120,200,20,0],cost:[500,3000]},
+ {r:"g-beerpong",h:2.3,c:"Arcade & Gaming",n:"Beer pong table",w:2,d:8,cl:3,cost:[100,500]},
+ {r:"g-putt",h:0.1,c:"Arcade & Gaming",n:"Indoor putting green",w:6,d:15,cl:1,cost:[500,3000]},
+ {r:"g-axe",h:8,c:"Arcade & Gaming",n:"Axe-throwing lane",req:{ceil:10},w:6,d:20,cl:0,a:["ceiling"],cost:[1500,5000],no:"Caged lane with a replaceable target. Throwing sports and drinks don't mix; many places keep them apart."},
+ {r:"a-evbay",h:5.5,c:"Auto & Garage",n:"Parking bay — EV with Level 2 charger",w:10,d:20,cl:0,p:[240,11500,60,1],a:["truck","ev"],cost:[500,2000],no:"Charger on the wall at the front of the bay. 48 A charging needs a 60 A circuit."},
  {r:"cl-hbr",c:"Lighting – General",n:"LED high-bay, round",ceiling:true,w:1.5,d:1.5,k:[0,0,0,0],reach:12,drop:1.5,p:[120,150,20,0],cost:[120,350],no:"UFO-style fixture for ceilings about 15 ft and up. Space them roughly as far apart as they are high."},
  {r:"cl-hbl",c:"Lighting – General",n:"LED high-bay, linear",ceiling:true,w:2,d:1,k:[0,0,0,0],reach:11,drop:1.5,p:[120,220,20,0],cost:[150,400],no:"Long fixture that throws light along aisles and over work areas; good between racking."},
  {r:"cl-shop",c:"Lighting – General",n:"LED shop light",ceiling:true,w:4,d:0.5,k:[0,0,0,0],reach:6,drop:0.5,p:[120,45,20,0],cost:[25,80],no:"Strip fixture for garage and basement heights (8–12 ft). Often linked end to end."},
@@ -1082,6 +1091,151 @@ function iconFor(it){var f=ICONS[it.r]||(typeof ALIAS!=='undefined'&&ICONS[ALIAS
 
 (function(){
 "use strict";
+/* ================= Explore: walk the room in 3D =================
+   Three.js is loaded only when Explore opens. Units are feet; plan x → world x, plan y → world z, up is y.
+   Objects use simple shapes (by type, with a tidy fallback by kind); ceiling lights really light the room. */
+var EX={on:false,T:null,r:null,S:null,cam:null,raf:0,keys:{},yaw:0,pitch:0,pos:null,solid:[],last:0,joy:null,look:null,dirty:true};
+var EYE=5.4,RAD=0.8,WALK=9,RUN=16;
+var NOWALK=/^(c-half|c-pickle|g-vr|f-turf|g-putt|f-free|c-bowl|c-bowlmini|g-cornhole|g-axe|g-darts|a-car|a-pickup|a-evbay|x-tennis|c-net|b-stage|ht-riser)$/;
+function exLoad(){if(EX.T)return Promise.resolve(EX.T);return import('./vendor/three-0.170.0.module.min.js').then(function(m){EX.T=m;return m})}
+function setExplore(on){if(EX.on===on)return;EX.on=on;document.body.classList.toggle('exploring',on);strip();
+ if(!on){exStop();return}
+ var host=$('#explore');host.innerHTML='<div class="exload">Building the room…</div>';
+ exLoad().then(function(){exStart()}).catch(function(e){host.innerHTML='<div class="exload">Couldn\'t load the 3D view. Check your connection and try again.</div>'})}
+function exStop(){cancelAnimationFrame(EX.raf);EX.raf=0;if(document.pointerLockElement)document.exitPointerLock();if(EX.r){EX.r.dispose();EX.r=null}EX.S=null;$('#explore').innerHTML=''}
+
+/* ---------- materials & helpers ---------- */
+function exMat(T,col,o){o=o||{};return new T.MeshStandardMaterial({color:col,roughness:o.r!=null?o.r:.75,metalness:o.m||0,emissive:o.e||0,emissiveIntensity:o.ei||1,map:o.map||null,transparent:!!o.op,opacity:o.op||1,side:o.side||T.FrontSide})}
+function exTex(T,draw,s,rep){var c=document.createElement('canvas');c.width=c.height=s;draw(c.getContext('2d'),s);var t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rep[0],rep[1]);t.anisotropy=4;return t}
+function shade(hex,f){var c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&255,m=function(v){return Math.max(0,Math.min(255,Math.round(f>1?v+(255-v)*(f-1):v*f)))};return (m(r)<<16)|(m(g)<<8)|m(b)}
+function Kit(T,grp){var k={};
+ k.box=function(x,y,z,w,h,d,mat){var m=new T.Mesh(new T.BoxGeometry(Math.max(w,.01),Math.max(h,.01),Math.max(d,.01)),mat);m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;grp.add(m);return m};
+ k.cyl=function(x,y,z,rt,rb,h,mat,seg){var m=new T.Mesh(new T.CylinderGeometry(rt,rb,h,seg||16),mat);m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;grp.add(m);return m};
+ k.legs=function(w,d,h,t,mat,ins){ins=ins||.15;[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){k.box(s[0]*(w/2-ins-t/2),0,s[1]*(d/2-ins-t/2),t,h,t,mat)})};
+ return k}
+
+/* ---------- shapes: local space, centered, width along x, depth along z, front = +z ---------- */
+function exShape(T,c,w,d,h,M){var g=new T.Group(),k=Kit(T,g),col=CATCOLOR[c.c]||'#9a958b',n=c.n,r=c.r;
+ var body=exMat(T,shade(col,.55),{r:.6}),bodyL=exMat(T,shade(col,1.35),{r:.7}),dark=M.dark,wood=M.wood,steel=M.steel,white=M.white;
+ var scr=function(x,y,z,sw,sh,hex){var m=exMat(T,0x111111,{e:hex,ei:1.4,r:.3});k.box(x,y,z,sw,sh,.06,m)};
+ var top=function(th,mat){k.box(0,h-th,0,w,th,d,mat)};
+ if(r==='g-pool'||r==='g-airh'||r==='g-shuffle'||r==='g-bubble'||r==='c-pp'||r==='g-beerpong'||r==='g-foos'){
+  var bed=r==='g-pool'?M.felt:r==='c-pp'?exMat(T,0x1d4d8c,{r:.6}):r==='g-airh'||r==='g-bubble'?white:r==='g-beerpong'?exMat(T,0x1d1d1d,{r:.4}):wood;
+  k.legs(w,d,h-.4,.35,r==='g-pool'||r==='g-shuffle'?wood:dark);k.box(0,h-.4,0,w,.32,d,r==='g-pool'||r==='g-shuffle'?wood:dark);k.box(0,h-.08,0,w-.5,.05,d-.5,bed);
+  if(r==='g-pool'){[[-1,0],[1,0],[0,-1],[0,1]].forEach(function(s){k.box(s[0]*(w/2-.18),h-.08,s[1]*(d/2-.18),s[0]?.36:w,.25,s[1]?.36:d,wood)});[[.2,.1,0xffffff],[-.15,-.2,0xd23b2f],[-.3,.25,0xe6c52f]].forEach(function(b){k.cyl(b[0]*w,h-.04,b[1]*d,.12,.12,.12,exMat(T,b[2],{r:.2}))})}
+  if(r==='g-airh'){k.box(0,h-.04,-d/2+.12,w,.18,.12,exMat(T,0x2b6fd9));k.box(0,h-.04,d/2-.12,w,.18,.12,exMat(T,0x2b6fd9))}
+  if(r==='c-pp'){k.box(0,h-.04,0,.05,.5,d,white)}
+  if(r==='g-bubble'){var dm=new T.Mesh(new T.SphereGeometry(Math.min(w,d)*.45,24,12,0,Math.PI*2,0,Math.PI/2),exMat(T,0xcfe8ff,{op:.35,r:.1}));dm.position.set(0,h-.05,0);dm.scale.set(w/Math.min(w,d),.6,d/Math.min(w,d));g.add(dm)}
+  if(r==='g-foos'){for(var i=0;i<8;i++)k.box(-w/2+w*(i+.5)/8,h-.3,0,.06,.06,d+.6,steel)}
+  return g}
+ if(/^g-(cab|pin|gun|claw|bball|skee)$/.test(r)){var hc=[0x6d2bd9,0xd92b6d,0x2b8fd9,0xd9902b][r.length%4];
+  if(r==='g-skee'||r==='g-bball'){k.box(0,0,0,w,3,d,exMat(T,hc,{r:.5}));k.box(0,3,-d/2+.6,w,h-3,1.2,exMat(T,shade('#'+hc.toString(16).padStart(6,'0'),.6)));scr(0,h-2.4,-d/2+1.22,w*.8,1.4,0xffcc33);if(r==='g-bball'){k.cyl(0,h-3.6,-d/2+2,0.8,.8,.08,exMat(T,0xff6a2a,{m:.5}))}return g}
+  if(r==='g-pin'){k.legs(w,d,2.6,.25,dark);k.box(0,2.6,0,w,.9,d,exMat(T,hc,{r:.5}));k.box(0,3.5,-d/2+.3,w,h-3.5,.6,exMat(T,hc,{r:.5}));scr(0,4.2,-d/2+.62,w*.8,1.6,0x66ccff);scr(0,3.52,0,w*.8,.04,0x332266);return g}
+  if(r==='g-claw'){k.box(0,0,0,w,3,d,exMat(T,hc));var gl=new T.Mesh(new T.BoxGeometry(w-.2,2.6,d-.2),exMat(T,0xdff2ff,{op:.25,r:.1}));gl.position.set(0,4.3,0);g.add(gl);k.box(0,5.6,0,w,h-5.6,d,exMat(T,hc));scr(0,5.8,d/2+.01,w*.8,.4,0xffee66);return g}
+  k.box(0,0,0,w,h*.45,d*.75,exMat(T,hc,{r:.5}));k.box(0,h*.45,-d*.1,w,h*.55,d*.55,exMat(T,hc,{r:.5}));k.box(0,h*.45,d*.2,w,.35,d*.35,dark);scr(0,h*.55,d*.17,w*.8,h*.26,[0x44ddff,0xff66aa,0x88ff66][r.length%3]);scr(0,h*.88,d*.18,w*.8,h*.08,0xffcc33);return g}
+ if(/sofa|sectional|recliner|armchair|seating|lounge seating/i.test(n)){var fab=exMat(T,0x5a6b7d,{r:.95}),seat=Math.min(1.5,h*.5);
+  k.box(0,0,0,w,seat,d,fab);k.box(0,seat,-d/2+.35,w,h-seat,.7,fab);k.box(-w/2+.3,seat,0,.6,.7,d,fab);k.box(w/2-.3,seat,0,.6,.7,d,fab);
+  if(/L-shaped|U-shaped/.test(n)){k.box(-w/2+.35,seat,0,.7,h-seat,d,fab)}return g}
+ if(/stool/i.test(n)){k.cyl(0,0,0,w*.35,w*.4,.1,steel);k.cyl(0,0,0,.06,.06,h-.25,steel);k.cyl(0,h-.25,0,w*.45,w*.4,.25,exMat(T,0x8b5a3c,{r:.7}));return g}
+ if(/^(l-bar|l-barc|l-rail|f-hightop)$/.test(r)){var bb=r==='l-bar';var cd=bb?Math.min(2.5,d*.4):d;k.box(0,0,bb?d/2-cd/2:0,w,3.3,cd,exMat(T,0x3b2a20,{r:.6}));k.box(0,3.3,bb?d/2-cd/2:0,w+.2,.2,cd+.3,wood);
+  if(bb){k.box(0,0,-d/2+.5,w,3,1,exMat(T,0x2e2620));k.box(0,3,-d/2+.5,w,.12,1,wood);[4.2,5.4].forEach(function(y){k.box(0,y,-d/2+.4,w-.4,.08,.7,steel)});for(var b=0;b<Math.floor(w/.9);b++)k.cyl(-w/2+.5+b*.9,4.28,-d/2+.4,.12,.12,.85,exMat(T,[0x3d7a4a,0x7a3d2a,0xcfa24a][b%3],{r:.2}))}return g}
+ if(/(^f-tv$|tv wall|projector \+ screen|big screen)/i.test(n)||r==='l-tv'||r==='ht-screen'||r==='l-tvwall'){k.box(0,0,0,w,Math.min(2,h*.3),Math.min(d,1.5),exMat(T,0x2a2420,{r:.6}));var tw=Math.min(w*.9,r==='f-tv'?5.5:w*.9),th=tw*.56;k.box(0,h-th-.3,-d/2+.1,tw,th,.15,dark);scr(0,h-th-.2,-d/2+.2,tw-.2,th-.2,0x3a7bd5);return g}
+ if(/table|desk/i.test(n)&&!/table saw|plasma|waterjet|cutting table|router table|fixture table/i.test(n)){k.legs(w,d,h-.15,.25,dark);k.box(0,h-.15,0,w,.15,d,/conference|dining|poker|game|chess|coffee|round/i.test(n)?wood:exMat(T,0xd9d4c8,{r:.6}));return g}
+ if(/rack|shelving|shelf|bins|racking|lumber|filament|pantry \/|storage shelving/i.test(n)&&!/AV|equipment rack|power rack|hydroponic|print farm|pan rack/i.test(n)){var post=exMat(T,/pallet/i.test(n)?0x2b5fa8:0x7d8288,{m:.4,r:.5}),bm=/pallet/i.test(n)?exMat(T,0xe0701f,{m:.3,r:.5}):post;
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){k.box(s[0]*(w/2-.08),0,s[1]*(d/2-.08),.16,h,.16,post)});var nsh=Math.max(3,Math.round(h/1.8));for(var s2=0;s2<nsh;s2++){var y=.3+s2*(h-.4)/(nsh-1);k.box(0,y,0,w,.08,d,bm);if(s2<nsh-1&&s2%2===0)k.box(0,y+.08,0,w*.8,.9,d*.8,exMat(T,[0xc8a878,0x8a9aa8,0xb8b0a0][s2%3],{r:.9}))}return g}
+ if(/fridge|freezer|cooler|locker|safe|cabinet|kegerator|ice machine|ice maker|heater|wine|walk-in|copier|filing/i.test(n)&&!/arcade|base cabinet/i.test(n)){var cm=/walk-in|reach-in|commercial|freezer|ice machine|kegerator|bar fridge|beverage|under-counter|worktop/i.test(n)?steel:/safe/i.test(n)?exMat(T,0x2f3338,{m:.5,r:.4}):/flammables/i.test(n)?exMat(T,0xe2b21b,{r:.5}):white;
+  k.box(0,0,0,w,h,d,cm);k.box(0,h*.15,d/2+.01,.03,h*.7,.03,dark);k.box(w*.35,h*.45,d/2+.05,.06,h*.25,.08,dark);if(/wine/i.test(n))k.box(0,.3,d/2+.02,w*.85,h*.8,.02,exMat(T,0x3a1a20,{op:.6,r:.1}));return g}
+ if(/counter|base cabinet|island|cabinets|sink|cooktop|range|dishwasher|oven|steam table|prep|griddle|fryer|charbroiler|coffee bar|glass washer|trash/i.test(n)){var ctr=r.indexOf('kc-')===0||/stainless|commercial/i.test(n)?steel:exMat(T,0x8a7a66,{r:.6});
+  k.box(0,0,0,w,Math.min(h,3)-.12,d,ctr);k.box(0,Math.min(h,3)-.12,0,w+.05,.12,d+.05,/kc-/.test(r)?steel:exMat(T,0xe9e4da,{r:.35}));
+  if(/sink/i.test(n))k.box(0,Math.min(h,3)-.1,0,Math.min(1.8,w*.5),.04,Math.min(1.4,d*.6),exMat(T,0x9aa4aa,{m:.6,r:.2}));
+  if(/range|cooktop|griddle|charbroiler/i.test(n)){for(var bx=0;bx<2;bx++)for(var bz=0;bz<2;bz++)k.cyl((bx-.5)*w*.45,Math.min(h,3),(bz-.5)*d*.45,.3,.3,.03,dark)}
+  if(h>3.2)k.box(0,3,-d/2+.2,w,h-3,.4,ctr);return g}
+ if(/car|suv|pickup|motorcycle/i.test(n)&&/^a-/.test(r)){return g}
+ if(r==='c-half'||r==='c-hoop'){var bx2=r==='c-half'?0:0;k.box(0,0,-d/2+.6,.4,10,.4,exMat(T,0x3a3a3a,{m:.5}));k.box(0,9.5,-d/2+.3,6,3.5,.15,exMat(T,0xf4f4f4,{op:.85}));k.cyl(0,10,-d/2+1.6,.75,.75,.06,exMat(T,0xff5a1f,{m:.4}));return g}
+ if(/net|cage|batting|golf/i.test(n)){var net=exMat(T,0x222222,{op:.35,r:1,side:T.DoubleSide});var nh=h;
+  k.box(0,nh-.05,0,w,.05,d,net);k.box(-w/2,0,0,.05,nh,d,net);k.box(w/2,0,0,.05,nh,d,net);k.box(0,0,-d/2,w,nh,.05,net);
+  if(/golf/i.test(n)){k.box(0,.02,0,w*.8,.03,d*.6,exMat(T,0x3f8a4a,{r:1}));scr(0,1,-d/2+.1,w*.85,nh-2,0x8fd0ff)}return g}
+ if(/sauna|booth|enclosure|spray|powder-coat|curing oven/i.test(n)){k.box(0,0,0,w,h,d,/sauna/i.test(n)?wood:exMat(T,0xc9ccd0,{m:.3,r:.5}));k.box(0,0,d/2+.01,Math.min(3,w*.4),Math.min(7,h-.4),.04,dark);return g}
+ if(/lift/i.test(n)&&/^a-/.test(r)){var lc=exMat(T,0x2b62c4,{m:.3,r:.5});if(r==='a-lift2'){k.box(-w/2+.6,0,0,1.2,h,1.2,lc);k.box(w/2-.6,0,0,1.2,h,1.2,lc);k.box(0,h-.6,0,w,.4,.6,lc)}else{[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){k.box(s[0]*(w/2-.4),0,s[1]*(d/2-.4),.6,h,.6,lc)});k.box(-w/4,4,0,1.6,.3,d-1,lc);k.box(w/4,4,0,1.6,.3,d-1,lc)}return g}
+ if(r==='s-gantry'){var gm=exMat(T,0xe2b21b,{r:.5});k.box(-w/2+.3,0,0,.4,h,.4,gm);k.box(w/2-.3,0,0,.4,h,.4,gm);k.box(-w/2+.3,0,0,.4,.3,d,gm);k.box(w/2-.3,0,0,.4,.3,d,gm);k.box(0,h-.6,0,w,.6,.5,gm);return g}
+ if(/^(f-rack|f-cable|c-ninja|c-climb)$/.test(r)){var fm=exMat(T,0x2a2a2a,{m:.5,r:.4});if(r==='c-climb'){k.box(0,0,-d/2+.6,w,h,1.2,exMat(T,0x6a8ab0,{r:.9}));for(var hh=0;hh<30;hh++)k.box((Math.sin(hh*7.1)*.45)*w,1+((hh*2.7)%(h-2)),-d/2+1.25,.4,.3,.15,exMat(T,[0xff4f4f,0x4fb0ff,0xffd24f,0x4fff8a][hh%4]));k.box(0,0,d/4,w,.8,d/2,exMat(T,0x2d3f5a,{r:1}));return g}
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s){k.box(s[0]*(w/2-.15),0,s[1]*(d/2-.15),.25,h,.25,fm)});k.box(0,h-.25,-d/2+.15,w,.25,.25,fm);k.box(0,h-.25,d/2-.15,w,.25,.25,fm);if(r==='f-rack')k.box(0,0,0,w+1,.1,d+1,exMat(T,0x4a3a2a,{r:1}));return g}
+ if(r==='mu-upright'||r==='mu-grand'){var pn=exMat(T,0x111111,{r:.15});if(r==='mu-grand'){k.legs(w,d,2.2,.25,pn);k.box(0,2.2,0,w,1,d,pn);k.box(0,2.6,d/2-.4,w*.9,.15,.6,white)}else{k.box(0,0,0,w,h,d,pn);k.box(0,2.3,d/2,w*.9,.15,.5,white)}return g}
+ if(r==='mu-drums'||r==='mu-edrums'){[[-.25,.1,.55],[.25,.1,.5],[0,-.2,.9],[-.35,-.3,.4],[.35,-.3,.4]].forEach(function(t,i){k.cyl(t[0]*w,i===2?0:2,t[1]*d,t[2]*.8,t[2]*.8,i===2?1.6:.5,exMat(T,i===2?0xb22a2a:0xdddddd,{r:.4}))});k.cyl(0,0,.25*d,.4,.4,1.6,dark);return g}
+ if(r==='ht-row3'){var rc=exMat(T,0x2a2a2e,{r:.8}),n3=Math.max(1,Math.round(w/3));for(var q=0;q<n3;q++){var cx=-w/2+w*(q+.5)/n3;k.box(cx,0,0,w/n3-.3,1.6,d,rc);k.box(cx,1.6,-d/2+.4,w/n3-.3,1.8,.8,rc)}return g}
+ if(r==='ht-speaker'||r==='ht-sub'){k.box(0,0,0,w,h,d,dark);k.cyl(0,h*.35,d/2,.35,.35,.04,exMat(T,0x333333));return g}
+ if(/^(m-laser|mf-fiber|m-uvflat|m-large|w-cnc|mf-plasma|mf-water|m-weld2|m-mill)/.test(r)){var mc=exMat(T,/laser|fiber|uv/.test(r)?0xf0f0ee:0x9aa0a6,{m:.2,r:.5});
+  if(/plasma|water|w-cnc|m-weld2/.test(r)){k.legs(w,d,2.8,.4,dark);k.box(0,2.8,0,w,.4,d,mc);k.box(0,3.2,0,w-.4,.05,d-.4,exMat(T,/water/.test(r)?0x7fb8d8:0x55585e,{op:/water/.test(r)?.8:1}));k.box(0,3.2,0,.6,h-3.2,d,exMat(T,0xe0701f));k.box(0,h-.7,0,w,.5,.5,exMat(T,0xe0701f));return g}
+  k.box(0,0,0,w,h*.55,d,mc);k.box(0,h*.55,-.05*d,w,h*.4,d*.9,mc);k.box(0,h*.7,d*.4,w*.8,h*.2,.05,exMat(T,0xff6a2a,{op:.55,r:.1}));return g}
+ // fallback: a tidy block with a plinth and a lighter top
+ k.box(0,0,0,w,.25,d,dark);k.box(0,.25,0,w-.06,h-.35,d-.06,body);k.box(0,h-.1,0,w,.1,d,bodyL);return g}
+
+function exCeilShape(T,c,w,d,M){var g=new T.Group(),k=Kit(T,g),r=c.r,lamp=/^cl-/.test(r);
+ if(r==='cc-hvls'||r==='cc-fan'){var rr=Math.min(w,d)/2;k.cyl(0,-.6,0,.3,.3,.5,M.steel);for(var i=0;i<(r==='cc-hvls'?6:5);i++){var b=new T.Mesh(new T.BoxGeometry(rr*.9,.06,r==='cc-hvls'?.7:.45),exMat(T,r==='cc-hvls'?0xcfe0e4:0x8a6a4a));var a=i*Math.PI*2/(r==='cc-hvls'?6:5);b.position.set(Math.cos(a)*rr*.5,-.4,Math.sin(a)*rr*.5);b.rotation.y=-a;b.castShadow=true;g.add(b)}return {g:g}}
+ if(/^cs-/.test(r)){k.box(0,-.4,0,w,.4,d,r==='cs-inceil'?M.white:M.dark);return {g:g}}
+ if(r==='cc-unith'||r==='cc-cassette'||r==='cc-irtube'){k.box(0,-.8,0,w,.8,d,r==='cc-irtube'?exMat(T,0xb0aaa0,{m:.4}):M.white);if(r==='cc-irtube')k.box(0,-.85,0,w-.4,.1,.3,exMat(T,0xff6a2a,{e:0xff4a1a,ei:.8}));return {g:g}}
+ var lc=r==='cl-growb'||r==='cl-growp'?0xd28cff:r==='cl-black'?0x9a5cff:r==='cl-stage'?0x8fe0ff:0xfff1cf;
+ var glow=exMat(T,0xffffff,{e:lc,ei:2.2,r:.3});
+ if(r==='cl-hbr'||r==='cl-cage'||r==='cl-down'||r==='cl-stage'){var rad=Math.min(w,d)/2;k.cyl(0,-.7,0,rad*.35,rad,.7,M.dark,24);var lens=new T.Mesh(new T.CircleGeometry(rad*.9,24),glow);lens.rotation.x=Math.PI/2;lens.position.y=-.71;g.add(lens)}
+ else{k.box(0,-.3,0,w,.3,d,M.dark);var pl=new T.Mesh(new T.PlaneGeometry(w*.92,d*.8),glow);pl.rotation.x=Math.PI/2;pl.position.y=-.31;g.add(pl)}
+ return {g:g,light:lamp?lc:null}}
+
+/* ---------- the scene ---------- */
+function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene();S.background=new T.Color(0x1b1b1d);S.fog=new T.Fog(0x1b1b1d,Math.max(W,D)*1.2,Math.max(W,D)*3);
+ var M={dark:exMat(T,0x26262a,{r:.5}),steel:exMat(T,0xaeb3b8,{m:.7,r:.35}),white:exMat(T,0xeeece6,{r:.5}),felt:exMat(T,0x1f6b4a,{r:.95}),
+  wood:exMat(T,0x6b4027,{r:.45,map:exTex(T,function(g,s){g.fillStyle='#6b4027';g.fillRect(0,0,s,s);for(var i=0;i<70;i++){g.strokeStyle='rgba(30,15,5,'+(Math.random()*.25)+')';g.lineWidth=1+Math.random()*3;g.beginPath();var y=Math.random()*s;g.moveTo(0,y);g.bezierCurveTo(s/3,y+8,s*2/3,y-8,s,y);g.stroke()}},256,[1,1])})};
+ var floor=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xb9b4ab,{r:.55,map:exTex(T,function(g,s){g.fillStyle='#aaa59c';g.fillRect(0,0,s,s);for(var i=0;i<s*s/8;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'255,255,255')+','+(Math.random()*.05)+')';g.fillRect(Math.random()*s,Math.random()*s,2,2)}g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=3;g.strokeRect(0,0,s,s);for(var k=0;k<12;k++){g.fillStyle='rgba(80,70,60,'+(Math.random()*.05)+')';g.beginPath();g.arc(Math.random()*s,Math.random()*s,20+Math.random()*70,0,7);g.fill()}},512,[W/10,D/10])}));
+ floor.rotation.x=-Math.PI/2;floor.position.set(W/2,0,D/2);floor.receiveShadow=true;S.add(floor);
+ var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
+ var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
+ wall(W/2,-.25,W+1,.5,W);wall(W/2,D+.25,W+1,.5,W);wall(-.25,D/2,.5,D,D);wall(W+.25,D/2,.5,D,D);
+ var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0x2b2c30,{r:.9}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
+ var bm=exMat(T,0x3a3c42,{m:.5,r:.45});for(var bx=Math.min(8,W/3);bx<W;bx+=Math.max(8,W/6)){var be=new T.Mesh(new T.BoxGeometry(.5,1.2,D),bm);be.position.set(bx,H-.6,D/2);S.add(be)}
+ // objects
+ EX.solid=[];var lights=[];
+ P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
+  if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=c.drop||0;cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
+   if(drop>.4){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c});return}
+  var h=c.h||Math.max(2,Math.min(6,Math.min(w0,d0)));var g=exShape(T,c,w0,d0,h,M);g.position.set(cx,0,cz);g.rotation.y=-(it.rot||0)*Math.PI/2;S.add(g);
+  if(/^a-(car|pickup|evbay)$/.test(c.r)||NOWALK.test(c.r)){var ln=new T.Mesh(new T.PlaneGeometry(m.w,m.d),exMat(T,/^c-/.test(c.r)?0x3c6e9e:0xffffff,{op:/^c-/.test(c.r)?.55:.12,r:.8}));ln.rotation.x=-Math.PI/2;ln.position.set(cx,.02,cz);S.add(ln)}
+  if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
+ // light: ceiling lights do the work; with none placed, soft work light so the room is still readable
+ S.add(new T.HemisphereLight(0xcfd6e0,0x2a2622,lights.length?.5:1.1));
+ if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
+  var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
+ var maxL=24,shad=4,lim=lights.slice(0,maxL);
+ lim.forEach(function(L,i){var big=/General|Specialty/.test(L.c.c),pw=(L.c.p&&L.c.p[1])||60;var sp=new T.SpotLight(L.col,Math.min(400,pw*(big?1.6:2.2)),Math.max(14,H*2.2),big?Math.PI/3:Math.PI/4,.6,1.6);
+  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(1024,1024);sp.shadow.bias=-.0006}S.add(sp);S.add(sp.target)});
+ if(lights.length>maxL){S.children.filter(function(o){return o.isHemisphereLight}).forEach(function(h){h.intensity=.6})}
+ // glowing screens light their surroundings a little
+ return S}
+function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1;y+=1)for(var x=1.5;x<W-1;x+=1){if(exHit(x,y))continue;var sc=-Math.hypot(x-W/2,y-(D-2))+(exClear(x,y)*2);if(sc>bs){bs=sc;best={x:x,y:y}}}
+ return best||{x:W/2,y:D/2}}
+function exClear(x,z){var m=4;EX.solid.forEach(function(s){var dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));m=Math.min(m,Math.hypot(dx,dz))});return m}
+function exHit(x,z){var W=P.room.w,D=P.room.d;if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
+function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Click to look around · WASD / arrows to walk · Shift to run · Esc to free the mouse')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add lights in Ceiling view to see them here.</div>');
+ var cv=$('#excv'),r=EX.r=new T.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.5:2));r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;r.toneMapping=T.ACESFilmicToneMapping;r.outputColorSpace=T.SRGBColorSpace;
+ EX.S=exBuild();EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
+ var size=function(){var b=host.getBoundingClientRect();r.setSize(b.width,b.height,false);EX.cam.aspect=b.width/Math.max(1,b.height);EX.cam.updateProjectionMatrix()};size();EX.size=size;
+ // desktop: pointer lock look; touch: joystick + drag look
+ cv.onclick=function(){if(!TOUCH&&cv.requestPointerLock)cv.requestPointerLock()};
+ var joy=$('#exjoy'),jk=joy.querySelector('i');EX.joy={x:0,y:0,id:null};EX.look=null;
+ cv.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;var b=joy.getBoundingClientRect();
+  if(e.clientX<b.right+40&&e.clientY>b.top-40&&EX.joy.id==null){EX.joy.id=e.pointerId;EX.joy.cx=b.left+b.width/2;EX.joy.cy=b.top+b.height/2}else if(!EX.look)EX.look={id:e.pointerId,x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId)});
+ cv.addEventListener('pointermove',function(e){if(e.pointerType==='mouse'){if(document.pointerLockElement===cv){EX.yaw-=e.movementX*.0025;EX.pitch=Math.max(-1.3,Math.min(1.3,EX.pitch-e.movementY*.0025))}return}
+  if(EX.joy.id===e.pointerId){var dx=e.clientX-EX.joy.cx,dy=e.clientY-EX.joy.cy,L=Math.hypot(dx,dy),R=44;if(L>R){dx*=R/L;dy*=R/L}EX.joy.x=dx/R;EX.joy.y=dy/R;jk.style.transform='translate('+dx+'px,'+dy+'px)'}
+  else if(EX.look&&EX.look.id===e.pointerId){EX.yaw-=(e.clientX-EX.look.x)*.005;EX.pitch=Math.max(-1.3,Math.min(1.3,EX.pitch-(e.clientY-EX.look.y)*.005));EX.look.x=e.clientX;EX.look.y=e.clientY}});
+ var up=function(e){if(EX.joy.id===e.pointerId){EX.joy.id=null;EX.joy.x=EX.joy.y=0;jk.style.transform=''}if(EX.look&&EX.look.id===e.pointerId)EX.look=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+ EX.last=performance.now();var loop=function(t){if(!EX.on||!EX.r)return;var dt=Math.min(.05,(t-EX.last)/1000);EX.last=t;exStep(dt);EX.raf=requestAnimationFrame(loop)};EX.raf=requestAnimationFrame(loop)}
+function exStep(dt){var k=EX.keys,f=(k.w||k.arrowup?1:0)-(k.s||k.arrowdown?1:0)-EX.joy.y,s=(k.d||k.arrowright?1:0)-(k.a||k.arrowleft?1:0)+EX.joy.x,L=Math.hypot(f,s);
+ if(L>0){if(L>1){f/=L;s/=L}var sp=(k.shift?RUN:WALK)*dt,sy=Math.sin(EX.yaw),cy=Math.cos(EX.yaw),dx=(-sy*f+cy*s)*sp,dz=(-cy*f-sy*s)*sp,p=EX.pos;
+  if(!exHit(p.x+dx,p.z))p.x+=dx;if(!exHit(p.x,p.z+dz))p.z+=dz}
+ var c=EX.cam;c.position.set(EX.pos.x,EYE,EX.pos.z);c.rotation.order='YXZ';c.rotation.y=EX.yaw;c.rotation.x=EX.pitch;EX.r.render(EX.S,c)}
+window.addEventListener('keydown',function(e){if(!EX.on||/INPUT|SELECT|TEXTAREA/.test((e.target||{}).tagName||''))return;var k=e.key.toLowerCase();if(/^(w|a|s|d|arrowup|arrowdown|arrowleft|arrowright|shift)$/.test(k)){EX.keys[k]=true;e.preventDefault()}});
+window.addEventListener('keyup',function(e){EX.keys[e.key.toLowerCase()]=false});
+window.addEventListener('blur',function(){EX.keys={}});
+window.addEventListener('resize',function(){if(EX.on&&EX.size)EX.size()});
+
 /* ================= Space Planner =================
    Rooms start at 7 x 7 ft. Objects are added from the library and the room lays itself out:
    anchors (all-round clearance) in the middle, wall pieces (front clearance) along the walls,
@@ -1261,7 +1415,7 @@ function rotate(u,dir){var it=byU(u);if(!it)return;dir=dir||1;var nr=(it.rot+dir
 function byU(u){for(var i=0;i<P.items.length;i++)if(P.items[i].u===u)return P.items[i];return null}
 function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop());if(sel&&!byU(sel))sel=null;persist();render()}
 function redo(){if(!fut.length)return;hist.push(snapP());P=JSON.parse(fut.pop());persist();render()}
-document.addEventListener('keydown',function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
+document.addEventListener('keydown',function(e){if(EX.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
  if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;render()}});
 
@@ -1464,7 +1618,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj'+(isC(it)?' ceil':''));el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.reach.innerHTML=VW.lv==='c'?drawReach(k):'';G.pw.innerHTML=(VW.md==='p'&&P.pw?drawPower(k):drawPlugs(k))+(VW.lv==='g'?drawCeil(k):'');G.obj.setAttribute('class',VW.lv==='c'?'v-ceil':VW.md==='p'?'v-pow':'');var cn=$('#cnote');if(cn)cn.hidden=VW.lv!=='c';var stg=document.querySelector('.stage');if(stg)stg.classList.toggle('ceil',VW.lv==='c');vbar();
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.reach.innerHTML=VW.lv==='c'?drawReach(k):'';G.pw.innerHTML=(VW.md==='p'&&P.pw?drawPower(k):drawPlugs(k))+(VW.lv==='g'?drawCeil(k):'');G.obj.setAttribute('class',VW.lv==='c'?'v-ceil':VW.md==='p'?'v-pow':'');var cn=$('#cnote');if(cn)cn.hidden=VW.lv!=='c';var stg=document.querySelector('.stage');if(stg)stg.classList.toggle('ceil',VW.lv==='c');vbar();if(EX.on&&EX.r){EX.S=exBuild();if(exHit(EX.pos.x,EX.pos.z)){var sp2=exSpawn();EX.pos={x:sp2.x,z:sp2.y}}}
  $('#rname').value=P.name;side();markLib();$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length}
 var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
@@ -1618,10 +1772,11 @@ function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0
  el.innerHTML='<span class="slab">Room</span><span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span>×</span><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span>'+
   '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b><label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
   
-  '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'');
+  '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
+  '<i class="ssep"></i><div class="vseg mseg2" role="group" aria-label="Mode"><button class="vb'+(EX.on?'':' on')+'" id="m-design"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg><span class="lbl">Design</span></button><button class="vb'+(EX.on?' on':'')+'" id="m-explore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M10 22l1-7-2-3 3-4 3 4 2 3M9 12l-3 2M15 12l3 2"/></svg><span class="lbl">Explore</span></button></div>';
  ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');hi2.onchange=function(){hi2.blur();var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
- $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};if(act&&$('#'+act)&&$('#'+act).tagName!=='SELECT')$('#'+act).focus()}
+ $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};$('#m-design').onclick=function(){setExplore(false)};$('#m-explore').onclick=function(){setExplore(true)};if(act&&$('#'+act)&&$('#'+act).tagName!=='SELECT')$('#'+act).focus()}
 function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(lastFail&&lastFail.msg)h+='<div class="card"><div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div></div>';
  if(selO)h+=outletCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it),col=((CATS.filter(function(x){return x[0]===c.c})[0])||[])[1]||'#8a867c';
@@ -1651,18 +1806,18 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
  d.innerHTML='<form method="dialog" class="dlg"><h2>'+title+'</h2>'+(shared&&!admin?'<p class="muted">Shared objects are managed by the library owner. Save a copy to make your own version.</p>':'')+
   '<div class="fg"><label class="fl s2">Name<input name="n" required autocomplete="off" value="'+esc(c?c.n:'')+'"></label>'+
   '<label class="fl s2">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
-  '<label class="fl">Width (ft)<input name="w" inputmode="decimal" required value="'+(c?c.w:'')+'"></label><label class="fl">Depth (ft)<input name="d" inputmode="decimal" required value="'+(c?c.d:'')+'"></label>'+
+  '<label class="fl">Width (ft)<input name="w" inputmode="decimal" required value="'+(c?c.w:'')+'"></label><label class="fl">Depth (ft)<input name="d" inputmode="decimal" required value="'+(c?c.d:'')+'"></label><label class="fl">Height (ft)<input name="h" inputmode="decimal" value="'+(c&&c.h?c.h:'')+'"></label><label class="fl">Reach (ft, ceiling)<input name="reach" inputmode="decimal" value="'+(c&&c.reach?c.reach:'')+'"></label>'+
   '<label class="fl">Typical cost, low ($)<input name="lo" inputmode="numeric" value="'+(c&&c.cost?c.cost[0]:'')+'"></label><label class="fl">Typical cost, high ($)<input name="hi" inputmode="numeric" value="'+(c&&c.cost?c.cost[1]:'')+'"></label>'+
   '<span class="muted s4">Clearance (ft): space that must stay empty to use it. Left and right as you face its front. Back 0 lets it stand against a wall.</span>'+['front','back','left','right'].map(function(n,i){var K=c?kOf(c):[0,0,0,0];return '<label class="fl">'+n.charAt(0).toUpperCase()+n.slice(1)+'<input name="k'+i+'" inputmode="decimal" value="'+fmt(K[i])+'"></label>'}).join('')+
   '<label class="fl">Power<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label><label class="fl">Watts<input name="pw" inputmode="decimal" value="'+(p[1]||'')+'"></label>'+
-  '<label class="fl">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label><label class="fl">Reach (ft, ceiling)<input name="reach" inputmode="decimal" value="'+(c&&c.reach?c.reach:'')+'"></label>'+
+  '<label class="fl s2">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label>'+
   '<div class="cks s4"><label class="ck"><input type="checkbox" name="ceiling"'+((c?c.ceiling:VW.lv==='c')?' checked':'')+'> Ceiling object (hangs overhead)</label><label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label><label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label></div>'+
   '<label class="fl s4">Notes<textarea name="no" rows="2">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(c&&canEdit?'<button class="btn red" value="del" formnovalidate>'+(shared?'Remove from library':'Delete')+'</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button>'+(shared?'<button class="btn" value="copy">Save as my own copy</button>':'')+(canEdit?'<button class="btn pri" value="save">Save</button>':'')+'</span></div></form>';
  if(shared&&!admin)Array.prototype.forEach.call(d.querySelectorAll('input,select,textarea'),function(el){if(el.name)el.dataset.ro=1});
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
   if(v==='del'){if(!confirm((shared?'Remove '+c.n+' from the shared library for everyone?':'Delete '+c.n+'?')))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
-  var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
+  var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),h:num('h')||undefined,k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
   var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();var lo=num('lo'),hi=num('hi');if(lo||hi)nd.cost=[Math.min(lo||hi,hi||lo),Math.max(lo,hi)];if(admin&&shared)nd.ed=1;
   if(F('ceiling').checked){nd.ceiling=true;nd.reach=num('reach');nd.drop=c&&c.drop||0}if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
   var slug=nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4),toShared=!c&&admin&&f.elements.sh&&f.elements.sh.checked;
@@ -1685,7 +1840,7 @@ function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'<
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render()}).catch(function(){tok=null;me=null;showWho()});
 renderLib();render();
-window.__sp={P:function(){return P},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
+window.__sp={P:function(){return P},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();
 
 </script>

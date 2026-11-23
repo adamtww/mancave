@@ -121,6 +121,14 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .sb.red{color:#b42336;border-color:#f0c8c8}.sb.red:hover{background:#fdf1f1}
 .spin{font-size:12.5px;color:#6b6960}.lnk{border:0;background:none;padding:0;font:inherit;color:#1d4f91;font-weight:600;cursor:pointer}
 .srows{display:flex;flex-direction:column}.srw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:13px}.srw:last-child{border:0}.srw span{display:flex;align-items:center;gap:7px;color:#6b6960;white-space:nowrap}.srw b{font-weight:600;text-align:right}
+.explore{display:none}body.exploring .main{display:none}body.exploring .explore{display:block;position:relative;margin:12px;border-radius:14px;overflow:hidden;background:#141416;min-height:0}
+.explore canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.exhud{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(20,20,22,.7);color:#eee;font-size:12.5px;padding:7px 12px;border-radius:999px;pointer-events:none;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.exnote{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:rgba(255,244,220,.92);color:#5a4400;font-size:12.5px;padding:7px 12px;border-radius:10px;pointer-events:none;max-width:min(520px,calc(100% - 24px));text-align:center}
+.exload{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px}
+.exjoy{display:none;position:absolute;left:28px;bottom:56px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);pointer-events:none}body.touch .exjoy{display:block}
+.exjoy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.75);transition:transform .05s}
+.mseg2 .vb{padding:5px 10px}
 .bar{height:8px;border-radius:4px;background:#ece9e2;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kgrid .muted{grid-column:1/-1;margin:2px 0 0}
 </style>
@@ -137,6 +145,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
   <button class="btn pri" id="b-save">Save</button>
  </div>
  <div class="strip" id="strip"></div>
+ <div id="explore" class="explore"></div>
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
    <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
