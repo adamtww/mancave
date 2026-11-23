@@ -310,7 +310,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   var LK=odrag&&odrag.moved&&odrag.id===id&&odrag.links||P.pw.links;P.items.forEach(function(it){if(LK[it.u]!==id)return;if(drag&&drag.moved&&drag.u===it.u)return;var b=ibox(it);if(!inReach(o,b))return;lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines+'<defs><filter id="osh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="'+(1.1*k)+'" stdDeviation="'+(1.4*k)+'" flood-color="#000" flood-opacity=".32"/></filter></defs>';
- P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var noFit=selIt&&VW.md==='p'&&pspec(defOf(selIt))&&!canPower(o,selIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var fIt=drag&&drag.moved?byU(drag.u):selIt,noFit=fIt&&VW.md==='p'&&pspec(defOf(fIt))&&!canPower(o,fIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':noFit?';opacity:.3;filter:grayscale(1)':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(14*k)+'" fill="transparent"/><g transform="translate('+cx+' '+cy+') scale(1.45) translate('+(-cx)+' '+(-cy)+')" filter="url(#osh)">';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.man)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+1.8*k)+'" fill="none" stroke="#2b2a27" stroke-width="'+(1.1*k)+'"/>'+(o.s===-2?'<path d="M'+cx+' '+(cy-r-1.8*k)+'v'+(-5*k)+'" stroke="#2b2a27" stroke-width="'+(1.2*k)+'"/>':'');
@@ -418,7 +418,7 @@ function pwEnsure(){if(!P.pw)P.pw={outlets:[],circ:[],links:{},sig:{},show:true,
 // put an outlet down; anything stacked on the same spot slides along a little
 function pkPlace(k,sp){var o=Object.assign({id:'m'+Date.now().toString(36)+Math.floor(Math.random()*1e3),man:1,s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},pkBase(k),{sk:0,w:0});
  o=Object.assign(o,nudge(sp,pwEnsure().outlets,{x:-1e3,y:-1e3,w:3e3,d:3e3}));pwEnsure().outlets.push(o);return o}
-function pkAfter(o,before){buildPower({keep:1});hist.push(before);if(hist.length>60)hist.shift();fut=[];sel=null;selO=o.id;persist();render();
+function pkAfter(o,before,pick){buildPower({keep:1});hist.push(before);if(hist.length>60)hist.shift();fut=[];if(pick){sel=null;selO=o.id}persist();render();
  var n=pwLoad(outBy(o.id)).names;toast(n.length?'Plugged in: '+n.join(', '):'Nothing in reach needs this outlet yet')}
 // tap a card: put it by the next thing that needs one, or mid-wall
 function pkTap(k){var K=PK[k],ceil=K.at==='ceil',probe=Object.assign({s:ceil?-3:0,man:1},pkBase(k)),hit=null;
@@ -426,7 +426,7 @@ function pkTap(k){var K=PK[k],ceil=K.at==='ceil',probe=Object.assign({s:ceil?-3:
  var W=P.room.w,D=P.room.d,spot;
  if(hit){var b=ibox(hit),c={x:b.x+b.w/2,y:b.y+b.d/2};if(K.at==='wall'||K.at==='wallfloor'){var h=homeFor(hit);spot=h.s>=0?h:pkSpot(k,K.at==='wall'?c:{x:c.x,y:b.y-.5})}else spot=pkSpot(k,K.at==='floor'?{x:b.x+b.w/2,y:b.y-.6}:c)}
  else spot=pkSpot(k,K.at==='wall'||K.at==='wallfloor'?{x:W/2,y:-1}:{x:W/2,y:D/2});
- var before=snapP(),o=pkPlace(k,spot);pkAfter(o,before);if(!pwLoad(outBy(o.id)).names.length)toast('Placed. Nothing nearby needs it yet, so drag it where you want it.')}
+ var before=snapP(),o=pkPlace(k,spot);pkAfter(o,before,1);if(!pwLoad(outBy(o.id)).names.length)toast('Placed. Nothing nearby needs it yet, so drag it where you want it.')}
 function pkDel(id){var o=outBy(id);if(!o||!o.man)return;push();P.pw.outlets=P.pw.outlets.filter(function(x){return x.id!==id});selO=null;if(!P.pw.auto&&!P.pw.outlets.length)P.pw=null;else buildPower({keep:1});persist();render()}
 // drawn icons for the Power catalog
 var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#3a3936" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>'},PL='<rect x="9" y="3" width="22" height="34" rx="3" fill="#f6f4ee"/>',F=function(y){return '<rect x="13" y="'+y+'" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 '+(y+3)+' v4 M22.5 '+(y+3)+' v4" stroke-width="1.8"/><circle cx="20" cy="'+(y+9.2)+'" r="1.2" fill="#3a3936" stroke="none"/>'},
@@ -574,7 +574,7 @@ sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e
  if(pinch){var t=tpts();if(t.length<2)return;var d=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx=(t[0].x+t[1].x)/2,my=(t[0].y+t[1].y)/2;if(pinch.d>0)zoomAt(mx,my,d/pinch.d);panBy(mx-pinch.mx,my-pinch.my);pinch.d=d;pinch.mx=mx;pinch.my=my;return}
  if(pan){if(!pan.moved&&Math.hypot(e.clientX-pan.sx,e.clientY-pan.sy)<4)return;pan.moved=true;sv.style.cursor='grabbing';panBy(e.clientX-pan.lx,e.clientY-pan.ly);pan.lx=e.clientX;pan.ly=e.clientY;return}
  if(odrag){odMove(e);return}
- if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot;if(VW.md==='p'&&P.pw){sel=it.u;selO=null;drag.moved=true;var kk=1/scale();G.pw.innerHTML=drawPower(kk)+(VW.lv==='g'?drawCeil(kk):'')}}drag.moved=true;
+ if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot;if(VW.md==='p'&&P.pw){drag.moved=true;var kk=1/scale();G.pw.innerHTML=drawPower(kk)+(VW.lv==='g'?drawCeil(kk):'')}}drag.moved=true;
  var p=toFt(e),W=P.room.w,D=P.room.d,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr;
  for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
  var x,y,rot,m;
@@ -591,7 +591,7 @@ sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType
  if(odrag){odUp();return}
  if(!drag)return;var d=drag;drag=null;if(G.teth)G.teth.innerHTML='';d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;selO=null;render();return}
- var before=snapP();sel=it.u;selO=null;it.rot=d.rot;d.el.dataset.rot=it.rot;
+ var before=snapP();it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
  if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}var po=autoPlug(it.u);hist.push(before);fut=[];persist();render();plugToast(po)});
 
@@ -641,7 +641,7 @@ function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.
  if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':'No free spot for it there');return}
  var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
  if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
- var po=autoPlug(it.u);hist.push(before);fut=[];sel=it.u;selO=null;lastFail=null;persist();render();pop(it.u);plugToast(po)}
+ var po=autoPlug(it.u);hist.push(before);fut=[];lastFail=null;persist();render();pop(it.u);plugToast(po)}
 $('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0||ldrag)return;
  ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
  if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
