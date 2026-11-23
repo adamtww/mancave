@@ -828,6 +828,18 @@ var CATALOG=[
  {r:"h-rack",h:6.5,c:"Indoor Garden",n:"Hydroponic rack with LEDs",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
  {r:"h-micro",h:6,c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
  {r:"h-sink",h:3,c:"Indoor Garden",n:"Utility sink",w:2,d:2,cl:2,cf:1,a:["plumbing"],cost:[200,700]},
+ {r:"h-soak",h:3,c:"Indoor Garden",n:"Seed soak & germination station",w:6,d:2.5,k:[3,0,0,0],p:null,est:1,a:["garden"],cost:[300,1200],no:"Counter with soaking buckets and trays where seeds soak and start sprouting. Wants a sink nearby."},
+ {r:"h-sproutr",h:6,c:"Indoor Garden",n:"Sprout rinse rack (auto-watering)",w:4,d:2,k:[3,0,0,0],p:[120,100,20,0],est:1,a:["garden","plumbing"],cost:[400,2000],no:"Shelves of sprouting trays on a timer that rinses them several times a day. Needs water in and a drain."},
+ {r:"h-drum",h:4.5,c:"Indoor Garden",n:"Sprouting drum (commercial)",w:4,d:3,k:[3,1,1,1],p:[120,300,20,0],est:1,a:["garden","plumbing"],cost:[2500,9000],no:"Rotating drum that soaks, rinses and turns large batches of sprouts. Needs water, a drain and space to unload."},
+ {r:"h-germ",h:6.5,c:"Indoor Garden",n:"Germination chamber",w:3,d:2.5,k:[3,0.25,0,0],p:[120,600,20,0],est:1,a:["garden"],cost:[800,4000],no:"Warm, humid cabinet for germinating seeds and starting trays before they go under lights."},
+ {r:"h-flood",h:3,c:"Indoor Garden",n:"Flood & drain grow table",w:8,d:4,k:[3,0,2,2],p:[120,100,20,0],est:1,a:["garden","plumbing"],cost:[400,1800],no:"Tray table that floods with nutrient water and drains back to a reservoir. Grow lights hang above it."},
+ {r:"h-tent",h:6.7,c:"Indoor Garden",n:"Grow tent",w:4,d:4,k:[3,0.5,0.5,0.5],p:[120,450,20,0],est:1,a:["garden"],cost:[200,900],no:"Reflective tent with its own light and fan, for small batches or odd plants."},
+ {r:"h-tower",h:6,c:"Indoor Garden",n:"Vertical grow tower (aeroponic)",w:2,d:2,k:[2.5,1,1,1],p:[120,50,20,0],est:1,a:["garden"],cost:[500,1500],no:"Column of planting pockets fed by a pump; reach it from all sides."},
+ {r:"h-tank",h:3.5,c:"Indoor Garden",n:"Nutrient reservoir & mixing tank",w:3,d:3,k:[2.5,0,0,0],p:[120,100,20,0],est:1,a:["garden"],cost:[200,800],no:"Tank, pump and dosing for nutrient water. Keep it near the grow tables and a drain."},
+ {r:"h-ro",h:4.5,c:"Indoor Garden",n:"Reverse-osmosis water filter",w:3,d:1.5,k:[2.5,0,0,0],p:null,est:1,a:["garden","plumbing"],cost:[300,1500],no:"Cleans tap water for sprouting and hydroponics. Needs a water line and a drain."},
+ {r:"h-dehu",h:3,c:"Indoor Garden",n:"Commercial dehumidifier",w:2,d:1.5,k:[2,1,0.5,0.5],p:[120,700,20,1],est:1,a:["plumbing"],cost:[800,2500],no:"Pulls the extra moisture grow rooms make. Drain it to a floor drain or sink."},
+ {r:"h-humid",h:3,c:"Indoor Garden",n:"Humidifier",w:1.5,d:1.5,k:[1.5,0.5,0.5,0.5],p:[120,400,20,0],est:1,a:["garden"],cost:[150,700],no:"Adds moisture for germination and seedlings when the air is too dry."},
+ {r:"h-wash",h:3,c:"Indoor Garden",n:"Harvest wash & pack station",w:8,d:2.5,k:[3.5,0,0,0],p:null,est:1,a:["garden","plumbing"],cost:[800,3500],no:"Stainless sink and table to rinse, spin-dry and pack sprouts and microgreens. Needs hot and cold water and a drain."},
  {r:"x-batting",h:12,c:"Court & Rink",n:"Batting cage (tunnel)",req:{ceil:12},w:12,d:55,cl:1,p:[120,1000,20,1],est:1,a:["ceiling"],no:"Tunnels typically ~55–70 ft long.",cost:[2000,8000]},
  {r:"x-tennis",h:3.5,c:"Court & Rink",n:"Tennis ball machine lane",req:{ceil:14},w:12,d:40,cl:0,a:["ceiling"],no:"Machine is battery powered; size is the hitting lane.",cost:[700,3500]},
  {r:"x-return",h:12,c:"Court & Rink",n:"Basketball ball-return machine",w:6,d:10,cl:0,p:[120,500,20,0],ov:1,est:1,cost:[2500,8000]},
@@ -1513,6 +1525,23 @@ Object.assign(ICONS,{
  'cc-unith':function(W,D){var s=body(W,D,'#c9c6bd');for(var i=1;i<6;i++){var y=-D/2+D*i/6;s+=iL(-W/2+0.2,y,W/2-0.2,y,{stroke:'#8a867c','stroke-width':0.05})}return s+iR(-W/2+0.2,D/2-0.25,W-0.4,0.15,{fill:'#ff9b5a',stroke:'none'})},
  'cc-irtube':function(W,D){return iR(-W/2,-D/2,W,D,{fill:'#d9d6ce',rx:0.1})+iR(-W/2+0.3,-0.12,W-0.6,0.24,{fill:'#ff8a4a',stroke:'none',rx:0.12})+iR(W/2-0.7,-D/2+0.1,0.5,D-0.2,{fill:'#8a867c',stroke:'none',rx:0.05})},
  'cc-cassette':function(W,D){var s=body(W,D,FIX),m=0.2,L=Math.min(W,D)-0.8;s+=iR(-L/2,-D/2+m,L,0.14,{fill:'#c9d8e0',stroke:'none'})+iR(-L/2,D/2-m-0.14,L,0.14,{fill:'#c9d8e0',stroke:'none'})+iR(-W/2+m,-L/2,0.14,L,{fill:'#c9d8e0',stroke:'none'})+iR(W/2-m-0.14,-L/2,0.14,L,{fill:'#c9d8e0',stroke:'none'});return s+iC(0,0,Math.min(W,D)*0.15,{fill:'#dfe6e9'})}
+});
+/* ---- grow room ---- */
+var LEAF='#7bc46a',SOIL='#8a6a4a',TRAY='#2f3a33';
+function sprouts(x,y,w,h,n){var s='';for(var i=0;i<n;i++){var cx=x+w*((i*0.5698402910+0.05)%1),cy=y+h*((i*0.7548776662+0.1)%1);s+=iC(cx,cy,Math.min(w,h)*0.05+0.04,{fill:LEAF,stroke:'none'})}return s}
+Object.assign(ICONS,{
+ 'h-soak':function(W,D){var s=body(W,D,'#e6e2da');for(var i=0;i<4;i++){var cx=-W/2+W*(i+0.5)/4;s+=iC(cx,0,Math.min(D*0.32,W/10),{fill:'#cfe3ea'})+iC(cx,0,Math.min(D*0.18,W/18),{fill:'#e9dcb0',stroke:'none'})}return s},
+ 'h-sproutr':function(W,D){var s=bx(-W/2,-D/2,W,D,'#e3e1dc',{rx:0.06});for(var i=0;i<4;i++){var x=-W/2+0.15+i*(W-0.3)/4;s+=bx(x+0.05,-D/2+0.2,(W-0.3)/4-0.1,D-0.4,TRAY)+sprouts(x+0.1,-D/2+0.3,(W-0.3)/4-0.2,D-0.6,9)}return s+iL(-W/2+0.1,-D/2+0.1,W/2-0.1,-D/2+0.1,{stroke:'#4a90d9','stroke-width':0.06})},
+ 'h-drum':function(W,D){return body(W,D,'#cfd3d6')+iC(0,0,Math.min(W,D)*0.4,{fill:'#e8ecef'})+iC(0,0,Math.min(W,D)*0.28,{fill:'#d9e8c8'})+sprouts(-Math.min(W,D)*0.2,-Math.min(W,D)*0.2,Math.min(W,D)*0.4,Math.min(W,D)*0.4,12)},
+ 'h-germ':function(W,D){return body(W,D,'#e9e6df')+iR(-W/2+0.2,-D/2+0.2,W-0.4,D-0.4,{fill:'#f4efe0'})+iL(-W/2+0.2,D/2-0.05,W/2-0.2,D/2-0.05,{'stroke-width':0.1})+iC(W/2-0.4,-D/2+0.4,0.12,{fill:'#ff8a4a',stroke:'none'})},
+ 'h-flood':function(W,D){return bx(-W/2,-D/2,W,D,'#d9d6ce',{rx:0.08})+bx(-W/2+0.25,-D/2+0.25,W-0.5,D-0.5,TRAY,{rx:0.05})+sprouts(-W/2+0.4,-D/2+0.4,W-0.8,D-0.8,40)},
+ 'h-tent':function(W,D){return bx(-W/2,-D/2,W,D,'#3a3a3a',{rx:0.1})+iR(-W/2+0.2,-D/2+0.2,W-0.4,D-0.4,{fill:'#e8e8e8',stroke:'none'})+iL(-W/2,D/2,W/2,D/2,{stroke:'#d9b24a','stroke-width':0.08})+sprouts(-W/2+0.5,-D/2+0.5,W-1,D-1,14)},
+ 'h-tower':function(W,D){var r=Math.min(W,D)/2;var s=iC(0,0,r*0.95,{fill:'#e9e6df'})+iC(0,0,r*0.5,{fill:'#f6f6f2'});for(var i=0;i<8;i++){var a=i*Math.PI/4;s+=iC(Math.cos(a)*r*0.72,Math.sin(a)*r*0.72,r*0.16,{fill:LEAF,stroke:'none'})}return s},
+ 'h-tank':function(W,D){var r=Math.min(W,D)/2;return iC(0,0,r*0.95,{fill:'#2f4a5a'})+iC(0,0,r*0.7,{fill:'#5a8aa0'})+iC(r*0.55,-r*0.55,0.18,{fill:DARK})},
+ 'h-ro':function(W,D){var s=bx(-W/2,-D/2,W,D,'#eef0f2',{rx:0.06});for(var i=0;i<3;i++)s+=iC(-W/2+W*(i+0.5)/4,0,Math.min(D*0.32,0.3),{fill:'#cfe3ea'});return s+iC(W/2-0.45,0,Math.min(D*0.38,0.45),{fill:'#3a6a8a'})},
+ 'h-dehu':function(W,D){var s=body(W,D,'#e6e4df');for(var i=1;i<5;i++)s+=iL(-W/2+0.2,-D/2+D*i/5,W/2-0.2,-D/2+D*i/5,{stroke:'#9aa4aa','stroke-width':0.05});return s+iC(W/2-0.3,D/2-0.25,0.08,{fill:'#4a90d9',stroke:'none'})},
+ 'h-humid':function(W,D){var r=Math.min(W,D)/2;return iC(0,0,r*0.9,{fill:'#eef4f7'})+iC(0,0,r*0.35,{fill:'#cfe3ea'})+iP('M-0.15,-0.1 Q0,-0.4 0.15,-0.1',{stroke:'#4a90d9','stroke-width':0.05})},
+ 'h-wash':function(W,D){return bx(-W/2,-D/2,W,D,STEEL,{rx:0.05})+basin(-W/2+0.25,-D/2+0.3,W*0.35,D-0.6)+faucet(-W/2+0.25+W*0.175,-D/2+0.18)+iR(W*0.05,-D/2+0.35,W*0.4,D-0.7,{fill:'#f4f4f2'})+iC(W*0.25,0,Math.min(D*0.25,0.4),{fill:'#dde3e6'})}
 });
 /* place a symbol on an item: rotate so the drawing's front matches the item's front */
 function iconFor(it){var f=ICONS[it.r]||(typeof ALIAS!=='undefined'&&ICONS[ALIAS[it.r]]);if(!f)return '';var rot=(it.rot||0)%4,W=rot%2?it.d:it.w,D=rot%2?it.w:it.d,cx=it.x+it.w/2,cy=it.y+it.d/2;

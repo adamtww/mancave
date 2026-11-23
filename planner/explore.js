@@ -35,6 +35,13 @@ function exShape(T,c,w,d,h,M){var g=new T.Group(),k=Kit(T,g),col=CATCOLOR[c.c]||
   if(r==='g-bubble'){var dm=new T.Mesh(new T.SphereGeometry(Math.min(w,d)*.45,24,12,0,Math.PI*2,0,Math.PI/2),exMat(T,0xcfe8ff,{op:.35,r:.1}));dm.position.set(0,h-.05,0);dm.scale.set(w/Math.min(w,d),.6,d/Math.min(w,d));g.add(dm)}
   if(r==='g-foos'){for(var i=0;i<8;i++)k.box(-w/2+w*(i+.5)/8,h-.3,0,.06,.06,d+.6,steel)}
   return g}
+ if(/^h-(rack|micro|sproutr|flood|tent|tower|tank|drum)$/.test(r)){var leaf=exMat(T,0x6cbf5a,{r:.9}),tray=exMat(T,0x2f3a33,{r:.6}),frame=exMat(T,0xd9d6ce,{m:.3,r:.5}),led=exMat(T,0xffffff,{e:0xe9b8ff,ei:1.6});
+  if(r==='h-flood'){k.legs(w,d,h-.35,.25,frame);k.box(0,h-.35,0,w,.35,d,tray);k.box(0,h-.02,0,w-.4,.06,d-.4,leaf);return g}
+  if(r==='h-tent'){k.box(0,0,0,w,h,d,exMat(T,0x2a2a2a,{r:.9}));k.box(0,.2,d/2+.01,w*.6,h-.6,.02,exMat(T,0xdcdcdc,{r:.5}));return g}
+  if(r==='h-tower'){k.cyl(0,0,0,Math.min(w,d)*.3,Math.min(w,d)*.35,h,exMat(T,0xeeeeea));for(var t=0;t<16;t++){var a2=t*1.3,yy=1+(t%8)*(h-1.5)/8;k.box(Math.cos(a2)*Math.min(w,d)*.33,yy,Math.sin(a2)*Math.min(w,d)*.33,.35,.3,.35,leaf)}return g}
+  if(r==='h-tank'||r==='h-drum'){k.cyl(0,0,0,Math.min(w,d)*.45,Math.min(w,d)*.45,h,exMat(T,r==='h-tank'?0x3a6a8a:0xd6dadd,{m:r==='h-drum'?.5:0,r:.4}),24);return g}
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(s3){k.box(s3[0]*(w/2-.06),0,s3[1]*(d/2-.06),.12,h,.12,frame)});var ns=Math.max(3,Math.round(h/1.6));
+  for(var i3=0;i3<ns;i3++){var y3=.4+i3*(h-.8)/(ns-1);k.box(0,y3,0,w,.06,d,frame);k.box(0,y3+.06,0,w-.3,.15,d-.3,tray);k.box(0,y3+.21,0,w-.4,.05,d-.4,leaf);if(i3<ns-1)k.box(0,y3+(h-.8)/(ns-1)-.08,0,w-.5,.04,.25,led)}return g}
  if(/^g-(cab|pin|gun|claw|bball|skee)$/.test(r)){var hc=[0x6d2bd9,0xd92b6d,0x2b8fd9,0xd9902b][r.length%4];
   if(r==='g-skee'||r==='g-bball'){k.box(0,0,0,w,3,d,exMat(T,hc,{r:.5}));k.box(0,3,-d/2+.6,w,h-3,1.2,exMat(T,shade('#'+hc.toString(16).padStart(6,'0'),.6)));scr(0,h-2.4,-d/2+1.22,w*.8,1.4,0xffcc33);if(r==='g-bball'){k.cyl(0,h-3.6,-d/2+2,0.8,.8,.08,exMat(T,0xff6a2a,{m:.5}))}return g}
   if(r==='g-pin'){k.legs(w,d,2.6,.25,dark);k.box(0,2.6,0,w,.9,d,exMat(T,hc,{r:.5}));k.box(0,3.5,-d/2+.3,w,h-3.5,.6,exMat(T,hc,{r:.5}));scr(0,4.2,-d/2+.62,w*.8,1.6,0x66ccff);scr(0,3.52,0,w*.8,.04,0x332266);return g}

@@ -42,7 +42,7 @@ function defOf(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
 function needs(c){var a=c.a||[],q=c.req||{},o={};
  o.water=!!q.water||a.indexOf('plumbing')>=0||a.indexOf('garden')>=0||/sink|dishwasher|ice m|shower|toilet/i.test(c.n);
  o.vent=q.vent?'Ventilation':a.indexOf('fumes')>=0?'Fume extraction':a.indexOf('co2')>=0?'Fume exhaust to outside':a.indexOf('weld')>=0?'Ventilation for welding':a.indexOf('commercial')>=0?'Type I hood with fire suppression':a.indexOf('dust')>=0?'Dust collection':'';
- o.gas=!!q.gas||a.indexOf('gas')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['plumbing','garden','co2','weld','commercial','dust','gas','ceiling','hvac','fumes'].indexOf(k)<0});return o}
+ o.gas=!!q.gas||a.indexOf('gas')>=0;o.humid=a.indexOf('garden')>=0;o.ceil=+q.ceil||(a.indexOf('ceiling')>=0?-1:0);o.cool=a.indexOf('hvac')>=0;o.other=a.filter(function(k){return ['plumbing','garden','co2','weld','commercial','dust','gas','ceiling','hvac','fumes'].indexOf(k)<0});return o}
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,selO=null,lastFail=null;
@@ -86,7 +86,7 @@ function layout(items,W,D,stable){var cl=items.filter(isC);if(!cl.length||cl.len
 // Ceiling objects: lights over the thing they're for (pool table light over the pool table, bar pendants over the bar,
 // task light over a bench, grow lights over grow racks); everything else spreads out evenly, each new one going to the
 // spot farthest from its own kind and from the walls. Ceiling objects only avoid each other.
-var OVER={'cl-pool':/pool table|billiard|snooker/i,'cl-pend':/bar counter|island|high-top|drink rail|bar top/i,'cl-task':/bench|desk|station|table saw|assembly/i,'cl-growb':/grow|hydro|sprout|seed|plant/i,'cl-growp':/grow|hydro|sprout|seed|plant/i};
+var OVER={'cl-pool':/pool table|billiard|snooker/i,'cl-pend':/bar counter|island|high-top|drink rail|bar top/i,'cl-task':/bench|desk|station|table saw|assembly/i,'cl-growb':/grow|hydro|sprout|seed|plant|germin|flood|microgreen/i,'cl-growp':/grow|hydro|sprout|seed|plant|germin|flood|microgreen/i};
 function cgroup(c){return /Lighting – General/.test(c.c)?'L':/Lighting/.test(c.c)?'T':c.c==='Sound'?'S':'C'}
 function layoutCeil(items,floor,fpos,W,D,stable){var placed=[],out={},order=items.slice().sort(function(a,b){return (stable&&b.placed?1:0)-(stable&&a.placed?1:0)||a.n-b.n}),used={};
  var free=function(b){if(b.x<-1e-6||b.y<-1e-6||b.x+b.w>W+1e-6||b.y+b.d>D+1e-6)return false;for(var i=0;i<placed.length;i++)if(hit(b,placed[i].b))return false;return true};
@@ -518,6 +518,7 @@ function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).f
  if(!L.length)return '<p class="muted">Add objects and the room\'s needs show up here: power, plumbing, ventilation and more.</p>';
  var h=unpRow(),pw=power(P.items);
  var w=names(function(x){return needs(x.c).water});if(w)h+='<div class="rq">'+ico('water')+'<div><b>Plumbing</b> · water and drain</div><small>'+esc(w)+'</small></div>';
+ var hu=names(function(x){return needs(x.c).humid});if(hu){var dh=P.items.some(function(i){return i.r==='h-dehu'});h+='<div class="rq">'+ico('water')+'<div><b>Humidity</b> · '+(dh?'<span class="good">dehumidifier in the room ✓</span>':'growing adds moisture: plan a dehumidifier and keep it apart from electronics')+'</div><small>'+esc(hu)+'</small></div>'}
  var vv={};L.forEach(function(x){var n=needs(x.c);if(n.vent)(vv[n.vent]=vv[n.vent]||[]).push(x.c.n)});Object.keys(vv).forEach(function(k){h+='<div class="rq">'+ico('vent')+'<div><b>Ventilation</b> · '+esc(k)+'</div><small>'+esc(Array.from(new Set(vv[k])).join(', '))+'</small></div>'});
  var g=names(function(x){return needs(x.c).gas});if(g)h+='<div class="rq">'+ico('gas')+'<div><b>Compressed gas storage</b></div><small>'+esc(g)+'</small></div>';
  var ce=0,ceq=names(function(x){var n=needs(x.c);if(n.ceil>0)ce=Math.max(ce,n.ceil);return !!n.ceil});if(ceq){var lc=lowCeil(),Hr=P.room.h;h+='<div class="rq">'+ico('ceil')+'<div><b>Ceiling height</b> · '+(ce?'at least '+fmt(ce)+' ft clear':'check clear height')+(Hr?(lc.length?' · <span class="bad">room is '+fmt(Hr)+' ft</span>':' · <span class="good">room is '+fmt(Hr)+' ft ✓</span>'):'')+'</div><small>'+(lc.length?esc(lc.map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join(', ')):esc(ceq)+(Hr?'':'. Set the ceiling height above to check.'))+'</small></div>'}
