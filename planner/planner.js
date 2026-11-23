@@ -235,10 +235,10 @@ var CEILP='M4 4h16M12 7v13M9 10l3-3 3 3M9 17l3 3 3-3';
 function drawCeil(k){var g='';lowCeil().forEach(function(x){var b=ibox(x.it),cx=b.x+Math.max(b.w-Math.min(.45,b.w/3),b.w/2),cy=b.y+b.d-Math.min(.45,b.d/3),r=7*k;
  g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#d6453d" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+CEILP+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></g>'});return g}
 var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
-function drawPlugs(k){var g='';if(!P.pw)return g;
-// objects that aren't powered (red) or need attention (amber)
- P.items.forEach(function(it){var s=pstat(it);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
-  g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(s.lv==='red'?'#d6453d':'#e0a21f')+'" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
+// before power is built out every powered object gets a grey bolt; after, only red (unpowered) or amber (needs attention)
+function drawPlugs(k){var g='';
+ P.items.forEach(function(it){var s=P.pw?pstat(it):(pspec(defOf(it))?{lv:'need'}:null);if(!s||s.lv==='ok')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
+  g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+(s.lv==='red'?'#d6453d':s.lv==='need'?'#8a867c':'#e0a21f')+'" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
  return g}
 function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
  if(grp){P.items.forEach(function(it){var oid=grp.items[it.u];if(!oid)return;var b=ibox(it),col=grp.out[oid],p=opos(outBy(oid)),pd=3*k;
@@ -344,7 +344,7 @@ function render(){var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj');el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=(VW.md==='p'?drawPower(k):VW.lv==='g'?drawPlugs(k):'')+(VW.lv==='g'?drawCeil(k):'');G.obj.setAttribute('class',VW.lv==='c'?'v-ceil':VW.md==='p'?'v-pow':'');var cn=$('#cnote');if(cn)cn.hidden=VW.lv!=='c';vbar();
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.pw.innerHTML=(VW.md==='p'&&P.pw?drawPower(k):VW.lv==='g'?drawPlugs(k):'')+(VW.lv==='g'?drawCeil(k):'');G.obj.setAttribute('class',VW.lv==='c'?'v-ceil':VW.md==='p'?'v-pow':'');var cn=$('#cnote');if(cn)cn.hidden=VW.lv!=='c';vbar();
  $('#rname').value=P.name;side();markLib();$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length}
 var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
