@@ -243,7 +243,7 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  var mlink=function(x){var ceil=isC(x.it),b=ibox(x.it),s=x.sp,best=null,bd=1e9;man.forEach(function(o){if(o.sk>=o.cap||!pfits(o,s,ceil)||o.ldd)return;if(s.ded&&!o.ded&&!o.any&&o.sk>0)return;if(!o.any&&!o.ded&&o.ty!=='hw'&&o.w+s.W>o.V*o.A*CAP80)return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
   if(!best)return;best.sk++;best.w+=s.W;if(s.ded&&!best.ded&&!best.any)best.ldd=1;if(best.any&&best.sk===1){best.V=s.V;best.A=s.A;best.ph=s.ph;best.ty=s.hw?'hw':s.t;best.ld=s.ded?1:0;if(ceil)best.feed=1}links[x.it.u]=best.id};
  L.filter(function(x){return x.sp.ded}).forEach(mlink);L.filter(function(x){return !x.sp.ded}).forEach(mlink);L=L.filter(function(x){return !links[x.it.u]});
- var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[];CL=[]}
+ var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[];CL=[]}else if(opt.keep){var pa=function(x){var o=prev&&prev.links&&(prev.outlets||[]).filter(function(q){return q.id===prev.links[x.it.u]})[0];return !!(o&&!o.man)};L=L.filter(pa);CL=CL.filter(pa)}
  // own circuits first
  L.filter(function(x){return x.sp.ded}).forEach(function(x){var s=x.sp,o=mk(nudge(x.home,out,ibox(x.it)),{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W});circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,out:[o.id]});links[x.it.u]=o.id});
  // everyday 120V loads share duplex outlets
@@ -418,7 +418,7 @@ function pwEnsure(){if(!P.pw)P.pw={outlets:[],circ:[],links:{},sig:{},show:true,
 // put an outlet down; anything stacked on the same spot slides along a little
 function pkPlace(k,sp){var o=Object.assign({id:'m'+Date.now().toString(36)+Math.floor(Math.random()*1e3),man:1,s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},pkBase(k),{sk:0,w:0});
  o=Object.assign(o,nudge(sp,pwEnsure().outlets,{x:-1e3,y:-1e3,w:3e3,d:3e3}));pwEnsure().outlets.push(o);return o}
-function pkAfter(o,before){buildPower();hist.push(before);if(hist.length>60)hist.shift();fut=[];sel=null;selO=o.id;persist();render();
+function pkAfter(o,before){buildPower({keep:1});hist.push(before);if(hist.length>60)hist.shift();fut=[];sel=null;selO=o.id;persist();render();
  var n=pwLoad(outBy(o.id)).names;toast(n.length?'Plugged in: '+n.join(', '):'Nothing in reach needs this outlet yet')}
 // tap a card: put it by the next thing that needs one, or mid-wall
 function pkTap(k){var K=PK[k],ceil=K.at==='ceil',probe=Object.assign({s:ceil?-3:0,man:1},pkBase(k)),hit=null;
@@ -427,7 +427,7 @@ function pkTap(k){var K=PK[k],ceil=K.at==='ceil',probe=Object.assign({s:ceil?-3:
  if(hit){var b=ibox(hit),c={x:b.x+b.w/2,y:b.y+b.d/2};if(K.at==='wall'||K.at==='wallfloor'){var h=homeFor(hit);spot=h.s>=0?h:pkSpot(k,K.at==='wall'?c:{x:c.x,y:b.y-.5})}else spot=pkSpot(k,K.at==='floor'?{x:b.x+b.w/2,y:b.y-.6}:c)}
  else spot=pkSpot(k,K.at==='wall'||K.at==='wallfloor'?{x:W/2,y:-1}:{x:W/2,y:D/2});
  var before=snapP(),o=pkPlace(k,spot);pkAfter(o,before);if(!pwLoad(outBy(o.id)).names.length)toast('Placed. Nothing nearby needs it yet, so drag it where you want it.')}
-function pkDel(id){var o=outBy(id);if(!o||!o.man)return;push();P.pw.outlets=P.pw.outlets.filter(function(x){return x.id!==id});selO=null;if(!P.pw.auto&&!P.pw.outlets.length)P.pw=null;else buildPower();persist();render()}
+function pkDel(id){var o=outBy(id);if(!o||!o.man)return;push();P.pw.outlets=P.pw.outlets.filter(function(x){return x.id!==id});selO=null;if(!P.pw.auto&&!P.pw.outlets.length)P.pw=null;else buildPower({keep:1});persist();render()}
 // drawn icons for the Power catalog
 var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#3a3936" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>'},PL='<rect x="9" y="3" width="22" height="34" rx="3" fill="#f6f4ee"/>',F=function(y){return '<rect x="13" y="'+y+'" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 '+(y+3)+' v4 M22.5 '+(y+3)+' v4" stroke-width="1.8"/><circle cx="20" cy="'+(y+9.2)+'" r="1.2" fill="#3a3936" stroke="none"/>'},
   R='<rect x="4" y="4" width="32" height="32" rx="4" fill="#f6f4ee"/>',q='';for(var x=6;x<=22;x+=16)for(var y=8;y<=22;y+=14)q+='<rect x="'+x+'" y="'+y+'" width="12" height="10" rx="4" fill="#fff"/><path d="M'+(x+3.5)+' '+(y+3)+'v3 M'+(x+8.5)+' '+(y+3)+'v3" stroke-width="1.6"/>';
