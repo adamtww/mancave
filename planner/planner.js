@@ -453,7 +453,7 @@ function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(
   '<div class="pwa"><button id="pa-build" class="'+(has&&P.pw.auto?'':'pri')+'">'+I('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>')+'Build out</button>'+
   '<button id="pa-re" class="'+(ch?'pri':'')+'"'+(has?'':' disabled')+'>'+I('<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>')+'Rebuild'+(ch?'<i class="pab">'+ch+'</i>':'')+'</button>'+
   '<button id="pa-clear" class="del"'+(has?'':' disabled')+'>'+I('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>')+'Clear</button></div>'+
-  (VW.lv==='c'?'':'<label class="ck pgp"><input type="checkbox" id="pa-gp"'+(gpOn?' checked':'')+'> Build out adds outlets every ~12 ft of wall</label>')+'<p class="muted">'+pwTip()+'</p>';
+  '<p class="muted">'+pwTip()+'</p>';
  $('#pa-build').onclick=function(){push();buildPower({auto:true,fresh:true});selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
  $('#pa-re').onclick=function(){if(!P.pw)return;push();buildPower();selO=null;persist();render();toast('Power rebuilt'+(P.pw.outlets.some(function(o){return o.man})?'. Your placed outlets stayed put.':''))};
  $('#pa-clear').onclick=function(){if(!P.pw)return;push();P.pw=null;selO=null;persist();render();toast('Power cleared. Undo brings it back.')};
