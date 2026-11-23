@@ -73,6 +73,7 @@ g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:n
 .lcard:hover .ledit,body.touch .ledit{display:flex}.ledit:hover{color:#1d4f91;border-color:#2f7de1}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
 .lcard{position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}.lcard.lifting{opacity:.45}
+.led{position:absolute;top:6px;right:6px;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:1px 6px 1px 5px;pointer-events:none}
 .ldchip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9d6ce;border-radius:12px;padding:6px 10px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:13px;font-weight:600;color:#26251f;max-width:220px;transition:opacity .12s}
 .ldchip .lart{width:40px;height:40px;flex:0 0 40px}.ldchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ldchip.over{opacity:.0}
 body.ldragging,body.ldragging *{cursor:grabbing!important}
@@ -1402,18 +1403,20 @@ function fmtW(w){return w>=1000?(Math.round(w/100)/10).toLocaleString('en-US')+'
 var tt=null;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('on')},2600)}
 
 /* ---------------- the object library: built-in catalog + shared edits + my own ---------------- */
-var LIB={},MINE={},SHAREDROWS=0;
+var LIB={},MINE={},EDITED={},SHAREDROWS=0;
 function baseLib(){LIB={};CATALOG.forEach(function(c){if(c.z||c.hide||c.r==='b-wall'||c.c==='Rooms & Zones')return;LIB[c.r]=JSON.parse(JSON.stringify(c))})}
 baseLib();
 // The catalog is the source of truth for built-in objects. A shared row only replaces a built-in when the
 // library owner actually edited it (rows copied in by the old one-time seed are ignored), and never for a retired id.
-function loadLib(){if(!tok)return Promise.resolve();return api('GET','/api/objects').then(function(j){baseLib();MINE={};SHAREDROWS=0;
+function loadLib(){if(!tok)return Promise.resolve();return api('GET','/api/objects').then(function(j){baseLib();MINE={};EDITED={};SHAREDROWS=0;
   var sh=j.objects.filter(function(o){return o.shared}),t0=sh.reduce(function(m,o){var t=Date.parse(o.updated_at+'Z')||0;return Math.min(m,t)},Infinity);
   j.objects.forEach(function(o){if(ALIAS[o.r])return;
    if(o.shared){SHAREDROWS++;var builtIn=!!BY[o.r],edited=(o.data&&o.data.ed)||(Date.parse(o.updated_at+'Z')||0)>t0+60000;
     if(o.deleted){delete LIB[o.r];return}
     if(builtIn&&!edited)return;LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}))}
-   else if(o.mine){LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}));MINE[o.r]=1}});
+   else if(o.mine&&!(o.data&&o.data.base)){LIB[o.r]=normObj(Object.assign({},o.data,{r:o.r}));MINE[o.r]=1}});
+  // your own versions of library objects: they replace the original for you only, and can be reverted
+  j.objects.forEach(function(o){var b=o.mine&&o.data&&o.data.base;if(!b||!LIB[b]||MINE[b])return;var d=Object.assign({},o.data,{r:b});delete d.base;LIB[b]=normObj(d);EDITED[b]=o.r});
  }).catch(function(e){if(e.status===401){tok=null;showWho()}})}
 // rooms saved before an object was retired: move them onto its generic replacement
 function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&BY[n]){if(x.defs){delete x.defs[it.r];x.defs[n]=JSON.parse(JSON.stringify(BY[n]))}it.r=n}});if(x.defs)Object.keys(x.defs).forEach(function(r){if(ALIAS[r])delete x.defs[r]});return x}
@@ -1822,7 +1825,7 @@ sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType
 /* ---------------- left: library ---------------- */
 var openCats={},q='';if(VW.lv==='c'){openCats['Lighting – General']=true;ceilSeen=1}
 function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i.r](W,D):'<rect x="'+(-W/2)+'" y="'+(-D/2)+'" width="'+W+'" height="'+D+'" rx="'+(Math.min(W,D)*0.08)+'" fill="'+col+'2e" stroke="'+col+'" stroke-width="'+(m*0.02)+'"/>';return '<svg viewBox="'+(-m/2)+' '+(-m/2)+' '+m+' '+m+'" preserveAspectRatio="xMidYMid meet" pointer-events="none">'+g+'</svg>'}
-function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0"><button class="ledit" aria-label="Edit details" title="Edit details"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button><div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lbdg"><span>'+fmt(i.w)+'×'+fmt(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(n.water?'<span>water</span>':'')+'</div></div>'}
+function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+(EDITED[i.r]?' edited':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0"><button class="ledit" aria-label="Edit details" title="Edit details"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button>'+(EDITED[i.r]?'<span class="led" title="Edited: your version of this object" aria-label="Edited"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Edited</span>':'')+'<div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lbdg"><span>'+fmt(i.w)+'×'+fmt(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(n.water?'<span>water</span>':'')+'</div></div>'}
 function cats(){var by={},order=[],up=VW.lv==='c';CATS.forEach(function(c){if(c[0]!=='Rooms & Zones'&&(CEILCATS.indexOf(c[0])>=0)===up){order.push(c[0]);by[c[0]]={col:c[1],list:[]}}});by['My objects']={col:'#2f7de1',list:[]};order.unshift('My objects');
  Object.keys(LIB).forEach(function(r){var i=LIB[r];if(!!i.ceiling!==up)return;var cat=MINE[r]?'My objects':i.c;if(!by[cat]){by[cat]={col:'#888',list:[]};order.push(cat)}by[cat].list.push(i)});return {by:by,order:order}}
 function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
@@ -1945,11 +1948,12 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};if($('#o-pin'))$('#o-pin').onclick=function(){setPin(it.u,false)};$('#o-del').onclick=function(){remove(it.u)};$('#o-edit').onclick=function(){editObj(it.r)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}
 
-/* ---------------- objects: make your own; the admin edits the shared library ---------------- */
-function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admin);if(!tok){toast('Sign in to the test app to make your own objects');return}
- var canEdit=!c||mine||admin,shared=c&&!mine,d=$('#d-obj'),cs=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}).map(function(x){return x[0]});
- var n=c?needs(c):{},p=c&&c.p?c.p:[0,0,20,0],title=!c?'New object':shared?(admin?'Edit shared object':'Object details'):'Edit my object';
- d.innerHTML='<form method="dialog" class="dlg"><h2>'+title+'</h2>'+(shared&&!admin?'<p class="muted">Shared objects are managed by the library owner. Save a copy to make your own version.</p>':'')+
+/* ---------------- objects: make your own, or save your own version of a library object ---------------- */
+function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;if(!tok){toast('Sign in to the test app to make your own objects');return}
+ // Editing never changes the shared library: a library object is saved as your own version of it, which you can revert.
+ var lib=!!(c&&!mine),d=$('#d-obj'),cs=CATS.filter(function(x){return x[0]!=='Rooms & Zones'}).map(function(x){return x[0]});
+ var n=c?needs(c):{},p=c&&c.p?c.p:[0,0,20,0],title=!c?'New object':mine?'Edit my object':'Edit object';
+ d.innerHTML='<form method="dialog" class="dlg"><h2>'+title+'</h2>'+(lib?'<p class="muted">'+(ov?'This is your edited version. Only you see these changes.':'Changes are saved as your own version. The original stays the same for everyone else.')+'</p>':'')+
   '<div class="fg"><label class="fl s2">Name<input name="n" required autocomplete="off" value="'+esc(c?c.n:'')+'"></label>'+
   '<label class="fl s2">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label>'+
   '<label class="fl">Width (ft)<input name="w" inputmode="decimal" required value="'+(c?c.w:'')+'"></label><label class="fl">Depth (ft)<input name="d" inputmode="decimal" required value="'+(c?c.d:'')+'"></label><label class="fl">Height (ft)<input name="h" inputmode="decimal" value="'+(c&&c.h?c.h:'')+'"></label><label class="fl">Reach (ft, ceiling)<input name="reach" inputmode="decimal" value="'+(c&&c.reach?c.reach:'')+'"></label>'+
@@ -1958,17 +1962,18 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),admin=!!(me&&me.admi
   '<label class="fl">Power<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label><label class="fl">Watts<input name="pw" inputmode="decimal" value="'+(p[1]||'')+'"></label>'+
   '<label class="fl s2">Min. ceiling height (ft)<input name="ceil" inputmode="decimal" value="'+(n.ceil>0?n.ceil:'')+'"></label>'+
   '<div class="cks s4"><label class="ck"><input type="checkbox" name="ceiling"'+((c?c.ceiling:VW.lv==='c')?' checked':'')+'> Ceiling object (hangs overhead)</label><label class="ck"><input type="checkbox" name="pd"'+(p[3]?' checked':'')+'> Needs its own circuit</label><label class="ck"><input type="checkbox" name="water"'+(n.water?' checked':'')+'> Needs plumbing</label><label class="ck"><input type="checkbox" name="vent"'+(n.vent?' checked':'')+'> Needs ventilation</label><label class="ck"><input type="checkbox" name="gas"'+(n.gas?' checked':'')+'> Uses compressed gas</label></div>'+
-  '<label class="fl s4">Notes<textarea name="no" rows="2">'+esc(c&&c.no||'')+'</textarea></label></div>'+(!c&&admin?'<label class="ck" style="margin-top:10px"><input type="checkbox" name="sh" checked> Add to the shared library (everyone sees it)</label>':'')+
-  '<div class="row" style="justify-content:space-between"><span class="row">'+(c&&canEdit?'<button class="btn red" value="del" formnovalidate>'+(shared?'Remove from library':'Delete')+'</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button>'+(shared?'<button class="btn" value="copy">Save as my own copy</button>':'')+(canEdit?'<button class="btn pri" value="save">Save</button>':'')+'</span></div></form>';
- if(shared&&!admin)Array.prototype.forEach.call(d.querySelectorAll('input,select,textarea'),function(el){if(el.name)el.dataset.ro=1});
+  '<label class="fl s4">Notes<textarea name="no" rows="2">'+esc(c&&c.no||'')+'</textarea></label></div>'+
+  '<div class="row" style="justify-content:space-between"><span class="row">'+(mine?'<button class="btn red" value="del" formnovalidate>Delete</button>':'')+(ov?'<button class="btn" value="revert" formnovalidate>Revert to original</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn pri" value="save">Save</button></span></div></form>';
+ var after=function(rr){P.items.forEach(function(i){if(i.r===rr&&LIB[rr])P.defs[rr]=JSON.parse(JSON.stringify(LIB[rr]))});renderLib();relayout();render()};
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
-  if(v==='del'){if(!confirm((shared?'Remove '+c.n+' from the shared library for everyone?':'Delete '+c.n+'?')))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
+  if(v==='del'){if(!confirm('Delete '+c.n+'?'))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
+  if(v==='revert'){if(!confirm('Revert '+c.n+' to the original? Your changes to it will be lost.'))return;api('DELETE','/api/objects/'+ov).then(function(){return loadLib()}).then(function(){toast('Reverted to the original: '+LIB[r].n);after(r)}).catch(function(e){toast(e.message)});return}
   var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),h:num('h')||undefined,k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
-  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();var lo=num('lo'),hi=num('hi');if(lo||hi)nd.cost=[Math.min(lo||hi,hi||lo),Math.max(lo,hi)];if(admin&&shared)nd.ed=1;
+  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();var lo=num('lo'),hi=num('hi');if(lo||hi)nd.cost=[Math.min(lo||hi,hi||lo),Math.max(lo,hi)];
   if(F('ceiling').checked){nd.ceiling=true;nd.reach=num('reach');nd.drop=c&&c.drop||0}if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
-  var slug=nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4),toShared=!c&&admin&&f.elements.sh&&f.elements.sh.checked;
-  var key=toShared?'s-'+slug:(v==='copy'||!c)?'u'+me.id+'-'+slug:r;
-  api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((toShared?'Added to the shared library':v==='copy'?'Copy saved to My objects':'Saved')+': '+nd.n);return loadLib()}).then(function(){P.items.forEach(function(i){if(i.r===key)P.defs[key]=JSON.parse(JSON.stringify(LIB[key]))});if(toShared)openCats[nd.c]=true;else if(!c||v==='copy')openCats['My objects']=true;renderLib();relayout();render()}).catch(function(e){toast(e.message)})};
+  if(lib)nd.base=r;
+  var key=mine?r:lib?(ov||('u'+me.id+'-ov-'+r).slice(0,80)):'u'+me.id+'-'+nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4);
+  api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((lib?'Saved your version':'Saved')+': '+nd.n);return loadLib()}).then(function(){if(!c)openCats['My objects']=true;after(lib?r:key)}).catch(function(e){toast(e.message)})};
  modal(d)}
 $('#b-newobj').onclick=function(){editObj(null)};
 $('#b-undo').onclick=function(){undo()};$('#b-redo').onclick=function(){redo()};
