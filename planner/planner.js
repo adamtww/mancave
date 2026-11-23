@@ -457,9 +457,19 @@ var ICO={power:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',water:'<path d="M12 3s6 
 function ico(k){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f5b52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICO[k]+'</svg>'}
 function power(list){var o={w:0,max:0,items:0,est:0,ded:{},sh:{}};list.forEach(function(it){var c=defOf(it);if(!c||!c.p)return;var V=c.p[0],W=c.p[1],A=c.p[2];o.items++;o.w+=W;o.max=Math.max(o.max,W);if(c.est)o.est++;if(c.p[3]){var k=V+'|'+A;(o.ded[k]=o.ded[k]||{V:V,A:A,n:0}).n++}else{(o.sh[V]=o.sh[V]||{V:V,w:0}).w+=W}});
  o.circ=[];Object.keys(o.ded).forEach(function(k){var d=o.ded[k];o.circ.push(d.n+' × '+d.V+'V '+d.A+'A dedicated')});Object.keys(o.sh).forEach(function(k){var g=o.sh[k],n=Math.max(1,Math.ceil(g.w/(g.V*20*.8)));o.circ.push(n+' × '+g.V+'V 20A shared')});o.peak=o.items?o.max+(o.w-o.max)*.5:0;return o}
+// "Power · N objects not powered": one line, opens to a list. Names shorten with … and details never wrap,
+// so it stays one tidy row per object at any panel width.
+var unpOpen=false;try{unpOpen=localStorage.getItem('sp-unp')==='1'}catch(_){}
+function unpList(){var by={},order=[];P.items.forEach(function(it){var c=defOf(it),sp=pspec(c);if(!sp)return;if(P.pw){var st=pstat(it);if(!st||st.lv!=='red')return}
+  if(!by[it.r]){by[it.r]={c:c,sp:sp,n:0,u:it.u};order.push(it.r)}by[it.r].n++});return order.map(function(r){return by[r]})}
+function unpTag(sp){return (sp.ph===3?'3φ '+sp.A+'A':sp.V===240?'240V '+sp.A+'A':'120V')+' · '+fmtW(sp.W)}
+function unpRow(){var L=unpList();if(!L.length)return '';var n=L.reduce(function(a,x){return a+x.n},0);
+ var h='<details class="unp" id="unp"'+(unpOpen?' open':'')+'><summary><span class="ui">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d6453d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="ut"><b>Power</b> · <span class="bad">'+n+' object'+(n>1?'s':'')+' not powered</span></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a867c" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="ul">';
+ L.forEach(function(x){h+='<button class="uli" data-u="'+x.u+'" title="'+esc(x.c.n)+'"><span class="un">'+esc(x.c.n)+'</span>'+(x.n>1?'<span class="ux">×'+x.n+'</span>':'')+'<small>'+esc(unpTag(x.sp))+'</small></button>'});
+ return h+'<button class="ulink" id="unp-go">'+(P.pw?'Rebuild power in Power view →':'Build out power in Power view →')+'</button></div></details>'}
 function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).filter(function(x){return x.c}),names=function(f){var s={};L.forEach(function(x){if(f(x))s[x.c.n]=(s[x.c.n]||0)+1});return Object.keys(s).map(function(n){return s[n]>1?n+' ×'+s[n]:n}).join(', ')};
  if(!L.length)return '<p class="muted">Add objects and the room\'s needs show up here: power, plumbing, ventilation and more.</p>';
- var h='',pw=power(P.items);
+ var h=unpRow(),pw=power(P.items);
  var w=names(function(x){return needs(x.c).water});if(w)h+='<div class="rq">'+ico('water')+'<div><b>Plumbing</b> · water and drain</div><small>'+esc(w)+'</small></div>';
  var vv={};L.forEach(function(x){var n=needs(x.c);if(n.vent)(vv[n.vent]=vv[n.vent]||[]).push(x.c.n)});Object.keys(vv).forEach(function(k){h+='<div class="rq">'+ico('vent')+'<div><b>Ventilation</b> · '+esc(k)+'</div><small>'+esc(Array.from(new Set(vv[k])).join(', '))+'</small></div>'});
  var g=names(function(x){return needs(x.c).gas});if(g)h+='<div class="rq">'+ico('gas')+'<div><b>Compressed gas storage</b></div><small>'+esc(g)+'</small></div>';
@@ -497,6 +507,7 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
  var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
  var ht=$('#howto');if(ht)ht.ontoggle=function(){howOpen=ht.open;try{localStorage.setItem('sp-howto',howOpen?'1':'0')}catch(_){}};
+ var un=$('#unp');if(un){un.ontoggle=function(){unpOpen=un.open;try{localStorage.setItem('sp-unp',unpOpen?'1':'0')}catch(_){}};S.querySelectorAll('.uli').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});$('#unp-go').onclick=function(){setView('md','p')}}
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};$('#o-pin').onclick=function(){setPin(it.u,!it.pin)};$('#o-del').onclick=function(){remove(it.u)};$('#o-edit').onclick=function(){editObj(it.r)}}
  S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}})}

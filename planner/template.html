@@ -47,7 +47,13 @@ button{font:inherit;cursor:pointer}
 .sw input:checked{background:var(--accent)}.sw input:checked::after{left:19px}
 .req{display:flex;flex-direction:column;gap:2px}
 .rq{display:grid;grid-template-columns:20px 1fr;gap:2px 8px;padding:7px 0;border-bottom:1px solid #f0ede6;font-size:13.5px}
-.rq:last-child{border-bottom:0}.rq svg{margin-top:1px}.rq b{font-weight:600}.rq small{grid-column:2;color:#6b6960;font-size:12px;line-height:1.4}
+.rq:last-child{border-bottom:0}.rq svg{margin-top:1px}.rq b{font-weight:600}
+.unp{border-bottom:1px solid #f0ede6;user-select:none;-webkit-user-select:none}.unp summary{display:flex;align-items:flex-start;gap:8px;padding:7px 0;font-size:13.5px;cursor:pointer;list-style:none}.unp summary::-webkit-details-marker{display:none}
+.unp .ui{flex:0 0 20px;display:flex}.unp .ut{flex:1;min-width:0}.unp .ut b{font-weight:600}.unp .bad{color:#b42336;font-weight:600}.unp .chev{flex:0 0 14px;margin-top:3px;transition:transform .15s}.unp[open] .chev{transform:rotate(180deg)}
+.ul{display:flex;flex-direction:column;gap:2px;padding:0 0 9px 28px}
+.uli{display:flex;align-items:baseline;gap:6px;border:0;background:none;padding:2px 0;font:inherit;font-size:12.5px;color:#4a4740;text-align:left;cursor:pointer;min-width:0}.uli:hover .un{color:#1d4f91}
+.uli .un{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uli .ux{flex:0 0 auto;color:#6b6960;font-weight:600}.uli small{flex:0 0 auto;margin-left:auto;padding-left:8px;color:#8a867c;font-size:11.5px;white-space:nowrap}
+.ulink{align-self:flex-start;border:0;background:none;padding:4px 0 0;font:inherit;font-size:12.5px;font-weight:600;color:#1d4f91;cursor:pointer}.rq small{grid-column:2;color:#6b6960;font-size:12px;line-height:1.4}
 .ol{display:flex;flex-direction:column;gap:2px}
 .oi{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid transparent;font-size:13.5px;background:transparent;text-align:left;width:100%;color:var(--ink)}
 .oi:hover{background:#f5f4f0}.oi.on{border-color:var(--accent);background:#eaf1fd;color:#1d4f91}
