@@ -2459,15 +2459,15 @@ function nudge(sp,list,b){var same=function(q){return list.some(function(o){var 
 function sigOf(it){return [it.r,it.x,it.y,it.rot].join('|')}
 function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.auto:!!(prev&&prev.auto),out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
  // outlets you placed stay where they are; everything plugs into them first
- var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;
+ var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;delete q.ldd;
   if(q.s>=0)q.a=Math.max(.5,Math.min((q.s%2===0?W:D)-.5,q.a));else{q.x=Math.max(.5,Math.min(W-.5,q.x));q.y=Math.max(.5,Math.min(D-.5,q.y))}return q});out=man.slice();
  var mk=function(sp,f){while(out.some(function(x){return x.id==='q'+nid}))nid++;var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
  var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.man||opt.fresh||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
   if(sp.s>=0&&(sp.a<.5||sp.a>(sp.s%2===0?W:D)-.5))return null;return rdist(opos(sp),ibox(it))<=REACH?sp:null};
  var L=P.items.map(function(it){return {it:it,sp:pspec(defOf(it))}}).filter(function(x){return x.sp});
  L.forEach(function(x){x.home=prevSpot(x.it,x.sp.t)||homeFor(x.it);x.k=perim(x.home)});L.sort(function(a,b){return a.k-b.k});
- var mlink=function(x){var ceil=isC(x.it),b=ibox(x.it),s=x.sp,best=null,bd=1e9;man.forEach(function(o){if(o.sk>=o.cap||!pfits(o,s,ceil))return;if(!o.any&&!o.ded&&o.ty!=='hw'&&o.w+s.W>o.V*o.A*CAP80)return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
-  if(!best)return;best.sk++;best.w+=s.W;if(best.any&&best.sk===1){best.V=s.V;best.A=s.A;best.ph=s.ph;best.ty=s.hw?'hw':s.t;best.ld=s.ded?1:0;if(ceil)best.feed=1}links[x.it.u]=best.id};
+ var mlink=function(x){var ceil=isC(x.it),b=ibox(x.it),s=x.sp,best=null,bd=1e9;man.forEach(function(o){if(o.sk>=o.cap||!pfits(o,s,ceil)||o.ldd)return;if(s.ded&&!o.ded&&!o.any&&o.sk>0)return;if(!o.any&&!o.ded&&o.ty!=='hw'&&o.w+s.W>o.V*o.A*CAP80)return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
+  if(!best)return;best.sk++;best.w+=s.W;if(s.ded&&!best.ded&&!best.any)best.ldd=1;if(best.any&&best.sk===1){best.V=s.V;best.A=s.A;best.ph=s.ph;best.ty=s.hw?'hw':s.t;best.ld=s.ded?1:0;if(ceil)best.feed=1}links[x.it.u]=best.id};
  L.filter(function(x){return x.sp.ded}).forEach(mlink);L.filter(function(x){return !x.sp.ded}).forEach(mlink);L=L.filter(function(x){return !links[x.it.u]});
  var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[];CL=[]}
  // own circuits first
@@ -2484,7 +2484,7 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  var feeds=[];CL.forEach(function(x){var b=ibox(x.it),s=x.sp,o=mk({s:-3,x:h2(b.x+b.w/2),y:h2(b.y+b.d/2)},{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W,feed:1});links[x.it.u]=o.id;
   if(s.ded)circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,feed:1,out:[o.id]});else feeds.push(o)});
  // placed outlets get circuits too: big ones their own, the rest share like everything else
- var mshared=[];man.forEach(function(o){var dd=o.ded||o.ty==='hw'||(o.any&&o.ld);if(o.any&&!o.sk&&o.s===-3)o.feed=1;
+ var mshared=[];man.forEach(function(o){var dd=o.ded||o.ldd||o.ty==='hw'||(o.any&&o.ld);if(o.any&&!o.sk&&o.s===-3)o.feed=1;
   if(dd)circ.push({id:0,ty:o.ty,V:o.V,A:o.A,ph:o.ph,ded:1,feed:o.s===-3?1:0,out:[o.id]});else if(o.s===-3){o.feed=1;feeds.push(o)}else mshared.push(o)});
  group(mshared,false);
  var n0=circ.length;group(feeds,false);for(var ci=n0;ci<circ.length;ci++)circ[ci].feed=1;
@@ -2634,7 +2634,7 @@ function pkBadge(k){var K=PK[pkK(k)];return K.ty==='any'?'Matches what it powers
 // can this outlet power this load at all (not counting how full it already is)?
 function pfits(o,sp,ceil){var lv=o.s===-3?'c':'g';if(ceil!==(lv==='c'))return false;
  if(o.any)return ceil||sp.hw;if(sp.hw)return o.ty==='hw'&&(o.A>=sp.A||!!o.any);if(o.ty==='hw')return false;
- if(sp.ded&&o.man&&!o.ded)return false;return (o.ph===3)===(sp.ph===3)&&o.V===sp.V&&(o.V===120&&!sp.ded||o.A>=sp.A)}
+ return (o.ph===3)===(sp.ph===3)&&o.V===sp.V&&(o.V===120&&!sp.ded||o.A>=sp.A)}
 function pkSpot(k,p){var K=PK[pkK(k)],W=P.room.w,D=P.room.d,cl=function(v,L){return Math.max(.5,Math.min(L-.5,h2(v)))},dist=[p.y,W-p.x,D-p.y,p.x],s=dist.indexOf(Math.min.apply(null,dist)),inside=p.x>0&&p.x<W&&p.y>0&&p.y<D;
  if((K.at==='wall'||K.at==='wallfloor')&&(!inside||dist[s]<2.5))return {s:s,a:s%2===0?cl(p.x,W):cl(p.y,D)};
  if(K.at==='wall'||K.at==='wallfloor')return {s:-1,x:cl(p.x,W),y:cl(p.y,D)};
@@ -2675,8 +2675,9 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
   c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')};
  return {o15:I0.duplex,o20:I0.duplex,d20:I0.ded,v20:I0.r30,v30:I0.r30,v50:I0.r50,p30:I0.p3,p60:I0.p3,floor:I0.floor,drop:I0.drop,reel:I0.reel,hw:I0.jbox,chw:I0.cjb,c20:I0.crec,c30:I0.c240}})();
 // could this outlet power this object (right voltage/phase/amps, a free plug, spare capacity), wherever it is?
-function canPower(o,it,sp){sp=sp||pspec(defOf(it));if(!sp||!pfits(o,sp,isC(it)))return false;if(P.pw.links[it.u]===o.id)return true;var c=circBy(o.c),ownC=o.man?!!o.ded||o.ty==='hw':!!(c&&c.ded);if(sp.ded&&!ownC&&!o.any)return false;
- var on=P.items.filter(function(x){return x!==it&&P.pw.links[x.u]===o.id}),cap=o.cap||(ownC?1:2);if(on.length>=cap)return false;
+function canPower(o,it,sp){sp=sp||pspec(defOf(it));if(!sp||!pfits(o,sp,isC(it)))return false;if(P.pw.links[it.u]===o.id)return true;var c=circBy(o.c),ownC=o.man?!!o.ded||o.ty==='hw':!!(c&&c.ded);var on=P.items.filter(function(x){return x!==it&&P.pw.links[x.u]===o.id}),cap=o.cap||(ownC?1:2);if(on.length>=cap)return false;
+ if(on.some(function(x){var q=pspec(defOf(x));return q&&q.ded}))return false;
+ if(sp.ded&&!ownC&&!o.any){if(on.length)return false;var cur0=outBy(P.pw.links[it.u]),selfW=cur0&&cur0.c===o.c?sp.W:0;if(c&&circLoad(c)-selfW>0)return false;return true}
  if(!ownC&&!o.any){var w=on.reduce(function(a,x){var q=pspec(defOf(x));return a+(q?q.W:0)},0);if(w+sp.W>o.V*o.A*CAP80)return false;var cur=outBy(P.pw.links[it.u]),self=cur&&cur.c===o.c?sp.W:0;if(c&&circLoad(c)-self+sp.W>(o.ph===3?1.732:1)*o.V*o.A*CAP80)return false}
  return true}
 // after an object is moved or dropped: plug it into the nearest outlet in reach that fits and whose circuit can take it,
@@ -2685,8 +2686,9 @@ function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it)return null;var s
  var ceil=isC(it),b=ibox(it),best=null,bd=1e9;
  P.pw.outlets.forEach(function(o){if(!canPower(o,it,sp))return;
   var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
- if(!best||best===old)return null;P.pw.links[u]=best.id;P.pw.sig[u]=sigOf(it);if(old){old.sk=P.items.filter(function(x){return P.pw.links[x.u]===old.id}).length;old.w=pwLoad(old).w}
+ if(!best||best===old)return null;P.pw.links[u]=best.id;P.pw.sig[u]=sigOf(it);if(old){old.sk=P.items.filter(function(x){return P.pw.links[x.u]===old.id}).length;old.w=pwLoad(old).w;if(!old.sk)delete old.ldd}
  if(best.any&&!P.items.some(function(x){return x!==it&&P.pw.links[x.u]===best.id})){best.V=sp.V;best.A=sp.A;best.ph=sp.ph;best.ty=sp.hw?'hw':sp.t}
+ if(sp.ded&&!best.ded&&!best.any){best.ldd=1;var bc=circBy(best.c);if(bc&&bc.out.length>1){bc.out=bc.out.filter(function(id){return id!==best.id});var nid=Math.max.apply(null,P.pw.circ.map(function(c){return c.id}))+1;P.pw.circ.push({id:nid,ty:best.ty,V:best.V,A:best.A,ph:best.ph,ded:1,out:[best.id]});best.c=nid}else if(bc)bc.ded=1}
  best.sk=P.items.filter(function(x){return P.pw.links[x.u]===best.id}).length;best.w=pwLoad(best).w;return best}
 function plugToast(o){if(o)toast('Plugged into '+(o.man?PK[pkK(o.k)].n:tName(o.ty,o))+' on C'+o.c)}
 function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
