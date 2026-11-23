@@ -2535,7 +2535,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines;
- P.pw.outlets.forEach(function(o){if(o.s===-3&&VW.lv!=='c')return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(VW.lv==='c'))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.man)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+1.8*k)+'" fill="none" stroke="#2b2a27" stroke-width="'+(1.1*k)+'"/>'+(o.s===-2?'<path d="M'+cx+' '+(cy-r-1.8*k)+'v'+(-5*k)+'" stroke="#2b2a27" stroke-width="'+(1.2*k)+'"/>':'');
@@ -2559,7 +2559,7 @@ var SFX={on:{url:'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE
 function thunk(which){var S=SFX[which||'on'];try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var c=SFX.ctx=SFX.ctx||new A();if(c.state==='suspended')c.resume();
  var go=function(){var s=c.createBufferSource(),g=c.createGain();g.gain.value=.55;s.buffer=S.buf;s.connect(g);g.connect(c.destination);s.start()};
  if(S.buf)return go();fetch(S.url).then(function(r){return r.arrayBuffer()}).then(function(a){return new Promise(function(ok,no){c.decodeAudioData(a,ok,no)})}).then(function(b){S.buf=b;go()}).catch(function(){})}catch(_){}}
-function setView(k,v){if(VW[k]===v)return;if(k==='lv'){thunk(v==='c'?'on':'off');if(v==='c'&&!ceilSeen){ceilSeen=1;openCats['Lighting – General']=true}setTimeout(renderLib,0)}if(k==='md')setTimeout(renderLib,0);VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
+function setView(k,v){if(VW[k]===v)return;if(k==='lv'){thunk(v==='c'?'on':'off');if(v==='c'&&!ceilSeen){ceilSeen=1;openCats['Lighting – General']=true}setTimeout(renderLib,0)}if(k==='md')setTimeout(renderLib,0);VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'||k==='lv'){selO=null;if(VW.md!=='p')pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
 function vbar(){var el=$('#vbar');if(!el)return;var I={g:'<path d="M3 17l9 4 9-4M3 12l9 4 9-4M12 3l9 4-9 4-9-4z"/>',c:'<path d="M3 4h18M8 4v4M16 4v4"/><circle cx="8" cy="11" r="3"/><circle cx="16" cy="11" r="3"/>',o:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',p:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'},
   b=function(k,v,t){return '<button class="vb'+(VW[k]===v?' on':'')+'" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(VW[k]===v)+'" title="'+t+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[v]+'</svg><span class="lbl">'+t+'</span></button>'};
  el.innerHTML='<div class="vseg" role="group" aria-label="Level">'+b('lv','g','Ground')+b('lv','c','Ceiling')+'</div><i class="vsep"></i><div class="vseg" role="group" aria-label="Show">'+b('md','o','Objects')+b('md','p','Power')+'</div>';
@@ -2615,17 +2615,17 @@ var PK={
  v50:{n:'240V 50A outlet',g:'240V',ty:'240-50',cap:1,ded:1,at:'wall'},
  p30:{n:'3-phase 30A outlet',g:'3-phase',ty:'3p30',cap:1,ded:1,at:'wall'},
  p60:{n:'3-phase 60A outlet',g:'3-phase',ty:'3p60',cap:1,ded:1,at:'wall'},
- floor:{n:'Floor outlet',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'floor'},
- drop:{n:'Ceiling drop',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'drop'},
- reel:{n:'Cord reel',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'drop',reach:15},
+ floor:{n:'Floor outlet',g:'Floor',ty:'120-20',cap:2,at:'floor'},
+ drop:{n:'Ceiling drop',g:'Drops to the floor',ty:'120-20',cap:2,at:'drop'},
+ reel:{n:'Cord reel',g:'Drops to the floor',ty:'120-20',cap:2,at:'drop',reach:15},
  hw:{n:'Hardwired connection',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
- chw:{n:'Hardwired fixture',g:'Ceiling',ty:'any',cap:1,at:'ceil'},
- c20:{n:'Ceiling 120V 20A outlet',g:'Ceiling',ty:'120-20',cap:2,at:'ceil'},
- c30:{n:'Ceiling 240V 30A outlet',g:'Ceiling',ty:'240-30',cap:1,ded:1,at:'ceil'}};
+ chw:{n:'Hardwired fixture',g:'Ceiling fixtures',ty:'any',cap:1,at:'ceil'},
+ c20:{n:'Ceiling 120V 20A outlet',g:'Ceiling fixtures',ty:'120-20',cap:2,at:'ceil'},
+ c30:{n:'Ceiling 240V 30A outlet',g:'Ceiling fixtures',ty:'240-30',cap:1,ded:1,at:'ceil'}};
 // earlier outlet types, folded into the generic ones
 var PKA={duplex:'o15',usb:'o15',gfci:'o20',quad:'o20',ded:'d20',r30:'v30',r50:'v50',p3:'p60',jbox:'hw',disc:'hw',cjb:'chw',cdisc:'chw',crec:'c20',c240:'c30'};
 function pkK(k){return PK[k]?k:PKA[k]||'o20'}
-var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Floor & ceiling drops','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling','#d6a01c'],['Floor & ceiling drops','#b8862e']]};
+var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Floor','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Drops to the floor','#b8862e']]};
 var PKO={};
 function pkBase(k){k=pkK(k);var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
  if(t==='any')return Object.assign(o,{ty:'hw',V:240,A:60,ph:1});if(t.slice(0,2)==='3p')return Object.assign(o,{ty:t,V:240,A:+t.slice(2),ph:3});var s=t.split('-');return Object.assign(o,{ty:t,V:+s[0],A:+s[1],ph:1})}
@@ -2673,7 +2673,7 @@ var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="
   c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')};
  return {o15:I0.duplex,o20:I0.duplex,d20:I0.ded,v20:I0.r30,v30:I0.r30,v50:I0.r50,p30:I0.p3,p60:I0.p3,floor:I0.floor,drop:I0.drop,reel:I0.reel,hw:I0.jbox,chw:I0.cjb,c20:I0.crec,c30:I0.c240}})();
 function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
-function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall, the floor or a ceiling drop. Objects plug into the nearest one that fits.'}
+function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall or the floor. Objects plug into the nearest one that fits. Ceiling drops and reels are in Ceiling view.'}
 function renderPwLib(){pwHead();renderPwCat()}
 function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
  hd.innerHTML='<div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Power</span><span class="muted" style="margin:0;font-size:12px">'+(VW.lv==='c'?'Ceiling':'Outlets &amp; circuits')+'</span></div>'+
