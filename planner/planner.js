@@ -268,11 +268,12 @@ function ldTxt(c){var sp=pspec(c);if(!sp)return '';var a=sp.W/((sp.ph===3?1.732:
 // what the plan shows: level g(round)/c(eiling), mode o(bjects)/p(ower)
 var VW={lv:'g',md:'o'};try{var vw0=JSON.parse(localStorage.getItem('sp-view')||'{}');if(vw0.lv==='c')VW.lv='c';if(vw0.md==='p')VW.md='p'}catch(_){}
 // lever-throw "thunk" when the lights (ceiling view) go on or off; decoded once, only on a tap
-var SFX={url:'data:audio/mpeg;base64,/*LEVER_MP3*/',ctx:null,buf:null};
-function thunk(){try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var c=SFX.ctx=SFX.ctx||new A();if(c.state==='suspended')c.resume();
- var go=function(){var s=c.createBufferSource(),g=c.createGain();g.gain.value=.55;s.buffer=SFX.buf;s.connect(g);g.connect(c.destination);s.start()};
- if(SFX.buf)return go();fetch(SFX.url).then(function(r){return r.arrayBuffer()}).then(function(a){return new Promise(function(ok,no){c.decodeAudioData(a,ok,no)})}).then(function(b){SFX.buf=b;go()}).catch(function(){})}catch(_){}}
-function setView(k,v){if(VW[k]===v)return;if(k==='lv')thunk();VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
+// to Ceiling (lights on): lever throw; back to Ground: a light-switch flip in a big room
+var SFX={on:{url:'data:audio/mpeg;base64,/*LEVER_MP3*/'},off:{url:'data:audio/mpeg;base64,/*SWITCH_MP3*/'},ctx:null};
+function thunk(which){var S=SFX[which||'on'];try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var c=SFX.ctx=SFX.ctx||new A();if(c.state==='suspended')c.resume();
+ var go=function(){var s=c.createBufferSource(),g=c.createGain();g.gain.value=.55;s.buffer=S.buf;s.connect(g);g.connect(c.destination);s.start()};
+ if(S.buf)return go();fetch(S.url).then(function(r){return r.arrayBuffer()}).then(function(a){return new Promise(function(ok,no){c.decodeAudioData(a,ok,no)})}).then(function(b){S.buf=b;go()}).catch(function(){})}catch(_){}}
+function setView(k,v){if(VW[k]===v)return;if(k==='lv')thunk(v==='c'?'on':'off');VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
 function vbar(){var el=$('#vbar');if(!el)return;var I={g:'<path d="M3 17l9 4 9-4M3 12l9 4 9-4M12 3l9 4-9 4-9-4z"/>',c:'<path d="M3 4h18M8 4v4M16 4v4"/><circle cx="8" cy="11" r="3"/><circle cx="16" cy="11" r="3"/>',o:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',p:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'},
   b=function(k,v,t){return '<button class="vb'+(VW[k]===v?' on':'')+'" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(VW[k]===v)+'" title="'+t+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[v]+'</svg><span class="lbl">'+t+'</span></button>'};
  el.innerHTML='<div class="vseg" role="group" aria-label="Level">'+b('lv','g','Ground')+b('lv','c','Ceiling')+'</div><i class="vsep"></i><div class="vseg" role="group" aria-label="Show">'+b('md','o','Objects')+b('md','p','Power')+'</div>';
