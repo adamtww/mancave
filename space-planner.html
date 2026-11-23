@@ -73,6 +73,14 @@ g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:n
 .lcard:hover .ledit,body.touch .ledit{display:flex}.ledit:hover{color:#1d4f91;border-color:#2f7de1}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
 .lcard{position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}.lcard.lifting{opacity:.45}
+.hd[hidden]{display:none!important}
+.lart.pw,.lart.pw svg{width:44px!important;height:44px!important;flex:0 0 44px}
+#pwhd .pwa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 6px}
+#pwhd .pwa button{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;border:1px solid #d9d6ce;background:#fff;font:inherit;font-size:12.5px;font-weight:600;color:#2b2a27;cursor:pointer}
+#pwhd .pwa button.pri{background:#2f7de1;border-color:#2f7de1;color:#fff}#pwhd .pwa button.del{color:#c0392b}
+#pwhd .pwa button[disabled]{opacity:.4;cursor:default}
+#pwhd .pab{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#d6453d;color:#fff;font-style:normal;font-size:11px;line-height:18px;padding:0 4px;box-sizing:border-box}
+#pwhd .pgp{font-size:12.5px;margin:0 0 4px}#pwhd .muted{margin:2px 0 0}
 .led{position:absolute;top:6px;right:6px;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:1px 6px 1px 5px;pointer-events:none}
 .ldchip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9d6ce;border-radius:12px;padding:6px 10px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:13px;font-weight:600;color:#26251f;max-width:220px;transition:opacity .12s}
 .ldchip .lart{width:40px;height:40px;flex:0 0 40px}.ldchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ldchip.over{opacity:.0}
@@ -267,7 +275,8 @@ dialog.it2{max-width:min(760px,96vw)}
  <div id="explore" class="explore"></div>
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
-   <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
+   <div class="hd" id="pwhd" hidden></div>
+   <div class="hd" id="libhd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
     <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted" id="libtip">Click an object to add it. It finds its own spot. Or drag it onto the plan to place it yourself.</p></div>
    <div class="bd" id="lib"></div>
   </aside>
@@ -2415,7 +2424,7 @@ function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop()
 function redo(){if(!fut.length)return;hist.push(snapP());P=JSON.parse(fut.pop());persist();render()}
 document.addEventListener('keydown',function(e){if(EX.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
- if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;render()}});
+ if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(!sel&&selO&&(e.key==='Delete'||e.key==='Backspace')){var oo=outBy(selO);if(oo&&oo.man){e.preventDefault();pkDel(selO)}}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;render()}});
 
 /* ---------------- power: "Build out power" works out the outlets and circuits for what's in the room ----------------
    Each powered object gets a matching outlet within reach (cord ~6 ft): on the wall behind it when that wall is close,
@@ -2447,13 +2456,19 @@ function homeFor(it){var b=ibox(it),W=P.room.w,D=P.room.d,dist=[b.y,W-b.x-b.w,D-
 function nudge(sp,list,b){var same=function(q){return list.some(function(o){var p=opos(o),r=opos(q);return o.s===q.s&&Math.hypot(p.x-r.x,p.y-r.y)<.9})};if(!same(sp))return sp;
  var L=sp.s%2===0?P.room.w:P.room.d;for(var k=1;k<=12;k++)for(var sg=1;sg>=-1;sg-=2){var q=Object.assign({},sp);if(q.s>=0){q.a=sp.a+sg*k;if(q.a<.5||q.a>L-.5)continue}else{q.x=sp.x+sg*k}if(!same(q)&&rdist(opos(q),b)<=REACH)return q}return sp}
 function sigOf(it){return [it.r,it.x,it.y,it.rot].join('|')}
-function buildPower(){var prev=P.pw,out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
+function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.auto:!!(prev&&prev.auto),out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
+ // outlets you placed stay where they are; everything plugs into them first
+ var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});delete q.c;delete q.feed;delete q.ld;
+  if(q.s>=0)q.a=Math.max(.5,Math.min((q.s%2===0?W:D)-.5,q.a));else{q.x=Math.max(.5,Math.min(W-.5,q.x));q.y=Math.max(.5,Math.min(D-.5,q.y))}return q});out=man.slice();
  var mk=function(sp,f){var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
- var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
+ var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.man||opt.fresh||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
   if(sp.s>=0&&(sp.a<.5||sp.a>(sp.s%2===0?W:D)-.5))return null;return rdist(opos(sp),ibox(it))<=REACH?sp:null};
  var L=P.items.map(function(it){return {it:it,sp:pspec(defOf(it))}}).filter(function(x){return x.sp});
  L.forEach(function(x){x.home=prevSpot(x.it,x.sp.t)||homeFor(x.it);x.k=perim(x.home)});L.sort(function(a,b){return a.k-b.k});
- var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});
+ var mlink=function(x){var ceil=isC(x.it),b=ibox(x.it),s=x.sp,best=null,bd=1e9;man.forEach(function(o){if(o.sk>=o.cap||!pfits(o,s,ceil))return;if(!o.any&&!o.ded&&o.ty!=='hw'&&o.w+s.W>o.V*o.A*CAP80)return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
+  if(!best)return;best.sk++;best.w+=s.W;if(best.any&&best.sk===1){best.V=s.V;best.A=s.A;best.ph=s.ph;best.ty=s.hw?'hw':s.t;best.ld=s.ded?1:0;if(ceil)best.feed=1}links[x.it.u]=best.id};
+ L.filter(function(x){return x.sp.ded}).forEach(mlink);L.filter(function(x){return !x.sp.ded}).forEach(mlink);L=L.filter(function(x){return !links[x.it.u]});
+ var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[];CL=[]}
  // own circuits first
  L.filter(function(x){return x.sp.ded}).forEach(function(x){var s=x.sp,o=mk(nudge(x.home,out,ibox(x.it)),{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W});circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,out:[o.id]});links[x.it.u]=o.id});
  // everyday 120V loads share duplex outlets
@@ -2467,28 +2482,32 @@ function buildPower(){var prev=P.pw,out=[],circ=[],links={},sig={},nid=1,W=P.roo
  // ceiling objects: a wired feed at each fixture; big ones get their own circuit, the rest share 20A circuits
  var feeds=[];CL.forEach(function(x){var b=ibox(x.it),s=x.sp,o=mk({s:-3,x:h2(b.x+b.w/2),y:h2(b.y+b.d/2)},{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W,feed:1});links[x.it.u]=o.id;
   if(s.ded)circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,feed:1,out:[o.id]});else feeds.push(o)});
+ // placed outlets get circuits too: big ones their own, the rest share like everything else
+ var mshared=[];man.forEach(function(o){var dd=o.ded||o.ty==='hw'||(o.any&&o.ld);if(o.any&&!o.sk&&o.s===-3)o.feed=1;
+  if(dd)circ.push({id:0,ty:o.ty,V:o.V,A:o.A,ph:o.ph,ded:1,feed:o.s===-3?1:0,out:[o.id]});else if(o.s===-3){o.feed=1;feeds.push(o)}else mshared.push(o)});
+ group(mshared,false);
  var n0=circ.length;group(feeds,false);for(var ci=n0;ci<circ.length;ci++)circ[ci].feed=1;
  // general-purpose outlets every ~12 ft of wall (chargers, hand tools, vacuums), on their own circuits
- if(!P.pwo||P.pwo.gp!==false){var gps=[];for(var s=0;s<4;s++){var Ln=s%2===0?W:D,n=Ln<6?0:Math.max(1,Math.round(Ln/12));
+ if(auto&&(!P.pwo||P.pwo.gp!==false)){var gps=[];for(var s=0;s<4;s++){var Ln=s%2===0?W:D,n=Ln<6?0:Math.max(1,Math.round(Ln/12));
    for(var i=0;i<n;i++){var a=h2((i+.5)*Ln/n),q={s:s,a:a},pq=opos(q);if(out.some(function(o){var p=opos(o);return o.s===s&&!o.gp&&o.ty==='120-20'&&Math.hypot(p.x-pq.x,p.y-pq.y)<3}))continue;
     gps.push(mk(nudge(q,out,{x:pq.x-REACH,y:pq.y-REACH,w:2*REACH,d:2*REACH}),{ty:'120-20',V:120,A:20,ph:1,sk:0,w:0,gp:1}))}}group(gps,true)}
  circ.forEach(function(c){c.k=Math.min.apply(null,c.out.map(function(id){return perim(out.filter(function(o){return o.id===id})[0])}))});
  circ.sort(function(a,b){return a.k-b.k});circ.forEach(function(c,i){c.id=i+1;delete c.k;c.out.forEach(function(id){out.filter(function(o){return o.id===id})[0].c=c.id})});
  P.items.forEach(function(it){sig[it.u]=sigOf(it)});
- P.pw={outlets:out,circ:circ,links:links,sig:sig,show:prev?prev.show!==false:true}}
+ P.pw={outlets:out,circ:circ,links:links,sig:sig,show:prev?prev.show!==false:true,auto:auto}}
 function outBy(id){var a=P.pw?P.pw.outlets:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
 function circBy(id){var a=P.pw?P.pw.circ:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
 // is this object powered by what was built out?
 function pstat(it){var sp=pspec(defOf(it));if(!sp||!P.pw)return null;var o=outBy(P.pw.links[it.u]);
- if(!o)return {lv:'red',why:'Added after power was built out. Needs a '+tName(sp.t,sp)+'.'};
- if(o.ty!==sp.t)return {lv:'red',why:'Needs a '+tName(sp.t,sp)+'.'};
- var d=rdist(opos(o),ibox(it));if(d>REACH+.01)return {lv:'red',o:o,why:'Moved out of reach of its outlet ('+fmt(d)+' ft away).'};
+ if(!o)return {lv:'red',why:(P.pw.auto?'Added after power was built out. ':'')+'Needs a '+tName(sp.t,sp)+'.'+(P.pw.auto?'':' Drag one from the Power panel, or build out power.')};
+ if(o.man?!pfits(o,sp,isC(it)):o.ty!==sp.t)return {lv:'red',why:'Needs a '+tName(sp.t,sp)+'.'};
+ var d=rdist(opos(o),ibox(it));if(d>(o.reach||REACH)+.01)return {lv:'red',o:o,why:'Moved out of reach of its outlet ('+fmt(d)+' ft away).'};
  if(sp.ph===3)return {lv:'amber',o:o,why:'Needs 3-phase power. If the building is single-phase, it needs a phase converter.'};
  return {lv:'ok',o:o}}
 function pwLoad(o){var w=0,names=[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
 function circLoad(c){var w=0;c.out.forEach(function(id){var o=outBy(id);if(o)w+=pwLoad(o).w});return w}
 function pwChanges(){if(!P.pw)return 0;var n=0,used={};P.items.forEach(function(it){var s=pstat(it);if(s&&s.lv==='red')n++;if(P.pw.links[it.u])used[P.pw.links[it.u]]=1});
- P.pw.outlets.forEach(function(o){if(!o.gp&&!used[o.id])n++});return n}
+ P.pw.outlets.forEach(function(o){if(!o.gp&&!o.man&&!used[o.id])n++});return n}
 var HPS=[3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150];
 function converter(){var hp=P.items.map(function(it){var s=pspec(defOf(it));return s&&s.ph===3?s.W/746:0}).filter(function(v){return v>0});if(!hp.length)return null;
  var big=Math.max.apply(null,hp),tot=hp.reduce(function(a,b){return a+b},0),need=Math.max(big*1.5,tot),size=HPS.filter(function(v){return v>=need})[0]||Math.ceil(need/25)*25;
@@ -2513,12 +2532,13 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
  if(selIt){var st=pstat(selIt);if(st&&st.o)hiO[st.o.id]=1}if(selO)hiO[selO]=1;
  // lines from the selected outlet (or the selected object's outlet) to what it powers
  Object.keys(hiO).forEach(function(id){var o=outBy(id);if(!o)return;var p=opos(o);
-  if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+REACH+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
+  if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   P.items.forEach(function(it){if(P.pw.links[it.u]!==id)return;var b=ibox(it);lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines;
- P.pw.outlets.forEach(function(o){if(o.s===-3&&VW.lv!=='c')return;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){if(o.s===-3&&VW.lv!=='c')return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(11*k)+'" fill="transparent"/>';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
+  if(o.man)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+1.8*k)+'" fill="none" stroke="#2b2a27" stroke-width="'+(1.1*k)+'"/>'+(o.s===-2?'<path d="M'+cx+' '+(cy-r-1.8*k)+'v'+(-5*k)+'" stroke="#2b2a27" stroke-width="'+(1.2*k)+'"/>':'');
   if(o.ty==='hw')g+='<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(1.5*k)+'" fill="'+col+'" stroke="#fff" stroke-width="'+(1.3*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.5*k)+' '+(cy-4.5*k)+') scale('+(9*k/24)+')" fill="#fff"/>';
   else{g+=(o.s<0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"':'<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(2.5*k)+'"')+' fill="'+(o.gp?'#fff':col)+'" stroke="'+(o.gp?col:'#fff')+'" stroke-width="'+(1.4*k)+'"/>';
    var dot=o.gp?col:'#fff';if(o.ty.slice(0,3)==='120'){g+='<rect x="'+(cx-2.6*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><rect x="'+(cx+1.3*k)+'" y="'+(cy-2.6*k)+'" width="'+(1.3*k)+'" height="'+(2.4*k)+'" fill="'+dot+'"/><circle cx="'+cx+'" cy="'+(cy+2*k)+'" r="'+(.9*k)+'" fill="'+dot+'"/>'}
@@ -2539,7 +2559,7 @@ var SFX={on:{url:'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE
 function thunk(which){var S=SFX[which||'on'];try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var c=SFX.ctx=SFX.ctx||new A();if(c.state==='suspended')c.resume();
  var go=function(){var s=c.createBufferSource(),g=c.createGain();g.gain.value=.55;s.buffer=S.buf;s.connect(g);g.connect(c.destination);s.start()};
  if(S.buf)return go();fetch(S.url).then(function(r){return r.arrayBuffer()}).then(function(a){return new Promise(function(ok,no){c.decodeAudioData(a,ok,no)})}).then(function(b){S.buf=b;go()}).catch(function(){})}catch(_){}}
-function setView(k,v){if(VW[k]===v)return;if(k==='lv'){thunk(v==='c'?'on':'off');if(v==='c'&&!ceilSeen){ceilSeen=1;openCats['Lighting – General']=true}setTimeout(renderLib,0)}VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
+function setView(k,v){if(VW[k]===v)return;if(k==='lv'){thunk(v==='c'?'on':'off');if(v==='c'&&!ceilSeen){ceilSeen=1;openCats['Lighting – General']=true}setTimeout(renderLib,0)}if(k==='md')setTimeout(renderLib,0);VW[k]=v;try{localStorage.setItem('sp-view',JSON.stringify(VW))}catch(_){}if(VW.md!=='p'){selO=null;pwOpenK=null}if(VW.lv==='c')sel=null;V.cx=null;render()}
 function vbar(){var el=$('#vbar');if(!el)return;var I={g:'<path d="M3 17l9 4 9-4M3 12l9 4 9-4M12 3l9 4-9 4-9-4z"/>',c:'<path d="M3 4h18M8 4v4M16 4v4"/><circle cx="8" cy="11" r="3"/><circle cx="16" cy="11" r="3"/>',o:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',p:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'},
   b=function(k,v,t){return '<button class="vb'+(VW[k]===v?' on':'')+'" data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(VW[k]===v)+'" title="'+t+'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+I[v]+'</svg><span class="lbl">'+t+'</span></button>'};
  el.innerHTML='<div class="vseg" role="group" aria-label="Level">'+b('lv','g','Ground')+b('lv','c','Ceiling')+'</div><i class="vsep"></i><div class="vseg" role="group" aria-label="Show">'+b('md','o','Objects')+b('md','p','Power')+'</div>';
@@ -2564,23 +2584,125 @@ function pwSummary(){var by={},order=[],grp=pwGroup();P.pw.circ.forEach(function
 function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab">Power</span>',gpOn=!P.pwo||P.pwo.gp!==false;
  if(!P.pw){if(!pw.items&&!P.items.length)return h+'<p class="muted">Add objects, then build out power to see the outlets and circuits they need.</p></div>';
   h+='<div><b>'+(pw.items?(pw.est?'≈ ':'')+fmtW(pw.w)+'</b> connected · ≈ '+fmtW(pw.peak)+' peak':'No powered objects yet</b>')+'</div>'+(pw.circ.length?'<p class="muted">Roughly '+esc(pw.circ.join(' · '))+'</p>':'');
-  h+='<label class="ck"><input type="checkbox" id="pw-gp"'+(gpOn?' checked':'')+'> General-purpose outlets every ~12 ft of wall</label><button class="btn pri" id="pw-build">Build out power</button></div>';return h}
+  h+='<p class="muted">Build out power on the left, or drag outlets onto the plan.</p></div>';return h}
  var ch=pwChanges(),cv=converter(),red=P.items.filter(function(it){var s=pstat(it);return s&&s.lv==='red'}).length;
  
  h+='<div><b>'+P.pw.circ.length+' circuit'+(P.pw.circ.length===1?'':'s')+'</b> · '+P.pw.outlets.length+' outlet'+(P.pw.outlets.length===1?'':'s')+' and connections · '+(pw.est?'≈ ':'')+fmtW(pw.w)+' connected</div>';
  h+='<div>'+pwSummary()+'</div>';
  if(cv)h+='<div class="warn"><b>3-phase:</b> '+cv.n+' machine'+(cv.n>1?'s need':' needs')+' 3-phase power. If the building only has single-phase, plan on a rotary phase converter of about '+cv.hp+' HP (roughly '+money(cv.lo)+'–'+money(cv.hi)+').</div>';
- if(ch)h+='<div class="warn">'+(red?red+' object'+(red>1?'s aren\'t':' isn\'t')+' powered by the current build-out. ':'')+'Rebuild to update the outlets.</div>';
- h+='<label class="ck"><input type="checkbox" id="pw-gp"'+(gpOn?' checked':'')+'> General-purpose outlets every ~12 ft of wall</label>';
- h+='<div class="row"><button class="btn'+(ch?' pri':'')+'" id="pw-build">Rebuild power'+(ch?' · '+ch+' change'+(ch>1?'s':''):'')+'</button><button class="btn" id="pw-clear">Clear power</button></div>';
+ if(ch)h+='<div class="warn">'+(red?red+' object'+(red>1?'s aren\'t':' isn\'t')+' powered yet. ':'')+(P.pw.auto?'Rebuild to update the outlets.':'Place outlets for them, or build out power.')+'</div>';
  h+='<p class="muted">Click an outlet to see its circuit. A plan for the electrician to price, not a wiring design.</p></div>';return h}
 function outletCard(){var o=outBy(selO);if(!o)return '';var c=circBy(o.c),l=pwLoad(o),cw=c?circLoad(c):l.w,cap=(o.ph===3?1.732:1)*o.V*o.A*CAP80,pct=Math.min(100,cw/cap*100),many=c&&c.out.length>1;
- var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>';
+ var h='<div class="card"><span class="lab">Selected</span><b style="font-size:15px">'+(o.man?esc(PK[o.k].n)+' <small class="muted" style="font-weight:500">'+esc(pkBadge(o.k).replace('⚡',''))+'</small>':o.gp?'General-purpose 120V 20A outlet':esc(tName(o.ty,o)))+'</b>'+(o.man?'<p class="muted" style="margin:0">Placed by you. Drag it on the plan to move it.</p>':'');
  h+='<div class="irow"><span>Circuit</span><b>C'+o.c+(o.ty==='hw'||!many?' · own circuit':' · '+c.out.length+' outlets')+'</b></div>';
- h+='<div class="irow"><span>Where</span><b>'+(o.s===-3?'Wired at the fixture (ceiling)':o.s<0?'Floor box or ceiling drop':'On the wall')+'</b></div>';
+ h+='<div class="irow"><span>Where</span><b>'+(o.man?pkWhere(o):o.s===-3?'Wired at the fixture (ceiling)':o.s<0?'Floor box or ceiling drop':'On the wall')+'</b></div>';
  if(!o.gp||cw){h+='<div><div class="irow" style="border:0;padding-bottom:2px"><span>Circuit load</span><b>'+Math.round(cw).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W</b></div><div class="bar"><i style="width:'+pct+'%;background:'+(cw>cap?'#d6453d':cw>cap*.9?'#e0a21f':'#3ba776')+'"></i></div><p class="muted" style="margin-top:4px">80% of '+o.A+'A, the limit for loads that run for hours.</p></div>'}
- h+=l.names.length?'<div class="irow"><span>Powers</span><b>'+esc(l.names.join(', '))+'</b></div>':o.gp?'<p class="muted">For chargers, hand tools, vacuums and lamps.</p>':'<div class="warn">Nothing uses this any more. Rebuild power to remove it.</div>';
+ h+=l.names.length?'<div class="irow"><span>Powers</span><b>'+esc(l.names.join(', '))+'</b></div>':o.gp?'<p class="muted">For chargers, hand tools, vacuums and lamps.</p>':o.man?'<p class="muted">Nothing in reach needs it yet'+(o.reach?' (its cord reaches '+o.reach+' ft)':'')+'.</p>':'<div class="warn">Nothing uses this any more. Rebuild power to remove it.</div>';
+ if(o.man)h+='<div class="sbtns"><button class="sb red" id="o-odel">Delete outlet</button></div>';
  return h+'</div>'}
+
+/* ---------------- power: outlets you place yourself ----------------
+   Drag an outlet from the Power panel onto the plan (or tap it to put it by the next thing that needs it).
+   Wall outlets snap to the nearest wall; floor boxes sit on the floor; drops and reels hang from the ceiling
+   and power floor objects; ceiling boxes feed lights, fans and heaters. Objects plug into the nearest outlet
+   that fits. Placed outlets stay put when power is rebuilt; build-out only fills in what's still missing. */
+var PK={
+ duplex:{n:'Duplex outlet',g:'Standard',ty:'120-15',cap:2,at:'wall'},
+ gfci:{n:'GFCI outlet',g:'Standard',ty:'120-20',cap:2,at:'wall'},
+ quad:{n:'Quad outlet',g:'Standard',ty:'120-20',cap:4,at:'wall'},
+ usb:{n:'Outlet + USB',g:'Standard',ty:'120-15',cap:2,at:'wall'},
+ ded:{n:'Dedicated circuit',g:'Dedicated & 240V',ty:'120-20',cap:1,ded:1,at:'wall'},
+ r30:{n:'Dryer / tool outlet',g:'Dedicated & 240V',ty:'240-30',cap:1,ded:1,at:'wall'},
+ r50:{n:'EV / welder outlet',g:'Dedicated & 240V',ty:'240-50',cap:1,ded:1,at:'wall'},
+ p3:{n:'3-phase outlet',g:'Dedicated & 240V',ty:'3p60',cap:1,ded:1,at:'wall'},
+ floor:{n:'Floor box',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'floor'},
+ drop:{n:'Ceiling drop',g:'Floor & ceiling drops',ty:'120-20',cap:2,at:'drop'},
+ reel:{n:'Cord reel',g:'Floor & ceiling drops',ty:'120-20',cap:3,at:'drop',reach:15},
+ jbox:{n:'Junction box',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
+ disc:{n:'Disconnect switch',g:'Hardwired',ty:'any',cap:1,ded:1,at:'wallfloor'},
+ cjb:{n:'Fixture box',g:'Ceiling fixtures',ty:'any',cap:1,at:'ceil'},
+ crec:{n:'Ceiling outlet',g:'Ceiling fixtures',ty:'120-20',cap:2,at:'ceil'},
+ c240:{n:'Ceiling 240V outlet',g:'Ceiling fixtures',ty:'240-30',cap:1,ded:1,at:'ceil'},
+ cdisc:{n:'Heater / fan disconnect',g:'Ceiling fixtures',ty:'any',cap:1,ded:1,at:'ceil'}};
+var PKG={g:[['Standard','#2f7de1'],['Dedicated & 240V','#e0701f'],['Floor & ceiling drops','#b8862e'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Floor & ceiling drops','#b8862e']]};
+var PKO={};
+function pkBase(k){var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
+ if(t==='any')return Object.assign(o,{ty:'hw',V:240,A:60,ph:1});if(t.slice(0,2)==='3p')return Object.assign(o,{ty:t,V:240,A:+t.slice(2),ph:3});var s=t.split('-');return Object.assign(o,{ty:t,V:+s[0],A:+s[1],ph:1})}
+function pkBadge(k){var K=PK[k],t=K.ty;if(t==='any')return K.at==='ceil'?'wired':'hardwire';if(t.slice(0,2)==='3p')return '⚡208V 3φ';var s=t.split('-');return '⚡'+s[0]+'V '+s[1]+'A'}
+// can this outlet power this load at all (not counting how full it already is)?
+function pfits(o,sp,ceil){var lv=o.s===-3?'c':'g';if(ceil!==(lv==='c'))return false;
+ if(o.any)return ceil||sp.hw;if(sp.hw)return o.ty==='hw'&&(o.A>=sp.A||!!o.any);if(o.ty==='hw')return false;
+ if(sp.ded&&o.man&&!o.ded)return false;return (o.ph===3)===(sp.ph===3)&&o.V===sp.V&&(o.V===120&&!sp.ded||o.A>=sp.A)}
+function pkSpot(k,p){var K=PK[k],W=P.room.w,D=P.room.d,cl=function(v,L){return Math.max(.5,Math.min(L-.5,h2(v)))},dist=[p.y,W-p.x,D-p.y,p.x],s=dist.indexOf(Math.min.apply(null,dist)),inside=p.x>0&&p.x<W&&p.y>0&&p.y<D;
+ if(K.at==='wall'||(K.at==='wallfloor'&&(!inside||dist[s]<2.5)))return {s:s,a:s%2===0?cl(p.x,W):cl(p.y,D)};
+ return {s:K.at==='ceil'?-3:K.at==='drop'?-2:-1,x:cl(p.x,W),y:cl(p.y,D)}}
+function pkWhere(o){return o.s===-3?'On the ceiling':o.s===-2?'Hangs from the ceiling':o.s===-1?'On the floor':'On the wall'}
+function pwEnsure(){if(!P.pw)P.pw={outlets:[],circ:[],links:{},sig:{},show:true,auto:false};return P.pw}
+// put an outlet down; anything stacked on the same spot slides along a little
+function pkPlace(k,sp){var o=Object.assign({id:'m'+Date.now().toString(36)+Math.floor(Math.random()*1e3),man:1,s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},pkBase(k),{sk:0,w:0});
+ o=Object.assign(o,nudge(sp,pwEnsure().outlets,{x:-1e3,y:-1e3,w:3e3,d:3e3}));pwEnsure().outlets.push(o);return o}
+function pkAfter(o,before){buildPower();hist.push(before);if(hist.length>60)hist.shift();fut=[];sel=null;selO=o.id;persist();render();
+ var n=pwLoad(outBy(o.id)).names;toast(n.length?'Plugged in: '+n.join(', '):'Nothing in reach needs this outlet yet')}
+// tap a card: put it by the next thing that needs one, or mid-wall
+function pkTap(k){var K=PK[k],ceil=K.at==='ceil',probe=Object.assign({s:ceil?-3:0,man:1},pkBase(k)),hit=null;
+ P.items.forEach(function(it){if(hit||isC(it)!==ceil)return;var sp=pspec(defOf(it));if(!sp||!pfits(probe,sp,ceil))return;var st=P.pw?pstat(it):{lv:'red'};if(st&&st.lv==='red')hit=it});
+ var W=P.room.w,D=P.room.d,spot;
+ if(hit){var b=ibox(hit),c={x:b.x+b.w/2,y:b.y+b.d/2};if(K.at==='wall'||K.at==='wallfloor'){var h=homeFor(hit);spot=h.s>=0?h:pkSpot(k,K.at==='wall'?c:{x:c.x,y:b.y-.5})}else spot=pkSpot(k,K.at==='floor'?{x:b.x+b.w/2,y:b.y-.6}:c)}
+ else spot=pkSpot(k,K.at==='wall'||K.at==='wallfloor'?{x:W/2,y:-1}:{x:W/2,y:D/2});
+ var before=snapP(),o=pkPlace(k,spot);pkAfter(o,before);if(!pwLoad(outBy(o.id)).names.length)toast('Placed. Nothing nearby needs it yet, so drag it where you want it.')}
+function pkDel(id){var o=outBy(id);if(!o||!o.man)return;push();P.pw.outlets=P.pw.outlets.filter(function(x){return x.id!==id});selO=null;if(!P.pw.auto&&!P.pw.outlets.length)P.pw=null;else buildPower();persist();render()}
+// drawn icons for the Power catalog
+var PICON=(function(){var S=function(i){return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#3a3936" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+i+'</svg>'},PL='<rect x="9" y="3" width="22" height="34" rx="3" fill="#f6f4ee"/>',F=function(y){return '<rect x="13" y="'+y+'" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 '+(y+3)+' v4 M22.5 '+(y+3)+' v4" stroke-width="1.8"/><circle cx="20" cy="'+(y+9.2)+'" r="1.2" fill="#3a3936" stroke="none"/>'},
+  R='<rect x="4" y="4" width="32" height="32" rx="4" fill="#f6f4ee"/>',q='';for(var x=6;x<=22;x+=16)for(var y=8;y<=22;y+=14)q+='<rect x="'+x+'" y="'+y+'" width="12" height="10" rx="4" fill="#fff"/><path d="M'+(x+3.5)+' '+(y+3)+'v3 M'+(x+8.5)+' '+(y+3)+'v3" stroke-width="1.6"/>';
+ var JB='<rect x="6" y="6" width="28" height="28" rx="3" fill="#b8bcc0"/><circle cx="12" cy="12" r="1.4" fill="#3a3936" stroke="none"/><circle cx="28" cy="12" r="1.4" fill="#3a3936" stroke="none"/><circle cx="12" cy="28" r="1.4" fill="#3a3936" stroke="none"/><circle cx="28" cy="28" r="1.4" fill="#3a3936" stroke="none"/><path d="M15 20h10 M20 15v10" stroke="#d92b2b"/>',
+  DS='<rect x="8" y="3" width="24" height="34" rx="3" fill="#8d939a"/><rect x="24" y="12" width="4" height="12" rx="1" fill="#d92b2b" stroke="none"/><rect x="12" y="8" width="9" height="5" rx="1" fill="#f6f4ee"/>';
+ return {duplex:S(PL+F(6)+F(22)),usb:S(PL+F(5)+'<rect x="14" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/><rect x="21" y="21" width="5" height="2.6" rx=".6" fill="#3a3936" stroke="none"/>'+F(25)),
+  gfci:S(PL+'<rect x="13" y="5" width="14" height="10" rx="4" fill="#fff"/><path d="M17.5 8v3.5M22.5 8v3.5" stroke-width="1.8"/><rect x="15" y="17.5" width="4.5" height="4" rx="1" fill="#d92b2b" stroke="none"/><rect x="20.5" y="17.5" width="4.5" height="4" rx="1" fill="#2b2b2b" stroke="none"/><rect x="13" y="24" width="14" height="10" rx="4" fill="#fff"/><path d="M17.5 27v3.5M22.5 27v3.5" stroke-width="1.8"/>'),
+  quad:S('<rect x="3" y="5" width="34" height="30" rx="3" fill="#f6f4ee"/>'+q),
+  ded:S(PL+'<rect x="13" y="6" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 9v4 M22.5 9v4 M22.5 11h2" stroke-width="1.8"/><circle cx="20" cy="15.2" r="1.2" fill="#3a3936" stroke="none"/><rect x="11.5" y="24" width="17" height="8" rx="2" fill="#e0701f" stroke="none"/><text x="20" y="30.3" font-size="6.2" font-family="sans-serif" font-weight="700" fill="#fff" text-anchor="middle" stroke="none">20A</text>'),
+  r30:S(R+'<circle cx="20" cy="20" r="12" fill="#fff"/><path d="M14 16v6 M26 16v6 M18 26h4 M20 12.5v3" stroke-width="2.2"/>'),
+  r50:S(R+'<circle cx="20" cy="20" r="12.5" fill="#fff"/><path d="M14 15v8 M26 15v8 M20 25v4 M18 12.5h4" stroke-width="2.6"/>'),
+  p3:S(R+'<circle cx="20" cy="20" r="12.5" fill="#fff"/><path d="M15 13.5a8 8 0 0 1 4-1.5 M27 16a8 8 0 0 1 1 4 M25 27a8 8 0 0 1-4 1 M13 24a8 8 0 0 1-1-4" stroke-width="2.4"/><circle cx="20" cy="20" r="1.3" fill="#3a3936" stroke="none"/>'),
+  floor:S('<rect x="5" y="5" width="30" height="30" rx="3" fill="#d9b56a" stroke="#8a6a2a"/><rect x="10" y="10" width="20" height="20" rx="2" fill="#e8cc8a" stroke="#8a6a2a"/><path d="M15 15v4 M25 15v4 M15 23v3 M25 23v3" stroke="#6a5020" stroke-width="1.8"/>'),
+  reel:S('<circle cx="20" cy="14" r="10" fill="#e0b31b"/><circle cx="20" cy="14" r="4" fill="#fff"/><path d="M20 24c0 4 3 5 3 9"/><rect x="18" y="32" width="10" height="5" rx="1.5" fill="#f6f4ee"/>'),
+  drop:S('<path d="M20 3v14"/><rect x="11" y="17" width="18" height="18" rx="3" fill="#f6f4ee"/><rect x="14" y="20" width="12" height="5" rx="2" fill="#fff"/><rect x="14" y="27" width="12" height="5" rx="2" fill="#fff"/>'),
+  jbox:S(JB),disc:S(DS),cdisc:S(DS),
+  cjb:S('<circle cx="20" cy="20" r="15" fill="#b8bcc0"/><circle cx="20" cy="20" r="6" fill="#fff6d0"/><path d="M20 5v4M20 31v4M5 20h4M31 20h4"/>'),
+  crec:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><rect x="13" y="14" width="14" height="12" rx="5" fill="#fff"/><path d="M17.5 17v4 M22.5 17v4" stroke-width="1.8"/>'),
+  c240:S('<circle cx="20" cy="20" r="15" fill="#f6f4ee"/><circle cx="20" cy="20" r="9" fill="#fff"/><path d="M15 17v5 M25 17v5 M18 25h4" stroke-width="2.2"/>')}})();
+function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span'+(PK[k].ty==='any'?'':' class="p"')+'>'+pkBadge(k)+'</span></div></div>'}
+function pwTip(){var ceil=VW.lv==='c';return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet onto a wall, the floor or a ceiling drop. Objects plug into the nearest one that fits.'}
+function renderPwLib(){pwHead();renderPwCat()}
+function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
+ hd.innerHTML='<div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Power</span><span class="muted" style="margin:0;font-size:12px">'+(VW.lv==='c'?'Ceiling':'Outlets &amp; circuits')+'</span></div>'+
+  '<div class="pwa"><button id="pa-build" class="'+(has&&P.pw.auto?'':'pri')+'">'+I('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>')+'Build out</button>'+
+  '<button id="pa-re" class="'+(ch?'pri':'')+'"'+(has?'':' disabled')+'>'+I('<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>')+'Rebuild'+(ch?'<i class="pab">'+ch+'</i>':'')+'</button>'+
+  '<button id="pa-clear" class="del"'+(has?'':' disabled')+'>'+I('<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>')+'Clear</button></div>'+
+  (VW.lv==='c'?'':'<label class="ck pgp"><input type="checkbox" id="pa-gp"'+(gpOn?' checked':'')+'> Build out adds outlets every ~12 ft of wall</label>')+'<p class="muted">'+pwTip()+'</p>';
+ $('#pa-build').onclick=function(){push();buildPower({auto:true,fresh:true});selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
+ $('#pa-re').onclick=function(){if(!P.pw)return;push();buildPower();selO=null;persist();render();toast('Power rebuilt'+(P.pw.outlets.some(function(o){return o.man})?'. Your placed outlets stayed put.':''))};
+ $('#pa-clear').onclick=function(){if(!P.pw)return;push();P.pw=null;selO=null;persist();render();toast('Power cleared. Undo brings it back.')};
+ var gp=$('#pa-gp');if(gp)gp.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw&&P.pw.auto)buildPower();persist();render()}}
+function renderPwCat(){var h='';PKG[VW.lv==='c'?'c':'g'].forEach(function(gg){var name=gg[0],ks=Object.keys(PK).filter(function(k){return PK[k].g===name}),open=PKO[name]!==false;
+  h+='<div class="lsec'+(open?' open':'')+'"><button class="lsh" data-pc="'+esc(name)+'"><i style="background:'+gg[1]+'"></i><span class="lsn">'+esc(name)+'</span><span class="lct">'+ks.length+'</span><svg class="lchev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>';
+  if(open)h+='<div class="lgrid">'+ks.map(function(k){return pkCard(k,gg[1])}).join('')+'</div>';h+='</div>'});
+ $('#lib').innerHTML=h;
+ $('#lib').querySelectorAll('.lsh').forEach(function(b){b.onclick=function(){PKO[b.dataset.pc]=PKO[b.dataset.pc]===false;renderLib()}});
+ $('#lib').querySelectorAll('.lcard.pk').forEach(function(b){b.onclick=function(){if(ldCard===b&&Date.now()-ldClick<400)return;pkTap(b.dataset.pk)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pkTap(b.dataset.pk)}}});
+}
+// dragging from the Power panel
+function pkGhost(k,sp){var kk=1/scale(),o=Object.assign({s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y}),p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-8.5*kk:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=tCol(Object.assign({gp:0},pkBase(k))),r=7*kk;
+ G.ghost.innerHTML='<g pointer-events="none"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+(PK[k].reach||REACH)+'" fill="rgba(47,125,225,.06)" stroke="#2f7de1" stroke-width="'+kk+'" stroke-dasharray="'+(4*kk)+' '+(4*kk)+'"/>'+
+  (o.s<0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"':'<rect x="'+(cx-r)+'" y="'+(cy-r)+'" width="'+2*r+'" height="'+2*r+'" rx="'+(2.5*kk)+'"')+' fill="'+col+'" stroke="#fff" stroke-width="'+(1.5*kk)+'"/>'+
+  '<rect x="'+(cx-r-4*kk)+'" y="'+(cy-r-4*kk)+'" width="'+(2*r+8*kk)+'" height="'+(2*r+8*kk)+'" rx="'+(4*kk)+'" fill="none" stroke="#2f7de1" stroke-width="'+(1.6*kk)+'" stroke-dasharray="'+(4*kk)+' '+(3*kk)+'"/></g>'}
+function pkMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';if(!ldOver(e)){d.spot=null;d.chip.classList.remove('over');ghost(null);return}d.chip.classList.add('over');
+ d.spot=pkSpot(d.pk,toFt(e));pkGhost(d.pk,d.spot);var w=d.spot.s>=0?'Snaps to wall':d.spot.s===-3?'Ceiling':d.spot.s===-2?'Hangs from ceiling':'Floor';d.chip.querySelector('span').textContent=w+' · '+pkBadge(d.pk).replace('⚡','')}
+function pkDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e)||!d.spot)return;var before=snapP(),o=pkPlace(d.pk,d.spot);pkAfter(o,before)}
+// moving a placed outlet on the plan
+var odrag=null;
+function odMove(e){var d=odrag;if(!d.moved&&Math.hypot(e.clientX-d.sx,e.clientY-d.sy)<4)return;var o=outBy(d.id);if(!o)return;if(!d.moved){d.before=snapP();d.moved=true}
+ var sp=pkSpot(o.k,toFt(e));delete o.a;delete o.x;delete o.y;Object.assign(o,sp);render()}
+function odUp(){var d=odrag;odrag=null;if(!d.moved){selO=d.id;sel=null;render();return}var o=outBy(d.id);if(!o)return;Object.assign(o,nudge(Object.assign({s:o.s},o.s>=0?{a:o.a}:{x:o.x,y:o.y}),P.pw.outlets.filter(function(x){return x!==o}),{x:-1e3,y:-1e3,w:3e3,d:3e3}));pkAfter(o,d.before)}
 
 /* ---------------- drawing ---------------- */
 var sv=$('#sv'),NS='http://www.w3.org/2000/svg',G={},popU=null,drag=null;
@@ -2639,7 +2761,7 @@ sv.addEventListener('wheel',function(e){e.preventDefault();var dy=e.deltaY*(e.de
 var touches={},pinch=null,pan=null;
 function tpts(){return Object.keys(touches).map(function(k){return touches[k]})}
 sv.addEventListener('pointerdown',function(e){if(e.pointerType==='touch'){touches[e.pointerId]={x:e.clientX,y:e.clientY};var t=tpts();if(t.length===2){if(drag){drag.el.classList.remove('drag');drag.el.style.opacity='';drag.el.dataset.k='';ghost(null);drag=null;render()}pan=null;pinch={d:Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx:(t[0].x+t[1].x)/2,my:(t[0].y+t[1].y)/2};return}}
- if(pinch)return;var go=e.target.closest('g.out');if(go){selO=go.dataset.o;sel=null;render();e.preventDefault();return}var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+ if(pinch)return;var go=e.target.closest('g.out');if(go){var oo=outBy(go.dataset.o);if(oo&&oo.man&&VW.md==='p'){odrag={id:oo.id,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();return}selO=go.dataset.o;sel=null;render();e.preventDefault();return}var g=e.target.closest('g.obj');if(!g){pan={sx:e.clientX,sy:e.clientY,lx:e.clientX,ly:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}return}var it=byU(g.dataset.u),p=toFt(e);drag={u:it.u,el:g,dx:p.x-it.x,dy:p.y-it.y,sx:e.clientX,sy:e.clientY,moved:false};try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
 // the free spot closest to where it was dropped: nothing else has to move, nobody's clearance is blocked
 function others(it){var lv=isC(it);return P.items.filter(function(o){return o!==it&&isC(o)===lv}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
@@ -2652,6 +2774,7 @@ function drawAs(d,it,rot){if(d.shown===rot)return;d.shown=rot;var t=Object.assig
 sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e.pointerId]={x:e.clientX,y:e.clientY}}
  if(pinch){var t=tpts();if(t.length<2)return;var d=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx=(t[0].x+t[1].x)/2,my=(t[0].y+t[1].y)/2;if(pinch.d>0)zoomAt(mx,my,d/pinch.d);panBy(mx-pinch.mx,my-pinch.my);pinch.d=d;pinch.mx=mx;pinch.my=my;return}
  if(pan){if(!pan.moved&&Math.hypot(e.clientX-pan.sx,e.clientY-pan.sy)<4)return;pan.moved=true;sv.style.cursor='grabbing';panBy(e.clientX-pan.lx,e.clientY-pan.ly);pan.lx=e.clientX;pan.ly=e.clientY;return}
+ if(odrag){odMove(e);return}
  if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot}drag.moved=true;
  var p=toFt(e),W=P.room.w,D=P.room.d,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr;
  for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
@@ -2662,10 +2785,11 @@ sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e
  drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
  drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
 function tEnd(e){delete touches[e.pointerId];if(tpts().length<2)pinch=null}
-sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor=''});
+sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor='';if(odrag){var d=odrag;odrag=null;if(d.moved){P=JSON.parse(d.before);render()}}});
 sv.addEventListener('dblclick',function(e){if(!e.target.closest('g.obj')&&zoomed())fitView()});
 sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType==='touch'&&tpts().length>1);tEnd(e);if(wasPinch)return;
  if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){var now=Date.now();if(now-(window.__lastTap||0)<320){window.__lastTap=0;fitView();return}window.__lastTap=now;sel=null;selO=null;render()}return}
+ if(odrag){odUp();return}
  if(!drag)return;var d=drag;drag=null;d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;selO=null;render();return}
  var before=snapP();sel=it.u;selO=null;it.rot=d.rot;d.el.dataset.rot=it.rot;
@@ -2678,14 +2802,14 @@ function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i
 function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+(EDITED[i.r]?' edited':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0"><button class="ledit" aria-label="Edit details" title="Edit details"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button>'+(EDITED[i.r]?'<span class="led" title="Edited: your version of this object" aria-label="Edited"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Edited</span>':'')+'<div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lbdg"><span>'+fmt(i.w)+'×'+fmt(i.d)+'</span>'+(i.p?'<span class="p">⚡'+i.p[0]+'V</span>':'')+(n.water?'<span>water</span>':'')+'</div></div>'}
 function cats(){var by={},order=[],up=VW.lv==='c';CATS.forEach(function(c){if(c[0]!=='Rooms & Zones'&&(CEILCATS.indexOf(c[0])>=0)===up){order.push(c[0]);by[c[0]]={col:c[1],list:[]}}});by['My objects']={col:'#2f7de1',list:[]};order.unshift('My objects');
  Object.keys(LIB).forEach(function(r){var i=LIB[r];if(!!i.ceiling!==up)return;var cat=MINE[r]?'My objects':i.c;if(!by[cat]){by[cat]={col:'#888',list:[]};order.push(cat)}by[cat].list.push(i)});return {by:by,order:order}}
-function renderLib(){var c=cats(),s=q.toLowerCase().trim(),h='';
+function renderLib(){var pm=VW.md==='p';$('#libhd').hidden=pm;$('#pwhd').hidden=!pm;if(pm)return renderPwLib();var c=cats(),s=q.toLowerCase().trim(),h='';
  var lastGrp='';c.order.forEach(function(name){var g=c.by[name],list=g.list.filter(function(i){return !s||i.n.toLowerCase().indexOf(s)>=0});if(!list.length)return;if(VW.lv==='c'){var grp=/^Lighting/.test(name)?'Lighting':name==='My objects'?'':'Sound & comfort';if(grp&&grp!==lastGrp){h+='<div class="lgrp'+(grp==='Lighting'?' hot':'')+'">'+grp+'</div>';lastGrp=grp}}var open=s?true:!!openCats[name];
   h+='<div class="lsec'+(open?' open':'')+'"><button class="lsh" data-c="'+esc(name)+'"><i style="background:'+g.col+'"></i><span class="lsn">'+esc(name)+'</span><span class="lct">'+list.length+'</span><svg class="lchev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>';
   if(open)h+='<div class="lgrid">'+list.map(function(i){return card(i,g.col)}).join('')+'</div>';h+='</div>'});
  $('#lib').innerHTML=h||'<p class="muted">No objects match.</p>';
  $('#lib').querySelectorAll('.lsh').forEach(function(b){b.onclick=function(){openCats[b.dataset.c]=!openCats[b.dataset.c];renderLib()}});
  $('#lib').querySelectorAll('.ledit').forEach(function(e){e.onpointerdown=function(ev){ev.stopPropagation()};e.onclick=function(ev){ev.stopPropagation();editObj(e.closest('.lcard').dataset.r)}});$('#lib').querySelectorAll('.lcard').forEach(function(b){b.onclick=function(){if(ldCard===b&&Date.now()-ldClick<400)return;add(b.dataset.r)};b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();add(b.dataset.r)}};b.oncontextmenu=function(e){e.preventDefault();if(ldrag||Date.now()-ldClick<800||e.pointerType==='touch'||(e.sourceCapabilities&&e.sourceCapabilities.firesTouchEvents))return;editObj(b.dataset.r)}});markLib()}
-function markLib(){var cnt={};P.items.forEach(function(i){cnt[i.r]=(cnt[i.r]||0)+1});document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('sel',!!cnt[b.dataset.r])})}
+function markLib(){if(VW.md==='p')return;var cnt={};P.items.forEach(function(i){cnt[i.r]=(cnt[i.r]||0)+1});document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('sel',!!cnt[b.dataset.r])})}
 $('#q').oninput=function(){q=this.value;renderLib()};libTip();
 // open a dialog without popping the on-screen keyboard: on touch screens nothing is focused until a field is tapped
 function modal(d){d.showModal();if(TOUCH){var a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))a.blur()}}
@@ -2700,11 +2824,11 @@ window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.
    It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */
 var ldrag=null,ldClick=0,ldCard=null;
 function ldCancel(){if(!ldrag)return;clearTimeout(ldrag.timer);if(ldrag.chip)ldrag.chip.remove();if(ldrag.card)ldrag.card.classList.remove('lifting');ghost(null);document.body.classList.remove('ldragging');ldrag=null}
-function ldStart(){var d=ldrag;d.started=true;d.timer=null;var c=LIB[d.r];d.it={u:'__new',r:d.r,x:0,y:0,rot:0};d.obs=others(d.it);
+function ldStart(){var d=ldrag;d.started=true;d.timer=null;if(d.pk){d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}var c0=document.createElement('div');c0.className='ldchip';c0.innerHTML='<div class="lart">'+PICON[d.pk]+'</div><span>'+esc(PK[d.pk].n)+'</span>';document.body.appendChild(c0);d.chip=c0;return}var c=LIB[d.r];d.it={u:'__new',r:d.r,x:0,y:0,rot:0};d.obs=others(d.it);
  d.card.classList.add('lifting');document.body.classList.add('ldragging');try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}
  var ch=document.createElement('div');ch.className='ldchip';ch.innerHTML='<div class="lart">'+libArt(c,getComputedStyle(d.card).getPropertyValue('--c')||'#888')+'</div><span>'+esc(c.n)+'</span>';document.body.appendChild(ch);d.chip=ch}
 function ldOver(e){var r=sv.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
-function ldMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';
+function ldMove(e){var d=ldrag;if(d.pk)return pkMove(e);d.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';
  if(!ldOver(e)){d.spot=null;d.chip.classList.remove('over');ghost(null);return}d.chip.classList.add('over');
  var p=toFt(e),W=P.room.w,D=P.room.d,it=d.it,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr,rot=0,m,x,y;
  for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
@@ -2714,13 +2838,13 @@ function ldMove(e){var d=ldrag;d.chip.style.transform='translate('+(e.clientX+14
  if(m.w>W+1e-6||m.d>D+1e-6){d.spot=null;ghost(null);return}
  d.rot=rot;d.spot=nearestFree(it,x,y,d.obs,rot);var k=1/scale(),t=Object.assign({},it,{rot:rot}),exact=d.spot&&d.spot.x===x&&d.spot.y===y;
  G.ghost.innerHTML='<g transform="translate('+x+' '+y+')" opacity="'+(exact?.92:.45)+'" pointer-events="none">'+objInner(t,k)+'</g>'+(d.spot&&!exact?'<rect x="'+d.spot.x+'" y="'+d.spot.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>':'')}
-function ldDrop(e){var d=ldrag;ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e))return;
+function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e))return;
  if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':'No free spot for it there');return}
  var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
  if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
  hist.push(before);fut=[];sel=it.u;selO=null;lastFail=null;persist();render();pop(it.u)}
 $('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0||ldrag)return;
- ldrag={r:b.dataset.r,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
+ ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
  if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
 window.addEventListener('pointermove',function(e){var d=ldrag;if(!d)return;var dist=Math.hypot(e.clientX-d.sx,e.clientY-d.sy);
  if(!d.started){if(d.touch){if(dist>10)ldCancel()}else if(dist>6)ldStart();if(!ldrag||!ldrag.started)return}
@@ -2787,11 +2911,11 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
   (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. The room is '+fmt(P.room.h)+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
  if(VW.md==='p')h+=powerCard();if(VW.md!=='p'&&!byU(sel))h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
 
- var S=$('#side');S.innerHTML=h;strip();
+ var S=$('#side');S.innerHTML=h;strip();pwHead();
  var gb=$('#r-grow');if(gb)gb.onclick=function(){var r=lastFail.r,c=LIB[r],before=snapP(),nit={u:'o'+(P.uid++),r:r,x:0,y:0,rot:0,n:P.uid};P.defs[r]=JSON.parse(JSON.stringify(c));P.items.push(nit);if(!relayout({force:true})){P=JSON.parse(before);toast('Even a much bigger room can\'t fit that');render();return}hist.push(before);fut=[];sel=nit.u;lastFail=null;persist();render()};
  var pb=$('#pw-build');if(pb)pb.onclick=function(){push();buildPower();selO=null;persist();render();toast('Power built out: '+P.pw.circ.length+' circuits')};
  var pg=$('#pw-gp');if(pg)pg.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw)buildPower();persist();render()};
- var pc=$('#pw-clear');if(pc)pc.onclick=function(){push();P.pw=null;selO=null;persist();render()};
+ var od=$('#o-odel');if(od)od.onclick=function(){pkDel(selO)};
  var ht=$('#howto');if(ht)ht.ontoggle=function(){howOpen=ht.open;try{localStorage.setItem('sp-howto',howOpen?'1':'0')}catch(_){}};
  var un=$('#unp');if(un){un.ontoggle=function(){unpOpen=un.open;try{localStorage.setItem('sp-unp',unpOpen?'1':'0')}catch(_){}};S.querySelectorAll('.uli').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});$('#unp-go').onclick=function(){setView('md','p')}}
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});

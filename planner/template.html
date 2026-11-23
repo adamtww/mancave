@@ -73,6 +73,14 @@ g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:n
 .lcard:hover .ledit,body.touch .ledit{display:flex}.ledit:hover{color:#1d4f91;border-color:#2f7de1}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
 .lcard{position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}.lcard.lifting{opacity:.45}
+.hd[hidden]{display:none!important}
+.lart.pw,.lart.pw svg{width:44px!important;height:44px!important;flex:0 0 44px}
+#pwhd .pwa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 6px}
+#pwhd .pwa button{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:10px;border:1px solid #d9d6ce;background:#fff;font:inherit;font-size:12.5px;font-weight:600;color:#2b2a27;cursor:pointer}
+#pwhd .pwa button.pri{background:#2f7de1;border-color:#2f7de1;color:#fff}#pwhd .pwa button.del{color:#c0392b}
+#pwhd .pwa button[disabled]{opacity:.4;cursor:default}
+#pwhd .pab{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;border-radius:9px;background:#d6453d;color:#fff;font-style:normal;font-size:11px;line-height:18px;padding:0 4px;box-sizing:border-box}
+#pwhd .pgp{font-size:12.5px;margin:0 0 4px}#pwhd .muted{margin:2px 0 0}
 .led{position:absolute;top:6px;right:6px;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:1px 6px 1px 5px;pointer-events:none}
 .ldchip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9d6ce;border-radius:12px;padding:6px 10px 6px 6px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:13px;font-weight:600;color:#26251f;max-width:220px;transition:opacity .12s}
 .ldchip .lart{width:40px;height:40px;flex:0 0 40px}.ldchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ldchip.over{opacity:.0}
@@ -207,7 +215,8 @@ dialog.it2{max-width:min(760px,96vw)}
  <div id="explore" class="explore"></div>
  <div class="main">
   <aside class="pane lib" aria-label="Objects">
-   <div class="hd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
+   <div class="hd" id="pwhd" hidden></div>
+   <div class="hd" id="libhd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
     <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted" id="libtip">Click an object to add it. It finds its own spot. Or drag it onto the plan to place it yourself.</p></div>
    <div class="bd" id="lib"></div>
   </aside>
