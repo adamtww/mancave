@@ -569,7 +569,7 @@ sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e
  if(pinch){var t=tpts();if(t.length<2)return;var d=Math.hypot(t[0].x-t[1].x,t[0].y-t[1].y),mx=(t[0].x+t[1].x)/2,my=(t[0].y+t[1].y)/2;if(pinch.d>0)zoomAt(mx,my,d/pinch.d);panBy(mx-pinch.mx,my-pinch.my);pinch.d=d;pinch.mx=mx;pinch.my=my;return}
  if(pan){if(!pan.moved&&Math.hypot(e.clientX-pan.sx,e.clientY-pan.sy)<4)return;pan.moved=true;sv.style.cursor='grabbing';panBy(e.clientX-pan.lx,e.clientY-pan.ly);pan.lx=e.clientX;pan.ly=e.clientY;return}
  if(odrag){odMove(e);return}
- if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot}drag.moved=true;
+ if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<4)return;var it=byU(drag.u);if(!drag.moved){drag.obs=others(it);drag.rot=drag.shown=it.rot;if(VW.md==='p'&&P.pw&&sel!==it.u){sel=it.u;selO=null;var kk=1/scale();G.pw.innerHTML=drawPower(kk)+(VW.lv==='g'?drawCeil(kk):'')}}drag.moved=true;
  var p=toFt(e),W=P.room.w,D=P.room.d,thr=Math.max(.75,18/scale()),over=[-p.y,p.x-W,p.y-D,-p.x],side=-1,bo=thr;
  for(var q=0;q<4;q++)if(over[q]>bo){bo=over[q];side=q}
  var x,y,rot,m;
