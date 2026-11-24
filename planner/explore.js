@@ -998,6 +998,9 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
   var h=c.h||Math.max(2,Math.min(6,Math.min(w0,d0)));var g=exShape(T,c,w0,d0,h,M);g.position.set(cx,0,cz);g.rotation.y=-(it.rot||0)*Math.PI/2;S.add(g);
   if(/^a-(car|pickup|evbay)$/.test(c.r)||NOWALK.test(c.r)){var ln=new T.Mesh(new T.PlaneGeometry(m.w,m.d),exMat(T,/^c-/.test(c.r)?0x3c6e9e:0xffffff,{op:/^c-/.test(c.r)?.55:.12,r:.8}));ln.rotation.x=-Math.PI/2;ln.position.set(cx,.02,cz);S.add(ln)}
   if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
+ // light-zone fixtures
+ if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M),drop=f.c.drop||0;cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
+  if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(f.x,H-drop/2,f.y);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:f.x,z:f.y,y:H-drop-.8,col:cs.light,c:f.c,off:false})});
  // light: real fixtures. Brightness from lumens (LED ~130 lm/W) spread over each fixture's beam, in feet,
  // plus a fill light for what bounces off the floor and walls. Fixtures that aren't powered stay off.
  var LX=.1,on=lights.filter(function(L){return !L.off}),
@@ -1008,9 +1011,9 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  S.add(new T.HemisphereLight(0xd8dde6,0xb3a58f,lights.length?Math.min(2.8,.3+eAvg*.004):1.1));
  if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
   var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
- var maxL=24,shad=4,lim=on.slice(0,maxL);
+ var maxL=24,shad=4,lim=on.length<=maxL?on:Array.apply(null,Array(maxL)).map(function(_,i){return on[Math.floor(i*on.length/maxL)]}),boost=on.length/Math.max(1,lim.length);
  lim.forEach(function(L,i){var th=BEAM[L.c.r]||1.05,cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th)));
-  var sp=new T.SpotLight(L.col,cd*LX,0,Math.min(1.45,th*1.25),th>=1?1:.55,2);
+  var sp=new T.SpotLight(L.col,cd*LX*boost,0,Math.min(1.45,th*1.25),th>=1?1:.55,2);
   sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(1024,1024);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
  // glowing screens light their surroundings a little
  return S}
@@ -1018,7 +1021,7 @@ function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1
  return best||{x:W/2,y:D/2}}
 function exClear(x,z){var m=4;EX.solid.forEach(function(s){var dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));m=Math.min(m,Math.hypot(dx,dz))});return m}
 function exHit(x,z){var W=P.room.w,D=P.room.d;if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
-function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Click to look around · WASD / arrows to walk · Shift to run · Esc to free the mouse')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add lights in Ceiling view to see them here.</div>');
+function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Click to look around · WASD / arrows to walk · Shift to run · Esc to free the mouse')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})||(P.zones&&P.zones.length)?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add a light zone in Lights view to see them here.</div>');
  var cv=$('#excv'),r=EX.r=new T.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.5:2));r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;r.toneMapping=T.ACESFilmicToneMapping;r.outputColorSpace=T.SRGBColorSpace;
  EX.S=exBuild();EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
  var size=function(){var b=host.getBoundingClientRect();r.setSize(b.width,b.height,false);EX.cam.aspect=b.width/Math.max(1,b.height);EX.cam.updateProjectionMatrix()};size();EX.size=size;
