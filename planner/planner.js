@@ -264,7 +264,7 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
   if(s.ded)circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,feed:1,out:[o.id]});else feeds.push(o)});
  // light zones: wired by the electrician, split into 20A circuits at 80%
  ZN().forEach(function(z){var Lz=zLayout(z),pts=Lz.pts.filter(function(q){return !q.bl}),fw=(Lz.c.p&&Lz.c.p[1])||60;if(!pts.length)return;var per=Math.max(1,Math.floor(1920/fw)),gi=0;
-  while(gi<pts.length){var grp=pts.slice(gi,gi+per),gw=grp.length*fw,o=mk({s:-3,x:h2(grp[0].x),y:h2(grp[0].y)},{ty:'120-20',V:120,A:20,ph:1,sk:grp.length,w:gw,zw:gw,feed:1,zone:z.id});circ.push({id:0,ty:'120-20',V:120,A:20,ph:1,feed:1,zone:z.id,out:[o.id]});gi+=per}});
+  while(gi<pts.length){var grp=pts.slice(gi,gi+per),gw=grp.length*fw,o=mk({s:-3,x:h2(grp[0].x),y:h2(grp[0].y)},{ty:'120-20',V:120,A:20,ph:1,sk:grp.length,w:gw,zw:gw,feed:1,zone:z.id,zn:grp.length,zf:Lz.c.n,zfw:fw,zi:ZN().indexOf(z)+1});circ.push({id:0,ty:'120-20',V:120,A:20,ph:1,feed:1,zone:z.id,out:[o.id]});gi+=per}});
  // placed outlets get circuits too: big ones their own, the rest share like everything else
  var mshared=[];man.forEach(function(o){var dd=o.ded||o.ldd||o.ty==='hw'||(o.any&&o.ld);if(o.any&&!o.sk&&o.s===-3)o.feed=1;
   if(dd)circ.push({id:0,ty:o.ty,V:o.V,A:o.A,ph:o.ph,ded:1,feed:o.s===-3?1:0,out:[o.id]});else if(o.s===-3){o.feed=1;feeds.push(o)}else mshared.push(o)});
@@ -289,7 +289,7 @@ function pstat(it){var sp=pspec(defOf(it));if(!sp)return null;if(isC(it))return 
  var d=rdist(opos(o),ibox(it));if(d>(o.reach||REACH)+.01)return {lv:'red',o:o,why:'Moved out of reach of its outlet ('+fmt(d)+' ft away).'};
  if(sp.ph===3)return {lv:'amber',o:o,why:'Needs 3-phase power. If the building is single-phase, it needs a phase converter.'};
  return {lv:'ok',o:o}}
-function pwLoad(o){var w=o.zw||0,names=o.zone?['Light zone']:[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
+function pwLoad(o){var w=o.zw||0,names=o.zone?[o.zn+' × '+o.zf]:[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
 function circLoad(c){var w=0;c.out.forEach(function(id){var o=outBy(id);if(o)w+=pwLoad(o).w});return w}
 function pwChanges(){if(!P.pw)return 0;var n=0,used={};P.items.forEach(function(it){var s=pstat(it);if(s&&s.lv==='red')n++;if(P.pw.links[it.u])used[P.pw.links[it.u]]=1});
  P.pw.outlets.forEach(function(o){if(!o.gp&&!o.man&&!o.feed&&!used[o.id])n++});return n}
@@ -358,7 +358,7 @@ function pwSummary(){var by={},order=[],grp=pwGroup();P.pw.circ.forEach(function
   g.list.forEach(function(c){var o0=outBy(c.out[0]),cap=(o0.ph===3?1.732:1)*o0.V*o0.A*CAP80,w=circLoad(c),its=[];
    P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&c.out.indexOf(oid)>=0)its.push(it)});
    var cc=grp&&grp.col[c.id];h+='<div class="pc"'+(cc?' style="border-left-color:'+cc+'"':'')+'><button class="pch" data-o="'+c.out[0]+'"><span>'+(cc?'<i class="sw2" style="background:'+cc+'"></i>':'')+'C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W · '+fmt(w/((o0.ph===3?1.732:1)*o0.V))+' / '+fmt(o0.A*CAP80)+' A</small>':'')+'</button>';
-   h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+'<span class="pcn">'+esc(defOf(it).n)+'</span><small>'+ldTxt(defOf(it))+'</small></button>'}).join(''):'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
+   h+=its.length?its.map(function(it){var st=pstat(it);return '<button class="pci'+(sel===it.u?' on':'')+'" data-u="'+it.u+'">'+(st&&st.lv!=='ok'?'<i class="'+st.lv+'"></i>':'')+'<span class="pcn">'+esc(defOf(it).n)+'</span><small>'+ldTxt(defOf(it))+'</small></button>'}).join(''):c.zone?(function(){var zo=outBy(c.out[0]);return '<div class="pci zli"><span class="pcn">'+zo.zn+' × '+esc(zo.zf)+'</span><small>Light zone '+zo.zi+' · '+fmtW(zo.zfw)+' each</small></div>'})():'<div class="pce">'+(c.gp?'For chargers, hand tools and vacuums':'Nothing plugged in any more')+'</div>';
    h+='</div>'});
   return h+'</div></details>'}).join('')}
 function powerCard(){var pw=power(P.items),h='<div class="card"><span class="lab">Power</span>',gpOn=!P.pwo||P.pwo.gp!==false;
