@@ -998,6 +998,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
   P.rooms.forEach(function(r){var wh=Math.min(r.h||H,H);
    ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=sideGaps(r,sd),cur=0,parts=[];
     gaps.forEach(function(g){if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>7.05)parts.push([g[0],g[1],7,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
+    var sh=sideShared(r,sd);if(sh.length){var cut=[];parts.forEach(function(q){var segs=[[q[0],q[1]]];sh.forEach(function(x){var nx=[];segs.forEach(function(g){if(x[1]<=g[0]||x[0]>=g[1]){nx.push(g);return}if(x[0]>g[0])nx.push([g[0],x[0]]);if(x[1]<g[1])nx.push([x[1],g[1]])});segs=nx});segs.forEach(function(g){if(g[1]-g[0]>1e-3)cut.push([g[0],g[1],q[2],q[3]])})});parts=cut}
     parts.forEach(function(q){var a=q[0],b=q[1],hor=sd==='n'||sd==='s',fx=hor?r.x+(a+b)/2:(sd==='w'?r.x:r.x+r.w),fz=hor?(sd==='n'?r.y:r.y+r.d):r.y+(a+b)/2,w=hor?b-a:TH,d=hor?TH:b-a;
      seg(fx,fz,w,d,q[2],q[3],b-a);if(q[2]===0)EX.solid.push({x:fx-w/2,z:fz-d/2,w:w,d:d})})});
    (r.doors||[]).forEach(function(d){var g=dGeo(r,d),L=g.L,hx=g.h.x,hz=g.h.y,leaf=new T.Mesh(new T.BoxGeometry(.13,6.9,L-.1),leafM);

@@ -24,6 +24,11 @@ function dGeo(r,d){var L=d.len||3,t=d.t,s=d.s,a,b,n,hz;
 function sideGaps(r,sd){var len=sideLen(r,sd),hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w,o0=hor?r.x:r.y,out=[];
  RM().forEach(function(q){(q.doors||[]).forEach(function(d){var g=dGeo(q,d),dh=d.s==='n'||d.s==='s';if(dh!==hor)return;var dl=hor?g.a.y:g.a.x;if(Math.abs(dl-line)>1e-6)return;var a=(hor?Math.min(g.a.x,g.b.x):Math.min(g.a.y,g.b.y))-o0,b=a+g.L;if(b<=0||a>=len)return;out.push([Math.max(0,a),Math.min(len,b)])})});
  return out.sort(function(p,q){return p[0]-q[0]})}
+// parts of a side another room draws instead (shared wall): the taller room draws it, or the earlier one when level
+function sideShared(r,sd){var hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w,o0=hor?r.x:r.y,len=sideLen(r,sd),H=P.room.h||10,hr=Math.min(r.h||H,H),ir=RM().indexOf(r),out=[];
+ RM().forEach(function(q,iq){if(q===r)return;var hq=Math.min(q.h||H,H);if(!(hq>hr+1e-6||(Math.abs(hq-hr)<1e-6&&iq<ir)))return;
+  ['n','e','s','w'].forEach(function(s2){if((s2==='n'||s2==='s')!==hor)return;var l2=s2==='n'?q.y:s2==='s'?q.y+q.d:s2==='w'?q.x:q.x+q.w;if(Math.abs(l2-line)>1e-6)return;
+   var a=(hor?q.x:q.y)-o0,b=a+(hor?q.w:q.d);a=Math.max(0,a);b=Math.min(len,b);if(b>a+1e-6)out.push([a,b])})});return out}
 function sideLen(r,s){return s==='n'||s==='s'?r.w:r.d}
 function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==='s'&&r.y+r.d>=D-1e-6)||(s==='w'&&r.x<=1e-6)||(s==='e'&&r.x+r.w>=W-1e-6)}
 function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
