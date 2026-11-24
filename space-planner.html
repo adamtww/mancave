@@ -248,6 +248,7 @@ dialog.it2{max-width:min(760px,96vw)}
 .oed .seg2 label+label{border-left:1px solid #d9d6ce}.oed .seg2 label svg{width:18px;height:18px;flex:none}
 .oed .seg2 input{position:absolute;opacity:0;pointer-events:none}.oed .seg2 label:has(input:checked){background:#e9f1fe;color:#1d4f91}
 .oed .seg2 label:has(input:focus-visible){outline:2px solid #2f7de1;outline-offset:-2px}
+.oed .pdseg{max-width:none;margin:4px 0 0}.oed .pdseg label{font-size:12.5px;padding:7px 8px}.oed .pdseg label svg{width:16px;height:16px}.oed .seg2.off{opacity:.45;pointer-events:none}
 @media (max-height:780px){.oed .cd{padding:10px 12px;gap:8px}.oed .plc{margin:8px 0}.oed h2{margin-bottom:2px}.oed .cols,.oed .col{gap:10px}.oed .cbox{gap:4px}.oed .cobj{min-height:52px}}
 .oed .btn[disabled]{opacity:.45;cursor:default}
 /* selected card: size + clearance in one tappable box */
@@ -2993,12 +2994,14 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
    cd('clrcd','#7a5af5','<path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/>','Clearance','<p class="hnt">Space that must stay empty to use it, shown as on the plan with its front facing down. Back 0 lets it stand against a wall.</p><div class="cbox">'+KB(1,'back')+KB(2,'left')+'<div class="cobj"><span>'+esc(c?c.n:'Object')+'</span><i>front ▼</i></div>'+KB(3,'right')+KB(0,'front')+'</div>',true)+
    cd('reachcd','#7a5af5','<circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2.5"/>','Reach','<p class="hnt">How far it covers around itself, like a light\'s pool or a fan\'s draft.</p><div class="rch"><div class="rdisk"><i></i></div><div class="g1">'+U('reach','Reach',num0(c&&c.reach))+U('drop','Hangs down',num0(c&&c.drop))+'</div></div>',true)+
   '</div><div class="col">'+
-   cd('','#e0a400','<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>','Power','<div class="g2"><label class="fl">Voltage<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label>'+U('pw','Watts',p[1]||'','W')+'</div><div class="tgs">'+TG('pd','Needs its own circuit',p[3])+'</div>')+
+   cd('','#e0a400','<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>','Power','<div class="g2"><label class="fl">Voltage<select name="pv"><option value="0">none</option><option value="120"'+(p[0]===120?' selected':'')+'>120V</option><option value="240"'+(p[0]>=208?' selected':'')+'>240V</option></select></label>'+U('pw','Watts',p[1]||'','W')+'</div><div class="fl">Circuit<div class="seg2 pdseg" role="radiogroup" aria-label="Circuit">'+
+   '<label><input type="radio" name="pd" value="0"'+(p[3]?'':' checked')+'>'+IC('<path d="M8 3v6M16 3v6"/><path d="M5 9h14v3a7 7 0 0 1-14 0z"/><path d="M12 19v2"/>')+'<span>Can share a circuit</span></label>'+
+   '<label><input type="radio" name="pd" value="1"'+(p[3]?' checked':'')+'>'+IC('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>')+'<span>Needs its own circuit</span></label></div></div>')+
    cd('','#1f9d6b','<path d="M12 2.7s6 6.3 6 11.3a6 6 0 0 1-12 0c0-5 6-11.3 6-11.3z"/>','Utilities','<div class="tgs">'+TG('water','Plumbing',n.water)+TG('vent','Ventilation',n.vent)+TG('gas','Compressed gas',n.gas)+'</div>')+
    cd('','#8a867c','<path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/>','Notes','<textarea name="no" placeholder="Anything worth remembering about it">'+esc(c&&c.no||'')+'</textarea>',true)+
   '</div></div>'+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(mine?'<button class="btn red" value="del" formnovalidate>Delete</button>':'')+(ov?'<button class="btn" value="revert" formnovalidate>Revert to original</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn pri" value="save">Save</button></span></div></form>';
- var fm=d.querySelector('form'),syncC=function(){fm.classList.toggle('isceil',fm.elements.place.value==='c')},syncP=function(){var on=+fm.elements.pv.value>0;fm.elements.pw.disabled=!on;fm.elements.pd.disabled=!on;fm.elements.pd.closest('.tg').classList.toggle('off',!on)};
+ var fm=d.querySelector('form'),syncC=function(){fm.classList.toggle('isceil',fm.elements.place.value==='c')},syncP=function(){var on=+fm.elements.pv.value>0;fm.elements.pw.disabled=!on;fm.querySelectorAll('input[name=pd]').forEach(function(x){x.disabled=!on});fm.querySelector('.pdseg').classList.toggle('off',!on)};
  fm.querySelectorAll('input[name=place]').forEach(function(x){x.onchange=syncC});fm.elements.pv.onchange=syncP;syncC();syncP();
  fm.elements.n.oninput=function(){fm.querySelector('.cobj span').textContent=this.value||'Object'};
  var after=function(){syncDefs(true);renderLib()};
@@ -3006,7 +3009,7 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
   if(v==='del'){if(!confirm('Delete '+c.n+'?'))return;api('DELETE','/api/objects/'+r).then(function(){toast(c.n+' removed');return loadLib()}).then(renderLib).catch(function(e){toast(e.message)});return}
   if(v==='revert'){if(!confirm('Revert '+c.n+' to the original? Your changes to it will be lost.'))return;api('DELETE','/api/objects/'+ov).then(function(){return loadLib()}).then(function(){toast('Reverted to the original: '+LIB[r].n);after(r)}).catch(function(e){toast(e.message)});return}
   var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),h:num('h')||undefined,k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
-  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();if(c&&c.cost)nd.cost=c.cost.slice();
+  var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').value==='1'?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();if(c&&c.cost)nd.cost=c.cost.slice();
   if(F('place').value==='c'){nd.ceiling=true;nd.reach=num('reach');nd.drop=num('drop')}if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
   if(lib)nd.base=r;
   var key=mine?r:lib?(ov||('u'+me.id+'-ov-'+r).slice(0,80)):'u'+me.id+'-'+nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4);
