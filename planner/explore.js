@@ -1006,7 +1006,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
     if(g.sn.x!==0){leaf.geometry=new T.BoxGeometry(L-.1,6.9,.13)}leaf.castShadow=true;S.add(leaf);
     var kb=new T.Mesh(new T.SphereGeometry(.09,10,8),M.steel);kb.position.set(g.tip.x-g.sn.x*.3+(g.sn.x===0?.12:0),3.2,g.tip.y-g.sn.y*.3+(g.sn.y===0?.12:0));S.add(kb);
     EX.solid.push({x:Math.min(hx,g.tip.x)-.08,z:Math.min(hz,g.tip.y)-.08,w:Math.abs(g.tip.x-hx)+.16,d:Math.abs(g.tip.y-hz)+.16})});
-   if(wh<H-.05){var lid=new T.Mesh(new T.BoxGeometry(r.w+TH,.35,r.d+TH),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+.175,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;S.add(lid)}})}
+   if(wh<H-.05){var lid=new T.Mesh(new T.BoxGeometry(r.w-TH-.04,.35,r.d-TH-.04),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh-.175,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;S.add(lid)}})}
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
   if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
    if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
