@@ -2507,12 +2507,12 @@ function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].fo
   if(dist>2.5||(best&&dist>=best.dist))return;var t=Math.round(Math.max(0,Math.min(len-3,along-1.5))*2)/2;
   if((r.doors||[]).some(function(d){return d.s===sd&&t<d.t+(d.len||3)&&d.t<t+3}))return;best={dist:dist,r:r.id,d:{s:sd,t:t,len:3,sw:1,hg:0}}})});return best}
 function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
-function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,h='<div class="card"><span class="lab">Building</span>'+
+function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
   '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
   '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
   '<label class="sw" style="margin-top:10px" title="'+(P.dyn?'The building grows to fit new objects. Rooms stay where they are.':'The building stays this size.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Grow to fit what\'s inside</label>'+
   '<div class="srows" style="margin-top:10px"><div class="srw"><span>Floor area</span><b>'+Math.round(W*D).toLocaleString()+' sq ft</b></div><div class="srw"><span>Rooms</span><b>'+RM().length+'</b></div></div></div>';
- var r=rBy(selR);
+ var r=rBy(selR),h=r?'':bc;
  if(r&&selD!=null&&r.doors[selD]){var d=r.doors[selD];h+='<div class="card sel"><span class="lab">Door · '+esc(r.n)+'</span>'+
   '<label class="fl">Width<select id="d-len">'+[2.5,3,3.5,4,5,6,8].map(function(v){return '<option value="'+v+'"'+((d.len||3)===v?' selected':'')+'>'+fmt(v)+' ft'+(v>=5?' (double)':'')+'</option>'}).join('')+'</select></label>'+
   '<div class="fl">Swings<div class="seg2 dseg"><label><input type="radio" name="dsw" value="1"'+(d.sw!==-1?' checked':'')+'><span>Into the room</span></label><label><input type="radio" name="dsw" value="-1"'+(d.sw===-1?' checked':'')+'><span>Out</span></label></div></div>'+
