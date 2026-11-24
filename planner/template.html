@@ -69,9 +69,11 @@ html,body{touch-action:pan-x pan-y}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 g.obj{transition:transform .38s cubic-bezier(.3,.9,.3,1)}g.obj.drag{transition:none}g.obj.pop{animation:spop .35s ease-out}@keyframes spop{0%{opacity:.15}100%{opacity:1}}
 .lgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-.ledit{position:absolute;top:6px;left:6px;z-index:2;width:26px;height:26px;border-radius:50%;border:1px solid #d9d6ce;background:#fff;color:#5f5b52;display:none;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer}
-.lcard:hover .ledit,body.touch .ledit{display:flex}.ledit:hover{color:#1d4f91;border-color:#2f7de1}
 .lcard.mine::after{content:"Mine";position:absolute;top:6px;right:6px;font-size:10px;font-weight:700;color:#1d4f91;background:#eaf1fd;border-radius:999px;padding:1px 6px}
+.lcard .lft{display:flex;align-items:stretch;margin:5px -8px -7px;border-top:1px solid #eeebe4;min-height:34px}.lcard .lft .lbdg{flex:1;min-width:0;margin:0;padding:0 0 0 8px;align-self:center;flex-wrap:wrap;height:20px;align-items:center;overflow:hidden}
+.ledit{flex:0 0 42px;border:0;border-left:1px solid #eeebe4;background:none;color:#5f5b52;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;border-radius:0}.ledit:hover,.ledit:active{background:#eef4fe;color:#1d4f91}
+.lcard.pick,.lcard.sel.pick{border-color:#2f7de1;box-shadow:0 0 0 2px #2f7de1,0 4px 12px rgba(47,111,237,.18);background:#f6f9ff}
+.led2{margin-left:8px;font-size:10px;font-weight:700;color:#8a5a00;background:#fff3d6;border:1px solid #f0d28a;border-radius:999px;padding:1px 7px;letter-spacing:0;text-transform:none;vertical-align:1px}.led2.mine{color:#1d4f91;background:#eaf1fd;border-color:#c9dbf7}.lv .lvh{margin:2px 0 8px}.hero.pw svg{width:72px;height:72px}
 .lcard{position:relative;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}.lcard.lifting{opacity:.45}
 .hd[hidden]{display:none!important}
 .lart.pw,.lart.pw svg{width:44px!important;height:44px!important;flex:0 0 44px}
@@ -218,7 +220,7 @@ dialog.it2{max-width:min(760px,96vw)}
   <aside class="pane lib" aria-label="Objects">
    <div class="hd" id="pwhd" hidden></div>
    <div class="hd" id="libhd"><div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Add objects</span><button class="btn" id="b-newobj" style="padding:5px 10px;font-size:12.5px">+ New object</button></div>
-    <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted" id="libtip">Click an object to add it. It finds its own spot. Or drag it onto the plan to place it yourself.</p></div>
+    <input id="q" type="search" placeholder="Search objects…" autocomplete="off"><p class="muted" id="libtip">Click an object to see its details. Drag it onto the plan to place it.</p></div>
    <div class="bd" id="lib"></div>
   </aside>
   <div class="stage"><svg id="sv" aria-label="Room plan"></svg><div class="vbar" id="vbar"></div><div class="ur"><button class="btn" id="b-undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg><span class="lbl">Undo</span></button><button class="btn" id="b-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg><span class="lbl">Redo</span></button></div></div>

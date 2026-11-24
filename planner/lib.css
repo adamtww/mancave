@@ -52,7 +52,7 @@ body.touch .lcard{touch-action:pan-y}
 .dshadow{position:fixed;z-index:44;pointer-events:none;border-radius:6px;background:rgba(40,30,10,.38);filter:blur(14px);opacity:.15;transform:scale(1.35);transition:transform .155s cubic-bezier(.5,0,.9,.6),opacity .155s,filter .155s}
 .dshadow.on{transform:scale(1.02);opacity:.55;filter:blur(4px)}.dshadow.off{opacity:0;transition:opacity .18s}
 .cardchip.drop .hbox{transition:left .155s cubic-bezier(.5,0,.9,.6),top .155s cubic-bezier(.5,0,.9,.6),box-shadow .155s,filter .155s!important}
-.lcard.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 12px rgba(47,111,237,.18)}
+.lcard.sel{border-color:#a9c4f3}
 .dhint{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;color:#6b675e;user-select:none}
 .dhint .cd{flex:none;width:26px;height:26px;border-radius:6px;border:1.5px solid #e6e3dc;border-top:4px solid #b9b4a8;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.08);transform:rotate(-6deg);box-sizing:border-box}
 .dhint .ar{flex:none;color:#2f6fed;font-size:16px;letter-spacing:-2px;white-space:nowrap}
