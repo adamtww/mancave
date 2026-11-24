@@ -7,12 +7,12 @@ function zK(z){return ZK.filter(function(q){return q[0]===(z.k||5000)})[0]||ZK[3
 var selZ=null,zd=null,ZEFF=130,ZCU=.7,ZLLF=.85;
 function ZN(){return P.zones||(P.zones=[])}
 function zBy(id){return ZN().filter(function(z){return z.id===id})[0]||null}
-function zAutoF(){return (P.room.h||10)>=15?'cl-hbr':'cl-shop'}
-function zDef(z){var r=z.f||zAutoF();return {r:r,c:(P.defs&&P.defs[r])||LIB[r]}}
+function zAutoF(z){return (z?hAt(z.x+z.w/2,z.y+z.d/2):(P.room.h||10))>=15?'cl-hbr':'cl-shop'}
+function zDef(z){var r=z.f||zAutoF(z);return {r:r,c:(P.defs&&P.defs[r])||LIB[r]}}
 function zLm(c){return ((c&&c.p&&c.p[1])||60)*ZEFF}
-function zOverlap(b,skip){return ZN().some(function(z){return z.id!==skip&&hit(b,z)})}
+function zOverlap(b,skip){return ZN().some(function(z){return z.id!==skip&&hit(b,z)})||RM().some(function(r){return hit(b,r)&&!within(b,r)})}
 function zObst(){var o=[];P.items.forEach(function(it){var c=defOf(it);if(!c||!c.ceiling)return;var b=ibox(it);o.push(isFan(c)?rodBox(b):b)});return o}
-function zLayout(z){var d=zDef(z),c=d.c,H=P.room.h||10,A=Math.max(1,z.w*z.d),lm=zLm(c),hm=Math.max(2,H-(c.drop||0)-.5-2.5),S=Math.max(4,1.3*hm),
+function zLayout(z){var d=zDef(z),c=d.c,H=hAt(z.x+z.w/2,z.y+z.d/2),A=Math.max(1,z.w*z.d),lm=zLm(c),hm=Math.max(2,H-(c.drop||0)-.5-2.5),S=Math.max(4,1.3*hm),
   N=Math.max(1,Math.ceil((z.fc||50)*A/(lm*ZCU*ZLLF))),cols,rows;
  if(z.rc){cols=z.rc[0];rows=z.rc[1]}else{var mc=Math.max(1,Math.ceil(z.w/S)),mr=Math.max(1,Math.ceil(z.d/S)),best=null;
   for(var cc=mc;cc<=mc+40;cc++){var rr=Math.max(mr,Math.ceil(N/cc)),sx0=z.w/cc,sy0=z.d/rr,sc=(cc*rr-N)*2+Math.abs(sx0-sy0)/S*3;if(!best||sc<best.s)best={s:sc,c:cc,r:rr};if(cc*mr>N*1.6+4)break}cols=best.c;rows=best.r}
@@ -68,7 +68,7 @@ function zoneCard(){var z=zBy(selZ);if(!z)return '';var L=zLayout(z),ok=L.fc>=(z
   opts=Object.keys(LIB).filter(function(r){return isLt(LIB[r])}).map(function(r){return '<option value="'+r+'"'+(z.f===r?' selected':'')+'>'+esc(LIB[r].n)+'</option>'}).join(''),
   row=function(k,v){return '<div class="srw"><span>'+k+'</span><b>'+v+'</b></div>'},stp=function(id,t){return '<button class="zst" data-a="'+id+'" aria-label="'+t+'">'+(id[0]==='-'?'−':'+')+'</button>'};
  return '<div class="card sel zcardp"><div style="display:flex;align-items:center;justify-content:space-between"><span class="lab">Light zone</span><button class="lnk red" id="z-del">Delete</button></div>'+
-  '<label class="fl">Fixture<select id="z-f"><option value="">Auto · '+esc(LIB[zAutoF()].n)+'</option>'+opts+'</select></label>'+
+  '<label class="fl">Fixture<select id="z-f"><option value="">Auto · '+esc(LIB[zAutoF(z)].n)+'</option>'+opts+'</select></label>'+
   '<div class="fl">Light color<div class="zk">'+ZK.map(function(q){return '<button class="zkb'+(zK(z)[0]===q[0]?' on':'')+'" data-k="'+q[0]+'" title="'+q[1]+' · '+q[0]+'K"><i style="background:'+q[3]+'"></i><span>'+q[0]/1000+'K</span></button>'}).join('')+'</div><span class="muted" style="font-size:12px">'+zK(z)[1]+' · '+zK(z)[0]+'K</span></div>'+
   '<label class="fl">Target brightness<span class="zin"><input id="z-fc" type="number" min="5" max="300" step="5" value="'+(z.fc||50)+'" inputmode="numeric"><i>fc</i></span></label>'+
   '<div class="fl">Layout<div class="zlay"><span>'+stp('-c','Fewer columns')+'<b>'+L.cols+'</b>'+stp('+c','More columns')+'<em>across</em></span><span>'+stp('-r','Fewer rows')+'<b>'+L.rows+'</b>'+stp('+r','More rows')+'<em>down</em></span></div>'+(L.auto?'':'<button class="lnk" id="z-auto">Back to automatic count</button>')+'</div>'+

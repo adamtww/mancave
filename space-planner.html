@@ -197,6 +197,16 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .zlay b{flex:1;text-align:center;font-size:15px;color:#2b2a27}.zlay em{font-style:normal;font-size:11px;color:#8a867c;margin-left:2px}
 .zst{width:32px;height:32px;border:1px solid #d9d6ce;border-radius:8px;background:#faf9f6;font-size:17px;line-height:1;color:#3a3936;cursor:pointer;padding:0}.zst:active{background:#eef4fe}
 .lnk.red{color:#b3261e}
+body.building #g-obj,body.building #g-zone,body.building #g-zoneh,body.building #g-pw,body.building #g-reach{opacity:.3;pointer-events:none!important}body.building #g-obj *{pointer-events:none!important}body.building #vbar{display:none}
+#g-rooms .room{cursor:default}body.building #g-rooms .room{cursor:move}body.building #g-rooms .rdoor{cursor:grab}body:not(.building) #g-rooms{pointer-events:none}
+.btool{display:flex;gap:12px;align-items:center;border:1px solid #d9d6ce;background:#fff;border-radius:12px;padding:12px;margin:0 0 10px;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;color:#3a3936}.btool b{display:block;font-size:14px}.btool span{display:block;font-size:12px;color:#6b6960;line-height:1.35;margin-top:2px}.btool:hover{border-color:#a9c4f3}
+.card .fl .sdim{display:flex;gap:6px;align-items:center;margin-top:4px}.card .fl .sdim select{flex:1}
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card .fl input,.card .fl textarea{width:100%;box-sizing:border-box}
+.rli{display:flex;align-items:center;gap:8px;width:100%;padding:8px 4px;border:0;border-bottom:1px solid #eeebe4;background:none;cursor:pointer;text-align:left;font:inherit}.rli i{width:10px;height:10px;border-radius:3px;flex:none}.rli span{flex:1;font-weight:600}.rli small{color:#8a867c}
+.btot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 4px}.btot div{background:#f4f2ed;border-radius:9px;padding:7px 9px}.btot span{display:block;font-size:11.5px;color:#6b6960}.btot b{font-size:15px}
+.rcard summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none}.rcard summary::-webkit-details-marker{display:none}.rcard summary i{width:10px;height:10px;border-radius:3px;flex:none}.rcard summary small{margin-left:auto;color:#8a867c}.rcard[open] summary{margin-bottom:8px}.rcard .warn{margin:6px 0}
+.card .seg2{display:flex;border:1px solid #d9d6ce;border-radius:10px;overflow:hidden;background:#fff}.card .seg2 label{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;font-size:13px;font-weight:600;color:#57534b;cursor:pointer;margin:0}.card .seg2 label+label{border-left:1px solid #d9d6ce}.card .seg2 input{position:absolute;opacity:0;pointer-events:none}.card .seg2 label:has(input:checked){background:#e9f1fe;color:#1d4f91}
+.dseg{max-width:none;margin:4px 0 0}
 .zk{display:flex;gap:5px;margin:4px 0 4px}.zkb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:1px solid #d9d6ce;border-radius:9px;background:#fff;cursor:pointer;font-size:11px;color:#57534b;font-weight:600}.zkb i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}.zkb.on{border-color:#2f7de1;box-shadow:0 0 0 2px #2f7de1;color:#1d4f91}
 .cpw{padding:4px 2px}.cpw>b{font-size:15px}.cpt{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e8e5de;margin-top:6px;font-weight:600}.cpr{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #eeebe4;font-size:13px}.cpr em{display:block;font-style:normal;font-size:11.5px;color:#8a867c;margin-top:2px}.cpr b{white-space:nowrap}
 .lgrp{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a867c;padding:12px 2px 4px}.lgrp.hot{color:#b07a00;display:flex;align-items:center;gap:6px}.lgrp.hot::before{content:"";width:10px;height:10px;border-radius:50%;background:#f2b33d;box-shadow:0 0 0 3px rgba(242,179,61,.25)}
@@ -2208,14 +2218,29 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
+ // rooms: drywall partitions with door openings, a lower ceiling where the room has one
+ if(P.rooms&&P.rooms.length){var dw=exMat(T,0xe7e3db,{r:.92,map:exTex(T,function(g,s){g.fillStyle='#e7e3db';g.fillRect(0,0,s,s);for(var i=0;i<s*s/6;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'255,255,255')+','+(Math.random()*.035)+')';g.fillRect(Math.random()*s,Math.random()*s,1.5,1.5)}g.fillStyle='rgba(0,0,0,.035)';g.fillRect(0,0,2,s)},256,[1,1])}),
+   leafM=exMat(T,0x9c7a55,{r:.55}),frameM=exMat(T,0xf2f0ea,{r:.6}),lidM=exMat(T,0xeeece6,{r:.95}),lidTop=exMat(T,0x8a8a86,{r:.95}),TH=.4,
+   seg=function(x,z,w,d,y0,y1,len){if(w<=.01||d<=.01||y1-y0<=.01)return;var m=new T.Mesh(new T.BoxGeometry(w,y1-y0,d),dw.clone());m.material.map=dw.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(Math.max(.3,len/8),Math.max(.3,(y1-y0)/8));m.position.set(x,(y0+y1)/2,z);m.castShadow=true;m.receiveShadow=true;S.add(m)};
+  P.rooms.forEach(function(r){var wh=Math.min(r.h||H,H);
+   ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=(r.doors||[]).filter(function(d){return d.s===sd}).map(function(d){return [d.t,d.t+(d.len||3)]}).sort(function(a,b){return a[0]-b[0]}),cur=0,parts=[];
+    gaps.forEach(function(g){if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>7.05)parts.push([g[0],g[1],7,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
+    parts.forEach(function(q){var a=q[0],b=q[1],hor=sd==='n'||sd==='s',fx=hor?r.x+(a+b)/2:(sd==='w'?r.x:r.x+r.w),fz=hor?(sd==='n'?r.y:r.y+r.d):r.y+(a+b)/2,w=hor?b-a:TH,d=hor?TH:b-a;
+     seg(fx,fz,w,d,q[2],q[3],b-a);if(q[2]===0)EX.solid.push({x:fx-w/2,z:fz-d/2,w:w,d:d})})});
+   (r.doors||[]).forEach(function(d){var g=dGeo(r,d),L=g.L,hx=g.h.x,hz=g.h.y,leaf=new T.Mesh(new T.BoxGeometry(.13,6.9,L-.1),leafM);
+    leaf.position.set(hx+g.sn.x*(L/2),3.45,hz+g.sn.y*(L/2));
+    if(g.sn.x!==0){leaf.geometry=new T.BoxGeometry(L-.1,6.9,.13)}leaf.castShadow=true;S.add(leaf);
+    var kb=new T.Mesh(new T.SphereGeometry(.09,10,8),M.steel);kb.position.set(g.tip.x-g.sn.x*.3+(g.sn.x===0?.12:0),3.2,g.tip.y-g.sn.y*.3+(g.sn.y===0?.12:0));S.add(kb);
+    EX.solid.push({x:Math.min(hx,g.tip.x)-.08,z:Math.min(hz,g.tip.y)-.08,w:Math.abs(g.tip.x-hx)+.16,d:Math.abs(g.tip.y-hz)+.16})});
+   if(wh<H-.05){var lid=new T.Mesh(new T.BoxGeometry(r.w+TH,.35,r.d+TH),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+.175,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;S.add(lid)}})}
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
-  if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
+  if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
    if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
   var h=c.h||Math.max(2,Math.min(6,Math.min(w0,d0)));var g=exShape(T,c,w0,d0,h,M);g.position.set(cx,0,cz);g.rotation.y=-(it.rot||0)*Math.PI/2;S.add(g);
   if(/^a-(car|pickup|evbay)$/.test(c.r)||NOWALK.test(c.r)){var ln=new T.Mesh(new T.PlaneGeometry(m.w,m.d),exMat(T,/^c-/.test(c.r)?0x3c6e9e:0xffffff,{op:/^c-/.test(c.r)?.55:.12,r:.8}));ln.rotation.x=-Math.PI/2;ln.position.set(cx,.02,cz);S.add(ln)}
   if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
  // light-zone fixtures
- if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M),drop=f.c.drop||0;cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
+ if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M),drop=f.c.drop||0,H=hAt(f.x,f.y);cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
   if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(f.x,H-drop/2,f.y);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:f.x,z:f.y,y:H-drop-.8,col:f.col||cs.light,c:f.c,off:false})});
  // light: real fixtures. Brightness from lumens (LED ~130 lm/W) spread over each fixture's beam, in feet,
  // plus a fill light for what bounces off the floor and walls. Fixtures that aren't powered stay off.
@@ -2227,10 +2252,12 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  S.add(new T.HemisphereLight(0xd8dde6,0xb3a58f,lights.length?Math.min(2.8,.3+eAvg*.004):1.1));
  if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
   var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
- var maxL=24,shad=4,lim=on.length<=maxL?on:Array.apply(null,Array(maxL)).map(function(_,i){return on[Math.floor(i*on.length/maxL)]}),boost=on.length/Math.max(1,lim.length);
+ var maxL=24,hasR=P.rooms&&P.rooms.length,shad=hasR?8:4,lim=on.length<=maxL?on:Array.apply(null,Array(maxL)).map(function(_,i){return on[Math.floor(i*on.length/maxL)]}),boost=on.length/Math.max(1,lim.length);
+ // with rooms, the shadow budget goes to lights whose beam reaches a wall, so light doesn't pass through into the next room
+ if(hasR){var nearW=function(L){var reach=L.y*1.6+2;return P.rooms.some(function(r){var dx=Math.max(r.x-L.x,0,L.x-(r.x+r.w)),dz=Math.max(r.y-L.z,0,L.z-(r.y+r.d)),inR=dx===0&&dz===0;if(inR)return true;return Math.hypot(dx,dz)<reach})?1:0};lim=lim.slice().sort(function(a,b){return nearW(b)-nearW(a)})}
  lim.forEach(function(L,i){var th=BEAM[L.c.r]||1.05,cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th)));
   var sp=new T.SpotLight(L.col,cd*LX*boost,0,Math.min(1.45,th*1.25),th>=1?1:.55,2);
-  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(1024,1024);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
+  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(i<4?1024:512,i<4?1024:512);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
  // glowing screens light their surroundings a little
  return S}
 function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1;y+=1)for(var x=1.5;x<W-1;x+=1){if(exHit(x,y))continue;var sc=-Math.hypot(x-W/2,y-(D-2))+(exClear(x,y)*2);if(sc>bs){bs=sc;best={x:x,y:y}}}
@@ -2269,12 +2296,12 @@ function zK(z){return ZK.filter(function(q){return q[0]===(z.k||5000)})[0]||ZK[3
 var selZ=null,zd=null,ZEFF=130,ZCU=.7,ZLLF=.85;
 function ZN(){return P.zones||(P.zones=[])}
 function zBy(id){return ZN().filter(function(z){return z.id===id})[0]||null}
-function zAutoF(){return (P.room.h||10)>=15?'cl-hbr':'cl-shop'}
-function zDef(z){var r=z.f||zAutoF();return {r:r,c:(P.defs&&P.defs[r])||LIB[r]}}
+function zAutoF(z){return (z?hAt(z.x+z.w/2,z.y+z.d/2):(P.room.h||10))>=15?'cl-hbr':'cl-shop'}
+function zDef(z){var r=z.f||zAutoF(z);return {r:r,c:(P.defs&&P.defs[r])||LIB[r]}}
 function zLm(c){return ((c&&c.p&&c.p[1])||60)*ZEFF}
-function zOverlap(b,skip){return ZN().some(function(z){return z.id!==skip&&hit(b,z)})}
+function zOverlap(b,skip){return ZN().some(function(z){return z.id!==skip&&hit(b,z)})||RM().some(function(r){return hit(b,r)&&!within(b,r)})}
 function zObst(){var o=[];P.items.forEach(function(it){var c=defOf(it);if(!c||!c.ceiling)return;var b=ibox(it);o.push(isFan(c)?rodBox(b):b)});return o}
-function zLayout(z){var d=zDef(z),c=d.c,H=P.room.h||10,A=Math.max(1,z.w*z.d),lm=zLm(c),hm=Math.max(2,H-(c.drop||0)-.5-2.5),S=Math.max(4,1.3*hm),
+function zLayout(z){var d=zDef(z),c=d.c,H=hAt(z.x+z.w/2,z.y+z.d/2),A=Math.max(1,z.w*z.d),lm=zLm(c),hm=Math.max(2,H-(c.drop||0)-.5-2.5),S=Math.max(4,1.3*hm),
   N=Math.max(1,Math.ceil((z.fc||50)*A/(lm*ZCU*ZLLF))),cols,rows;
  if(z.rc){cols=z.rc[0];rows=z.rc[1]}else{var mc=Math.max(1,Math.ceil(z.w/S)),mr=Math.max(1,Math.ceil(z.d/S)),best=null;
   for(var cc=mc;cc<=mc+40;cc++){var rr=Math.max(mr,Math.ceil(N/cc)),sx0=z.w/cc,sy0=z.d/rr,sc=(cc*rr-N)*2+Math.abs(sx0-sy0)/S*3;if(!best||sc<best.s)best={s:sc,c:cc,r:rr};if(cc*mr>N*1.6+4)break}cols=best.c;rows=best.r}
@@ -2330,7 +2357,7 @@ function zoneCard(){var z=zBy(selZ);if(!z)return '';var L=zLayout(z),ok=L.fc>=(z
   opts=Object.keys(LIB).filter(function(r){return isLt(LIB[r])}).map(function(r){return '<option value="'+r+'"'+(z.f===r?' selected':'')+'>'+esc(LIB[r].n)+'</option>'}).join(''),
   row=function(k,v){return '<div class="srw"><span>'+k+'</span><b>'+v+'</b></div>'},stp=function(id,t){return '<button class="zst" data-a="'+id+'" aria-label="'+t+'">'+(id[0]==='-'?'−':'+')+'</button>'};
  return '<div class="card sel zcardp"><div style="display:flex;align-items:center;justify-content:space-between"><span class="lab">Light zone</span><button class="lnk red" id="z-del">Delete</button></div>'+
-  '<label class="fl">Fixture<select id="z-f"><option value="">Auto · '+esc(LIB[zAutoF()].n)+'</option>'+opts+'</select></label>'+
+  '<label class="fl">Fixture<select id="z-f"><option value="">Auto · '+esc(LIB[zAutoF(z)].n)+'</option>'+opts+'</select></label>'+
   '<div class="fl">Light color<div class="zk">'+ZK.map(function(q){return '<button class="zkb'+(zK(z)[0]===q[0]?' on':'')+'" data-k="'+q[0]+'" title="'+q[1]+' · '+q[0]+'K"><i style="background:'+q[3]+'"></i><span>'+q[0]/1000+'K</span></button>'}).join('')+'</div><span class="muted" style="font-size:12px">'+zK(z)[1]+' · '+zK(z)[0]+'K</span></div>'+
   '<label class="fl">Target brightness<span class="zin"><input id="z-fc" type="number" min="5" max="300" step="5" value="'+(z.fc||50)+'" inputmode="numeric"><i>fc</i></span></label>'+
   '<div class="fl">Layout<div class="zlay"><span>'+stp('-c','Fewer columns')+'<b>'+L.cols+'</b>'+stp('+c','More columns')+'<em>across</em></span><span>'+stp('-r','Fewer rows')+'<b>'+L.rows+'</b>'+stp('+r','More rows')+'<em>down</em></span></div>'+(L.auto?'':'<button class="lnk" id="z-auto">Back to automatic count</button>')+'</div>'+
@@ -2359,6 +2386,175 @@ function zoneLibWire(){var c=document.querySelector('#lib .zlib');if(!c)return;
  c.onpointerup=c.onpointercancel=function(e){var s=zl;zl=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();
   if(!s.on){viewLib({zone:1});return}if(e.type==='pointerup'&&s.b)zAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2)};
  c.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();viewLib({zone:1})}}}
+
+/* ---------------- Build: rooms, walls and doors ----------------
+   The space is a building. Rooms are rectangles inside it with their own ceiling height; their edges are walls.
+   Everything outside the rooms is the open floor. Objects can't cross a wall or sit in a door's swing.
+   Build is its own tab: Design keeps the walls fixed, Build keeps the objects fixed. */
+var BLD=false,selR=null,selD=null,rd=null,RCOL=['#7F77DD','#1D9E75','#D85A30','#378ADD','#BA7517','#D4537E','#639922','#888780'];
+function RM(){return P.rooms||(P.rooms=[])}
+function rBy(id){return RM().filter(function(r){return r.id===id})[0]||null}
+function rCol(r){return RCOL[(RM().indexOf(r))%RCOL.length]}
+function roomAt(x,y){var a=RM();for(var i=0;i<a.length;i++){var r=a[i];if(x>r.x+1e-6&&x<r.x+r.w-1e-6&&y>r.y+1e-6&&y<r.y+r.d-1e-6)return r}return null}
+function within(b,r){return b.x>=r.x-1e-6&&b.y>=r.y-1e-6&&b.x+b.w<=r.x+r.w+1e-6&&b.y+b.d<=r.y+r.d+1e-6}
+// which room a box is in: a room, 'o' for the open floor, or null when it crosses a wall
+function roomOfBox(b){var a=RM(),hitR=null;for(var i=0;i<a.length;i++){var r=a[i];if(hit(b,r)){if(!within(b,r))return null;hitR=r}}return hitR||'o'}
+function rid(b){var r=roomOfBox(b);return r===null?null:r==='o'?'o':r.id}
+function hAt(x,y){var r=roomAt(x,y);return (r&&r.h)||P.room.h||10}
+function hOfIt(it){var b=ibox(it);return hAt(b.x+b.w/2,b.y+b.d/2)}
+// door geometry: s side (n e s w), t offset along the side, len width, sw 1 swings into the room, hg 0 hinge at start / 1 at end
+function dGeo(r,d){var L=d.len||3,t=d.t,s=d.s,a,b,n,hz;
+ if(s==='n'){a={x:r.x+t,y:r.y};b={x:r.x+t+L,y:r.y};n={x:0,y:1}}else if(s==='s'){a={x:r.x+t,y:r.y+r.d};b={x:r.x+t+L,y:r.y+r.d};n={x:0,y:-1}}
+ else if(s==='w'){a={x:r.x,y:r.y+t};b={x:r.x,y:r.y+t+L};n={x:1,y:0}}else{a={x:r.x+r.w,y:r.y+t};b={x:r.x+r.w,y:r.y+t+L};n={x:-1,y:0}}
+ var sn=d.sw===-1?{x:-n.x,y:-n.y}:n,h=d.hg?b:a,o=d.hg?a:b,tip={x:h.x+sn.x*L,y:h.y+sn.y*L},
+  box=function(v){return {x:Math.min(a.x,b.x,a.x+v.x*L),y:Math.min(a.y,b.y,a.y+v.y*L),w:Math.abs(b.x-a.x)+Math.abs(v.x*L),d:Math.abs(b.y-a.y)+Math.abs(v.y*L)}};
+ return {a:a,b:b,n:n,sn:sn,h:h,o:o,tip:tip,swing:box(sn),land:box({x:-sn.x,y:-sn.y}),L:L}}
+function sideLen(r,s){return s==='n'||s==='s'?r.w:r.d}
+function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==='s'&&r.y+r.d>=D-1e-6)||(s==='w'&&r.x<=1e-6)||(s==='e'&&r.x+r.w>=W-1e-6)}
+function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
+var PREF=null;
+// walls: the footprint sits wholly in one room or wholly in the open floor; clearance stays on the same side; doors stay clear
+function wallOK(b,c,ceil){var a=RM();if(!a.length)return PREF?PREF.indexOf('o')>=0:true;var r=roomOfBox(b);if(r===null)return false;var id=r==='o'?'o':r.id;if(PREF&&PREF.indexOf(id)<0)return false;
+ if(c){if(r==='o'){for(var i=0;i<a.length;i++)if(hit(c,a[i]))return false}else if(!within(c,r))return false}
+ if(!ceil){var db=doorBoxes();for(var j=0;j<db.length;j++)if(hit(b,db[j]))return false}return true}
+function crossesWall(b){return RM().length&&roomOfBox(b)===null}
+// rooms next to each other (sharing part of a wall); the open floor neighbours every room
+function adjRooms(id){if(id==='o')return RM().map(function(r){return r.id});var r=rBy(id),out=['o'];if(!r)return out;
+ RM().forEach(function(q){if(q===r)return;var tx=Math.min(r.x+r.w,q.x+q.w)-Math.max(r.x,q.x),ty=Math.min(r.y+r.d,q.y+q.d)-Math.max(r.y,q.y);if((tx>1e-6&&Math.abs(ty)<1e-6)||(ty>1e-6&&Math.abs(tx)<1e-6))out.push(q.id)});return out}
+function memberOf(){var m={};P.items.forEach(function(it){var b=ibox(it);m[it.u]=rid({x:b.x+b.w/2-.01,y:b.y+b.d/2-.01,w:.02,d:.02})});return m}
+// after a wall change: anything caught goes back into the room it was in, else the room next door, else it's flagged
+function pushFix(mem){var flagged=[];P.items.forEach(function(it){var c=defOf(it);if(!c)return;var b=ibox(it),cl=c.ceiling?null:clr(c,b,it.rot);
+  if(wallOK(b,cl,c.ceiling)&&rid(b)===mem[it.u])return;var tries=[mem[it.u]||'o'].concat(adjRooms(mem[it.u]||'o')),done=false;
+  for(var i=0;i<tries.length&&!done;i++){PREF=[tries[i]];var q=nearestFree(it,it.x,it.y,others(it),it.rot);PREF=null;if(q){it.x=q.x;it.y=q.y;done=true}}
+  if(!done)flagged.push(it.u)});
+ fixZones();return flagged}
+// light zones stay inside one room or wholly on the open floor; one caught by a wall shrinks to its biggest clear part
+function fixZones(){ZN().forEach(function(z){for(var n=0;n<8;n++){var r=RM().filter(function(q){return hit(z,q)&&!within(z,q)})[0];if(!r)break;
+  var cz={x:z.x+z.w/2,y:z.y+z.d/2},inR=cz.x>r.x&&cz.x<r.x+r.w&&cz.y>r.y&&cz.y<r.y+r.d,c;
+  if(inR){var x1=Math.max(z.x,r.x),y1=Math.max(z.y,r.y),x2=Math.min(z.x+z.w,r.x+r.w),y2=Math.min(z.y+z.d,r.y+r.d);c=[{x:x1,y:y1,w:x2-x1,d:y2-y1}]}
+  else c=[{x:z.x,y:z.y,w:r.x-z.x,d:z.d},{x:r.x+r.w,y:z.y,w:z.x+z.w-(r.x+r.w),d:z.d},{x:z.x,y:z.y,w:z.w,d:r.y-z.y},{x:z.x,y:r.y+r.d,w:z.w,d:z.y+z.d-(r.y+r.d)}];
+  c=c.filter(function(q){return q.w>=2&&q.d>=2}).sort(function(p,q){return q.w*q.d-p.w*p.d});if(!c.length)break;z.x=c[0].x;z.y=c[0].y;z.w=c[0].w;z.d=c[0].d;z.adj={}}})}
+function trimRooms(){var W=P.room.w,D=P.room.d;RM().forEach(function(r){if(r.w>W)r.w=W;if(r.d>D)r.d=D;if(r.x+r.w>W)r.x=Math.max(0,W-r.w);if(r.y+r.d>D)r.y=Math.max(0,D-r.d);
+ (r.doors||[]).forEach(function(d){d.t=Math.max(0,Math.min(sideLen(r,d.s)-(d.len||3),d.t))})})}
+function badWall(){if(!RM().length)return [];return P.items.filter(function(it){var c=defOf(it);if(!c)return false;var b=ibox(it);return !wallOK(b,c.ceiling?null:clr(c,b,it.rot),c.ceiling)})}
+// first door: on the longest wall that opens onto the open floor, centred
+function autoDoor(r){var best=null;['s','n','e','w'].forEach(function(s){if(onEdge(r,s))return;var len=sideLen(r,s);if(len<4)return;
+  for(var k=0;k<=Math.floor(len-3);k++){var tt=[(len-3)/2+(k%2?1:-1)*Math.ceil(k/2)][0];if(tt<.5||tt>len-3.5)continue;var d={s:s,t:Math.round(tt*2)/2,len:3,sw:1,hg:0},g=dGeo(r,d);
+   if(RM().some(function(q){return q!==r&&hit(g.land,q)}))continue;if(!best||len>best.len){best={len:len,d:d}}break}});
+ return best?best.d:{s:'s',t:Math.max(0,(r.w-3)/2),len:3,sw:1,hg:0}}
+function rFit(cx,cy){var W=P.room.w,D=P.room.d;for(var s=0;s<=8;s++){var w=Math.min(12-s,W),d=Math.min(10-s,D),x=Math.round(Math.max(0,Math.min(W-w,cx-w/2))),y=Math.round(Math.max(0,Math.min(D-d,cy-d/2))),b={x:x,y:y,w:w,d:d};
+ if(!RM().some(function(r){return hit(b,r)}))return b}return null}
+function rAdd(cx,cy){var b=rFit(cx,cy);if(!b){toast('No open floor there for a room');return}var before=snapP(),mem=memberOf();P.rid=(P.rid||0)+1;
+ var r={id:'r'+P.rid,n:'Room '+P.rid,x:b.x,y:b.y,w:b.w,d:b.d,h:(P.room.h||10)>10?9:(P.room.h||10),doors:[],no:''};RM().push(r);r.doors.push(autoDoor(r));
+ var fl=pushFix(mem);hist.push(before);fut=[];selR=r.id;selD=null;persist();render();if(fl.length)toast(fl.length+' object'+(fl.length>1?'s':'')+' couldn\'t be moved clear of the new walls')}
+function bCommit(before,mem){var fl=pushFix(mem);if(before!==snapP()){hist.push(before);if(hist.length>60)hist.shift();fut=[];persist()}render();if(fl.length)toast(fl.length+' object'+(fl.length>1?'s':'')+' won\'t fit on either side of the wall. They\'re marked red.')}
+/* ---- drawing ---- */
+function drawRooms(k){var a=RM();if(!a.length)return '';var on=BLD,wl=5*k,body='',walls='',doors='',labs='',hand='';
+ a.forEach(function(r){var col=rCol(r),s=on&&selR===r.id;
+  body+='<rect class="room rb" data-r="'+r.id+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="'+col+'" fill-opacity="'+(on?(s?.16:.1):.05)+'"/>';
+  ['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd),gaps=(r.doors||[]).filter(function(d){return d.s===sd}).map(function(d){return [d.t,d.t+(d.len||3)]}).sort(function(p,q){return p[0]-q[0]}),cur=0,segs=[];
+   gaps.forEach(function(g){if(g[0]>cur)segs.push([cur,g[0]]);cur=Math.max(cur,g[1])});if(cur<len)segs.push([cur,len]);
+   segs.forEach(function(sg){var p1,p2;if(sd==='n'){p1=[r.x+sg[0],r.y];p2=[r.x+sg[1],r.y]}else if(sd==='s'){p1=[r.x+sg[0],r.y+r.d];p2=[r.x+sg[1],r.y+r.d]}else if(sd==='w'){p1=[r.x,r.y+sg[0]];p2=[r.x,r.y+sg[1]]}else{p1=[r.x+r.w,r.y+sg[0]];p2=[r.x+r.w,r.y+sg[1]]}
+    walls+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="'+(s?'#1d4f91':'#3a3936')+'" stroke-width="'+wl+'" stroke-linecap="square"/>'})});
+  (r.doors||[]).forEach(function(d,i){var g=dGeo(r,d),sel2=on&&selR===r.id&&selD===i;
+   doors+='<g class="rdoor" data-r="'+r.id+'" data-d="'+i+'"><line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="'+(sel2?'rgba(47,125,225,.35)':'transparent')+'" stroke-width="'+(14*k)+'"/>'+
+    '<path d="M'+g.o.x+' '+g.o.y+' A'+g.L+' '+g.L+' 0 0 '+(((g.o.x-g.h.x)*(g.tip.y-g.h.y)-(g.o.y-g.h.y)*(g.tip.x-g.h.x))>0?1:0)+' '+g.tip.x+' '+g.tip.y+'" fill="none" stroke="'+(sel2?'#2f7de1':'#8a867c')+'" stroke-width="'+(1.2*k)+'" stroke-dasharray="'+(4*k)+' '+(3*k)+'"/>'+
+    '<line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="'+(sel2?'#2f7de1':'#5f5b52')+'" stroke-width="'+(2.4*k)+'"/></g>'});
+  labs+='<g opacity="'+(on?1:.55)+'"><text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2)+'" text-anchor="middle" font-size="'+(13*k)+'" font-weight="700" fill="'+shadeHex(col,-.35)+'">'+esc(r.n||'Room')+'</text><text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2+15*k)+'" text-anchor="middle" font-size="'+(11*k)+'" fill="'+shadeHex(col,-.2)+'">'+fmt(r.w)+' × '+fmt(r.d)+' · '+fmt(r.h||P.room.h||10)+' ft</text></g>';
+  if(s&&selD==null)[['nw',0,0],['n',.5,0],['ne',1,0],['e',1,.5],['se',1,1],['s',.5,1],['sw',0,1],['w',0,.5]].forEach(function(q){var hx=r.x+r.w*q[1],hy=r.y+r.d*q[2],rr=7*k;
+   hand+='<rect class="rh" data-r="'+r.id+'" data-h="'+q[0]+'" x="'+(hx-rr)+'" y="'+(hy-rr)+'" width="'+(2*rr)+'" height="'+(2*rr)+'" rx="'+(2*k)+'" fill="#fff" stroke="#2f7de1" stroke-width="'+(2*k)+'" style="cursor:'+({n:'ns',s:'ns',e:'ew',w:'ew',nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw'})[q[0]]+'-resize"/>'})});
+ var bad='';if(BLD)badWall().forEach(function(it){var b=ibox(it);bad+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="rgba(214,48,49,.25)" stroke="#d63031" stroke-width="'+(2*k)+'"/>'});
+ return body+'<g pointer-events="none">'+walls+'</g><g pointer-events="none">'+labs+bad+'</g>'+hand+doors}
+function shadeHex(hex,f){var c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&255,m=function(v){return Math.max(0,Math.min(255,Math.round(f<0?v*(1+f):v+(255-v)*f)))};return '#'+((1<<24)+(m(r)<<16)+(m(g)<<8)+m(b)).toString(16).slice(1)}
+function rRedraw(){if(G.rooms)G.rooms.innerHTML=drawRooms(1/scale())}
+/* ---- pointer: move, resize, drag a door along its walls ---- */
+function rDown(e){if(!BLD||e.button>0)return;var t=e.target,hd=t.closest('.rh'),dr=t.closest('.rdoor'),g=hd||dr||t.closest('.room');if(!g)return;var r=rBy(g.dataset.r);if(!r)return;
+ e.stopPropagation();e.preventDefault();rd={id:r.id,mode:hd?'size':dr?'door':'move',h:hd&&hd.dataset.h,di:dr?+dr.dataset.d:null,p0:toFt(e),b0:{x:r.x,y:r.y,w:r.w,d:r.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP(),mem:memberOf(),
+  doors0:JSON.parse(JSON.stringify(r.doors||[])),its:P.items.filter(function(it){var b=ibox(it);return within(b,r)}).map(function(it){return [it,it.x,it.y]}),zs:ZN().filter(function(z){return within(z,r)}).map(function(z){return [z,z.x,z.y,JSON.parse(JSON.stringify(z.adj||{}))]})};
+ window.addEventListener('pointermove',rMove);window.addEventListener('pointerup',rUp);window.addEventListener('pointercancel',rUp)}
+function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clientY-rd.sy)<4)return;rd.moved=true;var r=rBy(rd.id),p=toFt(e),dx=p.x-rd.p0.x,dy=p.y-rd.p0.y,b0=rd.b0,W=P.room.w,D=P.room.d,nb,others=RM().filter(function(q){return q!==r});
+ if(rd.mode==='door'){var d=r.doors[rd.di],best=null;['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<(d.len||3))return;var along,dist;
+   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d))}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w))}
+   if(!best||dist<best.dist)best={s:sd,dist:dist,t:Math.round(Math.max(0,Math.min(len-(d.len||3),along-(d.len||3)/2))*2)/2}});
+  if(best){d.s=best.s;d.t=best.t}rRedraw();return}
+ if(rd.mode==='move')nb={x:Math.round(Math.max(0,Math.min(W-b0.w,b0.x+dx))),y:Math.round(Math.max(0,Math.min(D-b0.d,b0.y+dy))),w:b0.w,d:b0.d};
+ else{var x1=b0.x,y1=b0.y,x2=b0.x+b0.w,y2=b0.y+b0.d,hh=rd.h;
+  if(/w/.test(hh))x1=Math.round(Math.max(0,Math.min(x2-4,b0.x+dx)));if(/e/.test(hh))x2=Math.round(Math.min(W,Math.max(x1+4,x2+dx)));
+  if(/n/.test(hh))y1=Math.round(Math.max(0,Math.min(y2-4,b0.y+dy)));if(/s/.test(hh))y2=Math.round(Math.min(D,Math.max(y1+4,y2+dy)));nb={x:x1,y:y1,w:x2-x1,d:y2-y1}}
+ if(others.some(function(q){return hit(nb,q)}))return;
+ var mx=nb.x-b0.x,my=nb.y-b0.y;r.x=nb.x;r.y=nb.y;r.w=nb.w;r.d=nb.d;
+ if(rd.mode==='move'){rd.its.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my});rd.zs.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my;var a={};Object.keys(q[3]).forEach(function(k2){a[k2]=[q[3][k2][0]+mx,q[3][k2][1]+my]});q[0].adj=a})}
+ else(r.doors||[]).forEach(function(d,i){var d0=rd.doors0[i],len=sideLen(r,d.s);d.t=Math.max(0,Math.min(len-(d.len||3),d0.t+((d.s==='n'||d.s==='s')?(b0.x-r.x):(b0.y-r.y))))});
+ render()}
+function rUp(){window.removeEventListener('pointermove',rMove);window.removeEventListener('pointerup',rUp);window.removeEventListener('pointercancel',rUp);var d=rd;rd=null;if(!d)return;
+ selR=d.id;selD=d.mode==='door'?d.di:null;if(d.moved)bCommit(d.before,d.mem);else render()}
+/* ---- Build panels ---- */
+function buildLib(){var t=function(id,ic,n,sub){return '<div class="btool" data-t="'+id+'" role="button" tabindex="0"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ic+'</svg><div><b>'+n+'</b><span>'+sub+'</span></div></div>'};
+ return '<p class="lab" style="margin:2px 0 8px">Add</p>'+t('room','<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M12 8v8M8 12h8"/>','Room',(TOUCH?'Hold and drag':'Drag')+' it onto the plan, then size it. It comes with a door.')+
+  t('door','<path d="M4 21h16M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/>','Door','Drop it on a room\'s wall. Drag it along the wall to move it.')+
+  '<p class="muted" style="margin-top:14px">Objects are locked while you build. Switch to Design to move them.</p>'}
+function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(function(c){var st=null;
+ c.onpointerdown=function(e){if(e.button>0)return;st={sx:e.clientX,sy:e.clientY,on:false};c.setPointerCapture&&c.setPointerCapture(e.pointerId)};
+ c.onpointermove=function(e){if(!st)return;if(!st.on){if(Math.hypot(e.clientX-st.sx,e.clientY-st.sy)<6)return;st.on=true;document.body.classList.add('ldragging');var ch=document.createElement('div');ch.className='ldchip';ch.innerHTML='<div class="lart">'+c.querySelector('svg').outerHTML+'</div><span>'+c.querySelector('b').textContent+'</span>';document.body.appendChild(ch);st.chip=ch}
+  st.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';var R=sv.getBoundingClientRect(),over=e.clientX>R.left&&e.clientX<R.right&&e.clientY>R.top&&e.clientY<R.bottom,k=1/scale();st.chip.classList.toggle('over',over);
+  if(!over){G.ghost.innerHTML='';st.b=null;return}var p=toFt(e);
+  if(c.dataset.t==='room'){var b=rFit(p.x,p.y);st.b=b;G.ghost.innerHTML=b?'<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(4*k)+'" stroke-dasharray="'+(8*k)+' '+(5*k)+'" pointer-events="none"/>':''}
+  else{var dd=doorSpot(p);st.b=dd;if(dd){var g=dGeo(rBy(dd.r),dd.d);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(8*k)+'" pointer-events="none"/><line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="#2f7de1" stroke-width="'+(2.4*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}};
+ c.onpointerup=c.onpointercancel=function(e){var s=st;st=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();if(!s.on||e.type!=='pointerup'||!s.b)return;
+  if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
+function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<3)return;var along,dist;
+  if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d));if(along<-1||along>len+1)return}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w));if(along<-1||along>len+1)return}
+  if(dist>2.5||(best&&dist>=best.dist))return;var t=Math.round(Math.max(0,Math.min(len-3,along-1.5))*2)/2;
+  if((r.doors||[]).some(function(d){return d.s===sd&&t<d.t+(d.len||3)&&d.t<t+3}))return;best={dist:dist,r:r.id,d:{s:sd,t:t,len:3,sw:1,hg:0}}})});return best}
+function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
+function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,h='<div class="card"><span class="lab">Building</span>'+
+  '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
+  '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
+  '<label class="sw" style="margin-top:10px" title="'+(P.dyn?'The building grows to fit new objects. Rooms stay where they are.':'The building stays this size.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Grow to fit what\'s inside</label>'+
+  '<div class="srows" style="margin-top:10px"><div class="srw"><span>Floor area</span><b>'+Math.round(W*D).toLocaleString()+' sq ft</b></div><div class="srw"><span>Rooms</span><b>'+RM().length+'</b></div></div></div>';
+ var r=rBy(selR);
+ if(r&&selD!=null&&r.doors[selD]){var d=r.doors[selD];h+='<div class="card sel"><span class="lab">Door · '+esc(r.n)+'</span>'+
+  '<label class="fl">Width<select id="d-len">'+[2.5,3,3.5,4,5,6,8].map(function(v){return '<option value="'+v+'"'+((d.len||3)===v?' selected':'')+'>'+fmt(v)+' ft'+(v>=5?' (double)':'')+'</option>'}).join('')+'</select></label>'+
+  '<div class="fl">Swings<div class="seg2 dseg"><label><input type="radio" name="dsw" value="1"'+(d.sw!==-1?' checked':'')+'><span>Into the room</span></label><label><input type="radio" name="dsw" value="-1"'+(d.sw===-1?' checked':'')+'><span>Out</span></label></div></div>'+
+  '<button class="sb" id="d-flip" style="width:100%;margin-top:8px">Hinge on the other side</button>'+
+  '<div class="sbtns"><button class="sb red" id="d-del">Delete door</button></div><p class="muted">Drag the door along the walls to move it.</p></div>'}
+ else if(r){var its=P.items.filter(function(it){return within(ibox(it),r)}).length;h+='<div class="card sel"><span class="lab">Room</span>'+
+  '<label class="fl">Name<input id="rm-n" value="'+esc(r.n||'')+'" maxlength="40"></label>'+
+  '<label class="fl">Ceiling height<span class="sdim"><select id="rm-h">'+hOpts(r.h||H,H)+'</select><span class="mu">ft</span></span></label>'+
+  '<div class="srows"><div class="srw"><span>Size</span><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft · '+Math.round(r.w*r.d)+' sq ft</b></div><div class="srw"><span>Doors</span><b>'+(r.doors||[]).length+'</b></div><div class="srw"><span>Objects inside</span><b>'+its+'</b></div>'+((r.h||H)<H-.01?'<div class="srw"><span>Above its ceiling</span><b>'+fmt(H-(r.h||H))+' ft</b></div>':'')+'</div>'+
+  ((r.doors||[]).length?'':'<div class="warn">This room has no door. Drag one from the left onto its wall.</div>')+
+  '<label class="fl">Notes<textarea id="rm-no" rows="3" placeholder="Insulate the shop wall">'+esc(r.no||'')+'</textarea></label>'+
+  '<div class="sbtns"><button class="sb red" id="rm-del">Delete room</button></div><p class="muted">Drag the room to move it and what\'s inside. Drag its edges to resize.</p></div>'}
+ else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
+ var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
+ return h}
+function buildSideWire(){['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
+ var hi2=$('#r-h');if(hi2)hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;RM().forEach(function(r){if(v&&r.h>v)r.h=v});persist();render()};
+ var dy=$('#r-dyn');if(dy)dy.onchange=function(){push();P.dyn=this.checked;persist();render()};
+ document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
+ var r=rBy(selR);if(!r)return;var upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)};
+ var n=$('#rm-n');if(n)n.onchange=function(){var v=n.value.trim()||r.n;push();r.n=v;persist();render()};
+ var rh=$('#rm-h');if(rh)rh.onchange=function(){var v=parseFloat(rh.value);push();r.h=v;persist();render()};
+ var no=$('#rm-no');if(no)no.onchange=function(){push();r.no=no.value;persist()};
+ var del=$('#rm-del');if(del)del.onclick=function(){upd(function(){P.rooms=RM().filter(function(q){return q!==r});selR=null;selD=null})};
+ if(selD!=null&&r.doors[selD]){var d=r.doors[selD];
+  $('#d-len').onchange=function(){var v=parseFloat(this.value);upd(function(){d.len=Math.min(v,sideLen(r,d.s));d.t=Math.max(0,Math.min(sideLen(r,d.s)-d.len,d.t))})};
+  document.querySelectorAll('input[name=dsw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
+  $('#d-flip').onclick=function(){upd(function(){d.hg=d.hg?0:1})};
+  $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})}}}
+function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;if(on){sel=null;selO=null;selZ=null;libV=null}renderLib();render()}
+/* ---- per-room summary ---- */
+var openRm={};
+function roomItems(r){return P.items.filter(function(it){var b=ibox(it),id=rid(b);return r?id===r.id:id==='o'||id===null})}
+function roomsSummary(){var H=P.room.h||10,W=P.room.w,D=P.room.d,pw=power(P.items),list=[{r:null,n:'Open floor',h:H,col:'#888780'}].concat(RM().map(function(r){return {r:r,n:r.n,h:r.h||H,col:rCol(r)}}));
+ var area=W*D-RM().reduce(function(a,r){return a+r.w*r.d},0);
+ var h='<div class="card"><span class="lab">Building</span><div class="btot"><div><span>Floor area</span><b>'+Math.round(W*D).toLocaleString()+' sq ft</b></div><div><span>Rooms</span><b>'+RM().length+'</b></div><div><span>Connected load</span><b>'+fmtW(pw.w)+'</b></div><div><span>Height</span><b>'+fmt(H)+' ft</b></div></div>'+unpRow()+'</div>';
+ list.forEach(function(q){var its=roomItems(q.r),key=q.r?q.r.id:'o',low=its.filter(function(it){var c=defOf(it),n=c&&needs(c);return n&&n.ceil>q.h+1e-6}),bw=badWall().filter(function(it){return its.indexOf(it)>=0}),
+   warn=[];if(q.r&&!(q.r.doors||[]).length)warn.push('No door');if(low.length)warn.push(low.length+' too tall for '+fmt(q.h)+' ft');if(bw.length)warn.push(bw.length+' crossing a wall');
+  h+='<details class="card rcard" data-k="'+key+'"'+(openRm[key]?' open':'')+'><summary><i style="background:'+q.col+'"></i><b>'+esc(q.n)+'</b><small>'+fmt(q.h)+' ft · '+its.length+' object'+(its.length===1?'':'s')+'</small></summary>'+
+   (warn.length?'<div class="warn">'+warn.join(' · ')+'</div>':'')+
+   '<div class="req">'+reqHtml(its,q.h,true)+'</div>'+(q.r&&q.r.no?'<p class="muted"><b>Notes:</b> '+esc(q.r.no)+'</p>':'')+'</details>'});
+ return h}
 
 /* ================= Space Planner =================
    Rooms start at 7 x 7 ft. Objects are added from the library and the room lays itself out:
@@ -2434,7 +2630,7 @@ function kOf(c){return (c&&Array.isArray(c.k))?c.k:kFrom(c||{})}
 function clr(c,b,rot){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return null;return clrBox(b.x,b.y,b.w,b.d,k,rot%4)}
 function hit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b.y<a.y+a.d-1e-6}
 function inside(r,W,D){return r.x>=-1e-6&&r.y>=-1e-6&&r.x+r.w<=W+1e-6&&r.y+r.d<=D+1e-6}
-function ok(b,c,placed,W,D){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
+function ok(b,c,placed,W,D){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;if((P.rooms&&P.rooms.length||PREF)&&!wallOK(b,c,false))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
 // back 0: it can stand against a wall; no clearance at all: it goes anywhere
 function kind(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'flex';return (k[1]<=1&&k[0]>=k[1])?'wall':'center'}
 var WALLROT=[0,1,2,3]; // top wall faces down (0), right faces left (1), bottom faces up (2), left faces right (3)
@@ -2469,7 +2665,7 @@ function layout(items,W,D,stable){var cl=items.filter(isC);if(!cl.length)return 
 var OVER={'cl-pool':/pool table|billiard|snooker/i,'cl-pend':/bar counter|island|high-top|drink rail|bar top/i,'cl-task':/bench|desk|station|table saw|assembly/i,'cl-growb':/grow|hydro|sprout|seed|plant|germin|flood|microgreen/i,'cl-growp':/grow|hydro|sprout|seed|plant|germin|flood|microgreen/i};
 function cgroup(c){return /Lighting – General/.test(c.c)?'L':/Lighting/.test(c.c)?'T':c.c==='Sound'?'S':'C'}
 function layoutCeil(items,floor,fpos,W,D,stable){var placed=[],out={},order=items.slice().sort(function(a,b){return (stable&&b.placed?1:0)-(stable&&a.placed?1:0)||a.n-b.n}),used={};
- var free=function(b,c){if(b.x<-1e-6||b.y<-1e-6||b.x+b.w>W+1e-6||b.y+b.d>D+1e-6)return false;for(var i=0;i<placed.length;i++)if(hit(b,placed[i].b)&&!(c&&stackOK(c,b,placed[i].c,placed[i].b)))return false;return true};
+ var free=function(b,c){if(b.x<-1e-6||b.y<-1e-6||b.x+b.w>W+1e-6||b.y+b.d>D+1e-6)return false;if(P.rooms&&P.rooms.length&&!wallOK(b,null,true))return false;for(var i=0;i<placed.length;i++)if(hit(b,placed[i].b)&&!(c&&stackOK(c,b,placed[i].c,placed[i].b)))return false;return true};
  var fbox=function(f){var q=fpos[f.u]||f,m=dims(f,q.rot);return {x:q.x,y:q.y,w:m.w,d:m.d}};
  var near=function(m,cx,cy){var best=null,bd=1e9,st=.5;for(var y=0;y+m.d<=D+1e-6;y+=st)for(var x=0;x+m.w<=W+1e-6;x+=st){var b={x:x,y:y,w:m.w,d:m.d},dd=Math.hypot(x+m.w/2-cx,y+m.d/2-cy);if(dd<bd&&free(b)){bd=dd;best=b}}return best};
  for(var i=0;i<order.length;i++){var it=order[i],c=defOf(it),rot=it.rot||0,m=dims(it,rot),b=null;
@@ -2562,7 +2758,7 @@ function undo(){if(!hist.length)return;fut.push(snapP());P=JSON.parse(hist.pop()
 function redo(){if(!fut.length)return;hist.push(snapP());P=JSON.parse(fut.pop());persist();render()}
 document.addEventListener('keydown',function(e){if(EX.on||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||document.querySelector('dialog[open]'))return;
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return}
- if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(!sel&&selZ&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();var zdl=document.getElementById('z-del');if(zdl)zdl.click()}if(!sel&&selO&&(e.key==='Delete'||e.key==='Backspace')){var oo=outBy(selO);if(oo&&oo.man){e.preventDefault();pkDel(selO)}}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;selZ=null;render()}});
+ if(sel&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();remove(sel)}if(BLD&&selR&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();var bd=$(selD!=null?'#d-del':'#rm-del');if(bd)bd.click();return}if(!sel&&selZ&&(e.key==='Delete'||e.key==='Backspace')){e.preventDefault();var zdl=document.getElementById('z-del');if(zdl)zdl.click()}if(!sel&&selO&&(e.key==='Delete'||e.key==='Backspace')){var oo=outBy(selO);if(oo&&oo.man){e.preventDefault();pkDel(selO)}}if(sel&&(e.key==='r'||e.key==='R'))rotate(sel,e.shiftKey?-1:1);if(e.key==='Escape'){sel=null;selO=null;selZ=null;selR=null;selD=null;render()}});
 
 /* ---------------- power: "Build out power" works out the outlets and circuits for what's in the room ----------------
    Each powered object gets a matching outlet within reach (cord ~6 ft): on the wall behind it when that wall is close,
@@ -2902,12 +3098,12 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
 var libV=null;
-function render(){if(sel||selO){libV=null;selZ=null}if(selZ&&!zBy(selZ))selZ=null;trimZones();if(P.pw&&P.pw.csig!==ceilSig())buildPower({keep:1});if(P.pw&&P.pw.outlets.some(function(o){return o.gp}))buildPower();var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-zone"></g><g id="g-obj"></g><g id="g-zoneh"></g><g id="g-pw"></g><g id="g-teth"></g><g id="g-ghost"></g>';G.zone=sv.querySelector('#g-zone');G.zoneh=sv.querySelector('#g-zoneh');G.zone.addEventListener('pointerdown',zDown);G.zoneh.addEventListener('pointerdown',zDown);G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost');G.teth=sv.querySelector('#g-teth')}if(!(drag&&drag.moved))G.teth.innerHTML='';
+function render(){if(sel||selO){libV=null;selZ=null}if(selZ&&!zBy(selZ))selZ=null;if(selR&&!rBy(selR)){selR=null;selD=null}trimRooms();trimZones();if(P.pw&&P.pw.csig!==ceilSig())buildPower({keep:1});if(P.pw&&P.pw.outlets.some(function(o){return o.gp}))buildPower();var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-rooms"></g><g id="g-zone"></g><g id="g-obj"></g><g id="g-zoneh"></g><g id="g-pw"></g><g id="g-teth"></g><g id="g-ghost"></g>';G.rooms=sv.querySelector('#g-rooms');G.rooms.addEventListener('pointerdown',rDown);G.zone=sv.querySelector('#g-zone');G.zoneh=sv.querySelector('#g-zoneh');G.zone.addEventListener('pointerdown',zDown);G.zoneh.addEventListener('pointerdown',zDown);G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost');G.teth=sv.querySelector('#g-teth')}if(!(drag&&drag.moved))G.teth.innerHTML='';
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj'+(isC(it)?' ceil':'')+(isLt(defOf(it))?' lt':''));el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
   if(!(drag&&drag.u===it.u&&drag.moved)){var turned=el.dataset.rot!=null&&el.dataset.rot!==String(it.rot);el.dataset.rot=it.rot;if(turned){el.style.transition='none';el.style.transform='translate('+it.x+'px,'+it.y+'px)';el.getBoundingClientRect();el.style.transition='';pop(it.u)}else el.style.transform='translate('+it.x+'px,'+it.y+'px)'}seen[it.u]=1;el.classList.toggle('pop',popU===it.u)});
- Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var lowF=[];P.items.forEach(function(it){if(!isFan(defOf(it)))return;var el=G.obj.querySelector('[data-u="'+it.u+'"]'),dd=fanDrop(it),lo=dd>(defOf(it).drop||0)+.01;if(el){G.obj.appendChild(el);el.classList.toggle('flow',lo)}if(lo)lowF.push([it,dd])});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.reach.innerHTML=cv()?drawReach(k):'';var zdr=drawZones(k);G.zone.innerHTML=zdr.lo;G.zoneh.innerHTML=zdr.hi;G.pw.innerHTML=(VW.md==='p'&&P.pw?drawPower(k):drawPlugs(k))+(VW.lv==='g'?drawCeil(k):'')+(cv()&&VW.md!=='p'?lowF.map(function(q){var b=ibox(q[0]);return '<g pointer-events="none"><rect x="'+(b.x+b.w/2-30*k)+'" y="'+(b.y+b.d+4*k)+'" width="'+(60*k)+'" height="'+(16*k)+'" rx="'+(8*k)+'" fill="#1d4f91" opacity=".9"/><text x="'+(b.x+b.w/2)+'" y="'+(b.y+b.d+15.5*k)+'" text-anchor="middle" font-size="'+(10.5*k)+'" font-weight="700" fill="#fff">hangs '+fmt(q[1]+(defOf(q[0]).th||1))+' ft</text></g>'}).join(''):'');G.obj.setAttribute('class',(cv()?'v-ceil ':'')+(VW.lv==='l'?'v-lt ':'')+(VW.md==='p'?'v-pow':''));var cn=$('#cnote');if(cn)cn.hidden=!cv();var stg=document.querySelector('.stage');if(stg)stg.classList.toggle('ceil',cv());vbar();if(EX.on&&EX.r){EX.S=exBuild();if(exHit(EX.pos.x,EX.pos.z)){var sp2=exSpawn();EX.pos={x:sp2.x,z:sp2.y}}}
+ Array.prototype.slice.call(G.obj.children).forEach(function(el){if(!seen[el.dataset.u])el.remove()});var lowF=[];P.items.forEach(function(it){if(!isFan(defOf(it)))return;var el=G.obj.querySelector('[data-u="'+it.u+'"]'),dd=fanDrop(it),lo=dd>(defOf(it).drop||0)+.01;if(el){G.obj.appendChild(el);el.classList.toggle('flow',lo)}if(lo)lowF.push([it,dd])});var grp0=pwGroup();Array.prototype.forEach.call(G.obj.children,function(el){el.classList.toggle('dim',!!grp0&&!grp0.items[el.dataset.u])});if(selO&&!outBy(selO))selO=null;G.reach.innerHTML=cv()?drawReach(k):'';var zdr=drawZones(k);G.zone.innerHTML=zdr.lo;G.zoneh.innerHTML=zdr.hi;G.rooms.innerHTML=drawRooms(k);G.pw.innerHTML=(VW.md==='p'&&P.pw?drawPower(k):drawPlugs(k))+(VW.lv==='g'?drawCeil(k):'')+(cv()&&VW.md!=='p'?lowF.map(function(q){var b=ibox(q[0]);return '<g pointer-events="none"><rect x="'+(b.x+b.w/2-30*k)+'" y="'+(b.y+b.d+4*k)+'" width="'+(60*k)+'" height="'+(16*k)+'" rx="'+(8*k)+'" fill="#1d4f91" opacity=".9"/><text x="'+(b.x+b.w/2)+'" y="'+(b.y+b.d+15.5*k)+'" text-anchor="middle" font-size="'+(10.5*k)+'" font-weight="700" fill="#fff">hangs '+fmt(q[1]+(defOf(q[0]).th||1))+' ft</text></g>'}).join(''):'');G.obj.setAttribute('class',(cv()?'v-ceil ':'')+(VW.lv==='l'?'v-lt ':'')+(VW.md==='p'?'v-pow':''));var cn=$('#cnote');if(cn)cn.hidden=!cv();var stg=document.querySelector('.stage');if(stg)stg.classList.toggle('ceil',cv());vbar();if(EX.on&&EX.r){EX.S=exBuild();if(exHit(EX.pos.x,EX.pos.z)){var sp2=exSpawn();EX.pos={x:sp2.x,z:sp2.y}}}
  $('#rname').value=P.name;side();markLib();$('#b-undo').disabled=!hist.length;$('#b-redo').disabled=!fut.length}
 var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
@@ -2938,9 +3134,9 @@ function cBot(c){return (c.drop||0)+(c.th||1)}
 function rodBox(b){return {x:b.x+b.w/2-.5,y:b.y+b.d/2-.5,w:1,d:1}}
 function fanMin(c){return c.r==='cc-hvls'?10:7}
 function stackOK(c1,b1,c2,b2){var f1=isFan(c1);if(f1===isFan(c2))return false;var fc=f1?c1:c2,fb=f1?b1:b2,oc=f1?c2:c1,ob=f1?b2:b1;
- if(hit(rodBox(fb),ob))return false;return (P.room.h||10)-(cBot(oc)+1)-(fc.th||1)>=fanMin(fc)-1e-6}
+ if(hit(rodBox(fb),ob))return false;return hAt(fb.x+fb.w/2,fb.y+fb.d/2)-(cBot(oc)+1)-(fc.th||1)>=fanMin(fc)-1e-6}
 function fanDrop(it){var c=defOf(it),d=c&&c.drop||0;if(!isFan(c))return d;var b=ibox(it);if(P.zones&&P.zones.length)zFixAll().forEach(function(f){if(hit(b,{x:f.x-f.w/2,y:f.y-f.d/2,w:f.w,d:f.d}))d=Math.max(d,cBot(f.c)+1)});P.items.forEach(function(o){if(o===it||!isC(o)||isFan(defOf(o)))return;if(hit(b,ibox(o)))d=Math.max(d,cBot(defOf(o))+1)});return d}
-function okC(c,b,obs,W,D){if(!inside(b,W,D))return false;for(var i=0;i<obs.length;i++){var p=obs[i];if(hit(b,p.b)&&!stackOK(c,b,p.d,p.b))return false}return true}
+function okC(c,b,obs,W,D){if(!inside(b,W,D))return false;if((P.rooms&&P.rooms.length||PREF)&&!wallOK(b,null,true))return false;for(var i=0;i<obs.length;i++){var p=obs[i];if(hit(b,p.b)&&!stackOK(c,b,p.d,p.b))return false}return true}
 function others(it){var lv=isC(it);return P.items.filter(function(o){return o!==it&&isC(o)===lv}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot),d:defOf(o)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
  for(var yy=0;yy+m.d<=D+1e-6;yy+=.5)for(var xx=0;xx+m.w<=W+1e-6;xx+=.5){var dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(c.ceiling?okC(c,b,obs,W,D):ok(b,clr(c,b,rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
@@ -2966,7 +3162,7 @@ function tEnd(e){delete touches[e.pointerId];if(tpts().length<2)pinch=null}
 sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor='';if(odrag){var d=odrag;odrag=null;if(d.moved){P=JSON.parse(d.before);render()}}});
 sv.addEventListener('dblclick',function(e){if(!e.target.closest('g.obj')&&zoomed())fitView()});
 sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType==='touch'&&tpts().length>1);tEnd(e);if(wasPinch)return;
- if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){var now=Date.now();if(now-(window.__lastTap||0)<320){window.__lastTap=0;fitView();return}window.__lastTap=now;sel=null;selO=null;selZ=null;render()}return}
+ if(pan){var pp=pan;pan=null;sv.style.cursor='';if(!pp.moved){var now=Date.now();if(now-(window.__lastTap||0)<320){window.__lastTap=0;fitView();return}window.__lastTap=now;sel=null;selO=null;selZ=null;selR=null;selD=null;render()}return}
  if(odrag){odUp();return}
  if(!drag)return;var d=drag;drag=null;if(G.teth)G.teth.innerHTML='';d.el.classList.remove('drag');d.el.style.opacity='';ghost(null);var it=byU(d.u);
  if(!d.moved){sel=it.u;selO=null;render();return}
@@ -2980,7 +3176,7 @@ function libArt(i,col){var W=i.w,D=i.d,m=Math.max(W,D)*1.22,g=ICONS[i.r]?ICONS[i
 function card(i,col){var n=needs(i);return '<div class="lcard'+(MINE[i.r]?' mine':'')+(EDITED[i.r]?' edited':'')+'" data-r="'+esc(i.r)+'" style="--c:'+col+'" title="'+esc(i.n)+'" role="button" tabindex="0">'+(EDITED[i.r]?'<span class="led" title="Edited: your version of this object" aria-label="Edited"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Edited</span>':'')+'<div class="lart">'+libArt(i,col)+'</div><div class="lnm">'+esc(i.n)+'</div><div class="lft"><div class="lbdg"><span class="lmeta">'+fmt(i.w)+'×'+fmt(i.d)+(i.p?'<i>⚡'+(pspec(i).ph===3?'3φ':i.p[0]+'<b>V</b>')+'</i>':'')+'</span></div><button class="ledit" aria-label="Edit '+esc(i.n)+'" title="Edit"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></button></div></div>'}
 function cats(){var by={},order=[],up=cv(),lt=VW.lv==='l',inLv=function(cat,i){if(HIDECATS.indexOf(cat)>=0)return false;if(!up)return true;return lt?cat==='Lighting – General'||(i&&isLt(i)):cat!=='Lighting – General'&&!(i&&isLt(i))};CATS.forEach(function(c){if(c[0]!=='Rooms & Zones'&&(CEILCATS.indexOf(c[0])>=0)===up&&inLv(c[0])){order.push(c[0]);by[c[0]]={col:c[1],list:[]}}});by['My objects']={col:'#2f7de1',list:[]};order.unshift('My objects');
  Object.keys(LIB).forEach(function(r){var i=LIB[r];if(!!i.ceiling!==up||!inLv(i.c,i))return;var cat=MINE[r]?'My objects':i.c;if(!by[cat]){by[cat]={col:'#888',list:[]};order.push(cat)}by[cat].list.push(i)});return {by:by,order:order}}
-function renderLib(){var pm=VW.md==='p';$('#libhd').hidden=pm;$('#pwhd').hidden=!pm;if(pm)return renderPwLib();var c=cats(),s=q.toLowerCase().trim(),h='';
+function renderLib(){if(BLD){$('#libhd').hidden=true;$('#pwhd').hidden=true;$('#lib').innerHTML=buildLib();buildLibWire();return}var pm=VW.md==='p';$('#libhd').hidden=pm;$('#pwhd').hidden=!pm;if(pm)return renderPwLib();var c=cats(),s=q.toLowerCase().trim(),h='';
  var lastGrp='';c.order.forEach(function(name){var g=c.by[name],list=g.list.filter(function(i){return !s||i.n.toLowerCase().indexOf(s)>=0});if(!list.length)return;if(VW.lv==='c'){var grp=/^Lighting/.test(name)?'Lighting':name==='My objects'?'':'Sound & comfort';if(grp&&grp!==lastGrp){h+='<div class="lgrp'+(grp==='Lighting'?' hot':'')+'">'+grp+'</div>';lastGrp=grp}}var open=s?true:!!openCats[name];
   h+='<div class="lsec'+(open?' open':'')+'"><button class="lsh" data-c="'+esc(name)+'"><i style="background:'+g.col+'"></i><span class="lsn">'+esc(name)+'</span><span class="lct">'+list.length+'</span><svg class="lchev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>';
   if(open)h+='<div class="lgrid">'+list.map(function(i){return card(i,g.col)}).join('')+'</div>';h+='</div>'});
@@ -3052,14 +3248,14 @@ function unpRow(){var L=unpList();if(!L.length)return '';var n=L.reduce(function
  var h='<details class="unp" id="unp"'+(unpOpen?' open':'')+'><summary><span class="ui">'+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d6453d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span><span class="ut"><b>Power</b> · <span class="bad">'+n+' object'+(n>1?'s':'')+' not powered</span></span><svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a867c" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="ul">';
  L.forEach(function(x){h+='<button class="uli" data-u="'+x.u+'" title="'+esc(x.c.n)+'"><span class="un">'+esc(x.c.n)+'</span>'+(x.n>1?'<span class="ux">×'+x.n+'</span>':'')+'</button>'});
  return h+'<button class="ulink" id="unp-go">'+(P.pw?'Rebuild power in Power view →':'Build out power in Power view →')+'</button></div></details>'}
-function reqHtml(){var L=P.items.map(function(it){return {it:it,c:defOf(it)}}).filter(function(x){return x.c}),names=function(f){var s={};L.forEach(function(x){if(f(x))s[x.c.n]=(s[x.c.n]||0)+1});return Object.keys(s).map(function(n){return s[n]>1?n+' ×'+s[n]:n}).join(', ')};
- if(!L.length)return '<p class="muted">Add objects and the room\'s needs show up here: power, plumbing, ventilation and more.</p>';
- var h=unpRow(),pw=power(P.items);
+function reqHtml(list,Hr0,inner){var L=(list||P.items).map(function(it){return {it:it,c:defOf(it)}}).filter(function(x){return x.c}),names=function(f){var s={};L.forEach(function(x){if(f(x))s[x.c.n]=(s[x.c.n]||0)+1});return Object.keys(s).map(function(n){return s[n]>1?n+' ×'+s[n]:n}).join(', ')};
+ if(!L.length)return inner?'<p class="muted">Nothing in here yet.</p>':'<p class="muted">Add objects and the room\'s needs show up here: power, plumbing, ventilation and more.</p>';
+ var h=inner?'':unpRow(),pw=power(list||P.items);if(inner&&pw.w)h+='<div class="rq">'+ico('power')+'<div><b>Power</b> · '+fmtW(pw.w)+'</div><small>'+esc(Object.keys(pw.sh).map(function(v){return v+'V shared '+fmtW(pw.sh[v].w)}).concat(Object.keys(pw.ded).map(function(k){var q=pw.ded[k];return q.n+' × '+q.V+'V '+q.A+'A own circuit'})).join(' · '))+'</small></div>';
  var w=names(function(x){return needs(x.c).water});if(w)h+='<div class="rq">'+ico('water')+'<div><b>Plumbing</b> · water and drain</div><small>'+esc(w)+'</small></div>';
  var hu=names(function(x){return needs(x.c).humid});if(hu){var dh=P.items.some(function(i){return i.r==='h-dehu'});h+='<div class="rq">'+ico('water')+'<div><b>Humidity</b> · '+(dh?'<span class="good">dehumidifier in the room ✓</span>':'growing adds moisture: plan a dehumidifier and keep it apart from electronics')+'</div><small>'+esc(hu)+'</small></div>'}
  var vv={};L.forEach(function(x){var n=needs(x.c);if(n.vent)(vv[n.vent]=vv[n.vent]||[]).push(x.c.n)});Object.keys(vv).forEach(function(k){h+='<div class="rq">'+ico('vent')+'<div><b>Ventilation</b> · '+esc(k)+'</div><small>'+esc(Array.from(new Set(vv[k])).join(', '))+'</small></div>'});
  var g=names(function(x){return needs(x.c).gas});if(g)h+='<div class="rq">'+ico('gas')+'<div><b>Compressed gas storage</b></div><small>'+esc(g)+'</small></div>';
- var ce=0,ceq=names(function(x){var n=needs(x.c);if(n.ceil>0)ce=Math.max(ce,n.ceil);return !!n.ceil});if(ceq){var lc=lowCeil(),Hr=P.room.h;h+='<div class="rq">'+ico('ceil')+'<div><b>Ceiling height</b> · '+(ce?'at least '+fmt(ce)+' ft clear':'check clear height')+(Hr?(lc.length?' · <span class="bad">room is '+fmt(Hr)+' ft</span>':' · <span class="good">room is '+fmt(Hr)+' ft ✓</span>'):'')+'</div><small>'+(lc.length?esc(lc.map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join(', ')):esc(ceq)+(Hr?'':'. Set the ceiling height above to check.'))+'</small></div>'}
+ var ce=0,ceq=names(function(x){var n=needs(x.c);if(n.ceil>0)ce=Math.max(ce,n.ceil);return !!n.ceil});if(ceq){var Hr=Hr0||P.room.h,lc=L.filter(function(x){var n=needs(x.c);return Hr&&n.ceil>Hr+1e-6}).map(function(x){return {it:x.it,need:needs(x.c).ceil}});h+='<div class="rq">'+ico('ceil')+'<div><b>Ceiling height</b> · '+(ce?'at least '+fmt(ce)+' ft clear':'check clear height')+(Hr?(lc.length?' · <span class="bad">room is '+fmt(Hr)+' ft</span>':' · <span class="good">room is '+fmt(Hr)+' ft ✓</span>'):'')+'</div><small>'+(lc.length?esc(lc.map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join(', ')):esc(ceq)+(Hr?'':'. Set the ceiling height above to check.'))+'</small></div>'}
  var co=names(function(x){return needs(x.c).cool});if(co)h+='<div class="rq">'+ico('cool')+'<div><b>Cooling</b></div><small>'+esc(co)+'</small></div>';
  var ot={};L.forEach(function(x){needs(x.c).other.forEach(function(k){if(ALERTS[k])(ot[k]=ot[k]||[]).push(x.c.n)})});Object.keys(ot).forEach(function(k){h+='<div class="rq">'+ico('note')+'<div><b>'+esc(ALERTS[k][0])+'</b></div><small>'+esc(Array.from(new Set(ot[k])).join(', '))+'</small></div>'});
  return h||'<p class="muted">Nothing beyond power.</p>'}
@@ -3068,30 +3264,25 @@ function dimOpts(V){var v=[],h='';for(var i=5;i<=300;i+=5)v.push(i);if(v.indexOf
 // 10–30 ft; an older room's unset or odd value stays selectable
 function ceilOpts(){var H=P.room.h||null,v=[],h='';for(var i=10;i<=30;i++)v.push(i);if(H&&v.indexOf(H)<0){v.push(H);v.sort(function(a,b){return a-b})}
  if(!H)h+='<option value="" selected>—</option>';v.forEach(function(x){h+='<option value="'+x+'"'+(x===H?' selected':'')+'>'+fmt(x)+'</option>'});return h}
-function lowCeil(){var H=P.room.h,out=[];if(!H)return out;P.items.forEach(function(it){var c=defOf(it),n=c&&needs(c);if(n&&n.ceil>H+1e-6)out.push({it:it,need:n.ceil})});return out}
-function ceilOf(it){var H=P.room.h,c=defOf(it),n=c&&needs(c);return H&&n&&n.ceil>H+1e-6?n.ceil:0}
+function lowCeil(){var out=[];if(!P.room.h)return out;P.items.forEach(function(it){var c=defOf(it),n=c&&needs(c),H=hOfIt(it);if(n&&n.ceil>H+1e-6)out.push({it:it,need:n.ceil})});return out}
+function ceilOf(it){var H=P.room.h?hOfIt(it):0,c=defOf(it),n=c&&needs(c);return H&&n&&n.ceil>H+1e-6?n.ceil:0}
 // room strip under the top bar: size (edit in place), Dynamic Expansion, area, equipment cost, power
 function strip(){var el=$('#strip');if(!el)return;var W=P.room.w,D=P.room.d,lo=0,hi=0,nc=0,pw=power(P.items);P.items.forEach(function(i){var c=defOf(i);if(c&&c.cost){lo+=c.cost[0];hi+=c.cost[1]}else nc++});
  var act=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#strip')?document.activeElement.id:null;
- el.innerHTML='<span class="slab">Room</span><span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span>×</span><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span>'+
-  '<i class="ssep"></i><b>'+Math.round(W*D).toLocaleString()+' sq ft</b><label class="sw" title="'+(P.dyn?'The room grows to fit new objects. It never shrinks on its own.':'The room stays this size. Objects that don\'t fit are refused.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Dynamic Expansion</label>'+
-  
-  '<i class="ssep"></i><span class="slab">Ceiling Height</span><span class="sdim"><select id="r-h" aria-label="Clear ceiling height in feet" title="Clear height: to the lowest beam, duct or sprinkler pipe, not the roof peak">'+ceilOpts()+'</select><span class="mu">ft</span></span>'+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
-  '<i class="ssep"></i><div class="vseg mseg2" role="group" aria-label="Mode"><button class="vb'+(EX.on?'':' on')+'" id="m-design"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg><span class="lbl">Design</span></button><button class="vb'+(EX.on?' on':'')+'" id="m-explore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M10 22l1-7-2-3 3-4 3 4 2 3M9 12l-3 2M15 12l3 2"/></svg><span class="lbl">Explore</span></button></div>';
- ['#r-w','#r-d'].forEach(function(q){$(q).onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
- var hi2=$('#r-h');hi2.onchange=function(){hi2.blur();var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;persist();render()};
- $('#r-dyn').onchange=function(){push();P.dyn=this.checked;persist();render()};$('#m-design').onclick=function(){setExplore(false)};$('#m-explore').onclick=function(){setExplore(true)};if(act&&$('#'+act)&&$('#'+act).tagName!=='SELECT')$('#'+act).focus()}
-function side(){var W=P.room.w,D=P.room.d,h=howTo();
+ el.innerHTML='<span class="slab">Building</span><b>'+fmt(W)+' × '+fmt(D)+' ft</b><i class="ssep"></i><span>'+Math.round(W*D).toLocaleString()+' sq ft</span><i class="ssep"></i><span>'+fmt(P.room.h||10)+' ft high</span>'+(RM().length?'<i class="ssep"></i><span>'+RM().length+' room'+(RM().length>1?'s':'')+'</span>':'')+(lowCeil().length?'<span class="sbad" title="'+esc(lowCeil().map(function(x){return defOf(x.it).n+' needs '+fmt(x.need)+' ft'}).join('\n'))+'">'+lowCeil().length+' too low</span>':'')+
+  '<i class="ssep"></i><div class="vseg mseg2" role="group" aria-label="Mode"><button class="vb'+(BLD&&!EX.on?' on':'')+'" id="m-build"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16"/><path d="M3 10h18M3 15h18M9 4v6M15 10v5M9 15v5"/></svg><span class="lbl">Build</span></button><button class="vb'+(EX.on||BLD?'':' on')+'" id="m-design"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg><span class="lbl">Design</span></button><button class="vb'+(EX.on?' on':'')+'" id="m-explore"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2"/><path d="M10 22l1-7-2-3 3-4 3 4 2 3M9 12l-3 2M15 12l3 2"/></svg><span class="lbl">Explore</span></button></div>';
+ $('#m-build').onclick=function(){setBuild(true)};$('#m-design').onclick=function(){if(EX.on)setExplore(false);if(BLD)setBuild(false)};$('#m-explore').onclick=function(){if(BLD){BLD=false;document.body.classList.remove('building');renderLib();render()}setExplore(true)};if(act&&$('#'+act)&&$('#'+act).tagName!=='SELECT')$('#'+act).focus()}
+function side(){var W=P.room.w,D=P.room.d,h=howTo();if(BLD){var S0=$('#side');S0.innerHTML=h+buildSide();strip();buildSideWire();var ht0=$('#howto');if(ht0)ht0.ontoggle=function(){howOpen=ht0.open};return}
  if(lastFail&&lastFail.msg)h+='<div class="card"><div class="err"><span>'+esc(lastFail.msg)+'.</span><button class="btn" id="r-grow">Make room bigger and add it</button></div></div>';
  if(selO)h+=outletCard();if(libV&&!sel&&!selO)h+=libCard();if(selZ&&!sel&&!selO)h+=zoneCard();var it=byU(sel);if(it){var c=defOf(it),m=dims(it,it.rot),ps=pstat(it),col=((CATS.filter(function(x){return x[0]===c.c})[0])||[])[1]||'#8a867c';
   h+='<div class="card sel"><span class="lab">Selected</span><div class="hero">'+libArt(Object.assign({},c,{w:it.w||c.w,d:it.d||c.d}),col)+'</div><b class="snm">'+esc(c.n)+'</b>'+
   '<div class="sbtns"><span class="sgrp"><button class="sb" id="o-rl" title="Turn left (Shift+R)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Turn left</button><button class="sb" id="o-rr" title="Turn right (R)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Turn right</button></span></div>'+
   '<div class="sbtns"><button class="sb red" id="o-del"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Delete</button></div>'+
-  (isFan(c)&&fanDrop(it)>(c.drop||0)+.01?'<div class="fnote"><b>Hangs '+fmt(fanDrop(it)+(c.th||1))+' ft down</b>, below the light it overlaps. Blades '+fmt((P.room.h||10)-fanDrop(it)-(c.th||1))+' ft above the floor.<span class="amb">Fan blades turning under a light cause flicker, which can be risky around saws and lathes.</span></div>':'')+
+  (isFan(c)&&fanDrop(it)>(c.drop||0)+.01?'<div class="fnote"><b>Hangs '+fmt(fanDrop(it)+(c.th||1))+' ft down</b>, below the light it overlaps. Blades '+fmt(hOfIt(it)-fanDrop(it)-(c.th||1))+' ft above the floor.<span class="amb">Fan blades turning under a light cause flicker, which can be risky around saws and lathes.</span></div>':'')+
   (it.pin?'<div class="spin">Pinned here · <button class="lnk" id="o-pin">Unpin</button></div>':'')+
   '<button class="fbox" id="o-space" title="Change the size and '+(c.ceiling?'reach':'clearance')+' of this one"><span class="ln"><span class="rw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/></svg>Size'+(itEdited(it,'size')?'<em class="etag">Edited</em>':'')+'</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></span><span class="rw"><span>'+(c.ceiling?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2.5"/></svg>Reach'+(itEdited(it,'reach')?'<em class="etag">Edited</em>':'')+'</span><b>about '+fmt(c.reach||0)+' ft around</b>':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>Clearance'+(itEdited(it,'k')?'<em class="etag">Edited</em>':'')+'</span><b>'+clrShort(c)+'</b>')+'</span></span><span class="pe"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></span></button>'+'<div class="srows">'+(c.ceiling?'<div class="srw"><span>Hangs down</span><b>'+(fanDrop(it)?fmt(fanDrop(it))+' ft':'flush')+'</b></div>':'')+(c.p?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Power</span><b>'+pvTxt(c)+' · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps&&ps.o?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+'</div>'+
-  (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. The room is '+fmt(P.room.h)+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
- if(VW.md==='p')h+=powerCard();if(VW.md!=='p'&&!byU(sel)&&!libV&&!selZ)h+='<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
+  (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. '+(roomAt(ibox(it).x+ibox(it).w/2,ibox(it).y+ibox(it).d/2)?'This room':'The building')+' is '+fmt(hOfIt(it))+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
+ if(VW.md==='p')h+=powerCard();if(VW.md!=='p'&&!byU(sel)&&!libV&&!selZ)h+=RM().length?roomsSummary():'<div class="card"><span class="lab">This room needs</span><div class="req">'+reqHtml()+'</div></div>';
 
  var S=$('#side');S.innerHTML=h;strip();pwHead();
  var gb=$('#r-grow');if(gb)gb.onclick=function(){var r=lastFail.r,c=LIB[r],before=snapP(),nit={u:'o'+(P.uid++),r:r,x:0,y:0,rot:0,n:P.uid};P.defs[r]=JSON.parse(JSON.stringify(c));P.items.push(nit);if(!relayout({force:true})){P=JSON.parse(before);toast('Even a much bigger room can\'t fit that');render();return}hist.push(before);fut=[];sel=nit.u;lastFail=null;persist();render()};
@@ -3102,7 +3293,7 @@ function side(){var W=P.room.w,D=P.room.d,h=howTo();
  var un=$('#unp');if(un){un.ontoggle=function(){unpOpen=un.open;try{localStorage.setItem('sp-unp',unpOpen?'1':'0')}catch(_){}};S.querySelectorAll('.uli').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});$('#unp-go').onclick=function(){setView('md','p')}}
  S.querySelectorAll('details.pg').forEach(function(d){d.ontoggle=function(){var k=d.dataset.k;if(d.open===(pwOpenK===k))return;pwOpenK=d.open?k:null;render()}});S.querySelectorAll('.pci').forEach(function(b){b.onclick=function(){sel=b.dataset.u;selO=null;render()}});S.querySelectorAll('.pch').forEach(function(b){b.onclick=function(){selO=b.dataset.o;sel=null;render()}});
  if(it){$('#o-rl').onclick=function(){rotate(it.u,-1)};$('#o-rr').onclick=function(){rotate(it.u,1)};if($('#o-pin'))$('#o-pin').onclick=function(){setPin(it.u,false)};$('#o-del').onclick=function(){remove(it.u)};$('#o-space').onclick=function(){editIt(it.u)}}
- S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}});
+ S.querySelectorAll('.oi').forEach(function(b){b.onclick=function(){sel=b.dataset.u;render()}});S.querySelectorAll('details.rcard').forEach(function(d){d.ontoggle=function(){openRm[d.dataset.k]=d.open}});
  document.querySelectorAll('#lib .lcard').forEach(function(b){b.classList.toggle('pick',!!libV&&(b.dataset.r?libV.r===b.dataset.r:libV.pk===b.dataset.pk))});var zc=document.querySelector('#lib .zlib');if(zc)zc.classList.toggle('pick',!!(libV&&libV.zone));zoneCardWire()}
 function viewLib(v){libV=v;sel=null;selO=null;selZ=null;render()}
 var SVI=function(p){return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
@@ -3204,12 +3395,12 @@ $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to
 $('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;selO=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
- d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true},zones:x.zones||[],zid:x.zid||0});sel=null;selO=null;selZ=null;lastFail=null;persist();render();syncDefs(true);toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
+ d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true},zones:x.zones||[],zid:x.zid||0,rooms:x.rooms||[],rid:x.rid||0});sel=null;selO=null;selZ=null;selR=null;selD=null;lastFail=null;persist();render();syncDefs(true);toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
 function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'</b>'+(me.admin?' · library owner':''):'Not signed in · <a href="index.html">sign in to the test app</a> to save'}
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render();syncDefs(true)}).catch(function(){tok=null;me=null;showWho()});
 renderLib();render();
-window.__sp={P:function(){return P},fd:function(u){return fanDrop(byU(u))},edit:function(r,t){if(t){tok=tok||t;me=me||{id:0}}editObj(r)},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
+window.__sp={P:function(){return P},ev:function(s){return eval(s)},fd:function(u){return fanDrop(byU(u))},edit:function(r,t){if(t){tok=tok||t;me=me||{id:0}}editObj(r)},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();
 
 </script>
