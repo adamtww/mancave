@@ -996,7 +996,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
    leafM=exMat(T,0x9c7a55,{r:.55}),frameM=exMat(T,0xf2f0ea,{r:.6}),lidM=exMat(T,0xeeece6,{r:.95}),lidTop=exMat(T,0x8a8a86,{r:.95}),TH=.4,
    seg=function(x,z,w,d,y0,y1,len){if(w<=.01||d<=.01||y1-y0<=.01)return;var m=new T.Mesh(new T.BoxGeometry(w,y1-y0,d),dw.clone());m.material.map=dw.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(Math.max(.3,len/8),Math.max(.3,(y1-y0)/8));m.position.set(x,(y0+y1)/2,z);m.castShadow=true;m.receiveShadow=true;S.add(m)};
   P.rooms.forEach(function(r){var wh=Math.min(r.h||H,H);
-   ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=(r.doors||[]).filter(function(d){return d.s===sd}).map(function(d){return [d.t,d.t+(d.len||3)]}).sort(function(a,b){return a[0]-b[0]}),cur=0,parts=[];
+   ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=sideGaps(r,sd),cur=0,parts=[];
     gaps.forEach(function(g){if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>7.05)parts.push([g[0],g[1],7,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
     parts.forEach(function(q){var a=q[0],b=q[1],hor=sd==='n'||sd==='s',fx=hor?r.x+(a+b)/2:(sd==='w'?r.x:r.x+r.w),fz=hor?(sd==='n'?r.y:r.y+r.d):r.y+(a+b)/2,w=hor?b-a:TH,d=hor?TH:b-a;
      seg(fx,fz,w,d,q[2],q[3],b-a);if(q[2]===0)EX.solid.push({x:fx-w/2,z:fz-d/2,w:w,d:d})})});

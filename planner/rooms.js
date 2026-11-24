@@ -20,6 +20,10 @@ function dGeo(r,d){var L=d.len||3,t=d.t,s=d.s,a,b,n,hz;
  var sn=d.sw===-1?{x:-n.x,y:-n.y}:n,h=d.hg?b:a,o=d.hg?a:b,tip={x:h.x+sn.x*L,y:h.y+sn.y*L},
   box=function(v){return {x:Math.min(a.x,b.x,a.x+v.x*L),y:Math.min(a.y,b.y,a.y+v.y*L),w:Math.abs(b.x-a.x)+Math.abs(v.x*L),d:Math.abs(b.y-a.y)+Math.abs(v.y*L)}};
  return {a:a,b:b,n:n,sn:sn,h:h,o:o,tip:tip,swing:box(sn),land:box({x:-sn.x,y:-sn.y}),L:L}}
+// door openings on one side of a room, its own and any a neighbour has in the shared wall
+function sideGaps(r,sd){var len=sideLen(r,sd),hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w,o0=hor?r.x:r.y,out=[];
+ RM().forEach(function(q){(q.doors||[]).forEach(function(d){var g=dGeo(q,d),dh=d.s==='n'||d.s==='s';if(dh!==hor)return;var dl=hor?g.a.y:g.a.x;if(Math.abs(dl-line)>1e-6)return;var a=(hor?Math.min(g.a.x,g.b.x):Math.min(g.a.y,g.b.y))-o0,b=a+g.L;if(b<=0||a>=len)return;out.push([Math.max(0,a),Math.min(len,b)])})});
+ return out.sort(function(p,q){return p[0]-q[0]})}
 function sideLen(r,s){return s==='n'||s==='s'?r.w:r.d}
 function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==='s'&&r.y+r.d>=D-1e-6)||(s==='w'&&r.x<=1e-6)||(s==='e'&&r.x+r.w>=W-1e-6)}
 function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
@@ -63,7 +67,7 @@ function bCommit(before,mem){var fl=pushFix(mem);if(before!==snapP()){hist.push(
 function drawRooms(k){var a=RM();if(!a.length)return '';var on=BLD,wl=5*k,body='',walls='',doors='',labs='',hand='';
  a.forEach(function(r){var col=rCol(r),s=on&&selR===r.id;
   body+='<rect class="room rb" data-r="'+r.id+'" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.d+'" fill="'+col+'" fill-opacity="'+(on?(s?.16:.1):.05)+'"/>';
-  ['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd),gaps=(r.doors||[]).filter(function(d){return d.s===sd}).map(function(d){return [d.t,d.t+(d.len||3)]}).sort(function(p,q){return p[0]-q[0]}),cur=0,segs=[];
+  ['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd),gaps=sideGaps(r,sd),cur=0,segs=[];
    gaps.forEach(function(g){if(g[0]>cur)segs.push([cur,g[0]]);cur=Math.max(cur,g[1])});if(cur<len)segs.push([cur,len]);
    segs.forEach(function(sg){var p1,p2;if(sd==='n'){p1=[r.x+sg[0],r.y];p2=[r.x+sg[1],r.y]}else if(sd==='s'){p1=[r.x+sg[0],r.y+r.d];p2=[r.x+sg[1],r.y+r.d]}else if(sd==='w'){p1=[r.x,r.y+sg[0]];p2=[r.x,r.y+sg[1]]}else{p1=[r.x+r.w,r.y+sg[0]];p2=[r.x+r.w,r.y+sg[1]]}
     walls+='<line x1="'+p1[0]+'" y1="'+p1[1]+'" x2="'+p2[0]+'" y2="'+p2[1]+'" stroke="'+(s?'#1d4f91':'#3a3936')+'" stroke-width="'+wl+'" stroke-linecap="square"/>'})});
