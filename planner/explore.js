@@ -988,24 +988,30 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
  var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
  wall(W/2,-.25,W+1,.5,W);wall(W/2,D+.25,W+1,.5,W);wall(-.25,D/2,.5,D,D);wall(W+.25,D/2,.5,D,D);
- var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0x2b2c30,{r:.9}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
+ var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0x5a5c61,{r:.9}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
  var bm=exMat(T,0x3a3c42,{m:.5,r:.45});for(var bx=Math.min(8,W/3);bx<W;bx+=Math.max(8,W/6)){var be=new T.Mesh(new T.BoxGeometry(.5,1.2,D),bm);be.position.set(bx,H-.6,D/2);S.add(be)}
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
   if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=c.drop||0;cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
-   if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light)lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c});return}
+   if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
   var h=c.h||Math.max(2,Math.min(6,Math.min(w0,d0)));var g=exShape(T,c,w0,d0,h,M);g.position.set(cx,0,cz);g.rotation.y=-(it.rot||0)*Math.PI/2;S.add(g);
   if(/^a-(car|pickup|evbay)$/.test(c.r)||NOWALK.test(c.r)){var ln=new T.Mesh(new T.PlaneGeometry(m.w,m.d),exMat(T,/^c-/.test(c.r)?0x3c6e9e:0xffffff,{op:/^c-/.test(c.r)?.55:.12,r:.8}));ln.rotation.x=-Math.PI/2;ln.position.set(cx,.02,cz);S.add(ln)}
   if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
- // light: ceiling lights do the work; with none placed, soft work light so the room is still readable
- S.add(new T.HemisphereLight(0xcfd6e0,0x2a2622,lights.length?.5:1.1));
+ // light: real fixtures. Brightness from lumens (LED ~130 lm/W) spread over each fixture's beam, in feet,
+ // plus a fill light for what bounces off the floor and walls. Fixtures that aren't powered stay off.
+ var LX=.1,on=lights.filter(function(L){return !L.off}),
+  BEAM={'cl-track':.35,'cl-stage':.26,'cl-down':.6,'cl-pend':.75,'cl-pool':.85,'cl-wash':.7,'cl-task':.8,'cl-black':.9},
+  lmOf=function(L){return ((L.c.p&&L.c.p[1])||60)*(L.c.r==='cl-black'?25:130)},
+  tot=on.reduce(function(a,L){return a+lmOf(L)},0),eAvg=tot*.6/(W*D*.0929);
+ EX.lux=Math.round(eAvg);var nOff=lights.length-on.length;if(nOff)setTimeout(function(){toast(nOff===1?'1 light isn\'t powered, so it\'s off. Plug it in on the Power view.':nOff+' lights aren\'t powered, so they\'re off. Plug them in on the Power view.')},400);
+ S.add(new T.HemisphereLight(0xd8dde6,0xb3a58f,lights.length?Math.min(2.8,.3+eAvg*.004):1.1));
  if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
   var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
- var maxL=24,shad=4,lim=lights.slice(0,maxL);
- lim.forEach(function(L,i){var big=/General|Specialty/.test(L.c.c),pw=(L.c.p&&L.c.p[1])||60;var sp=new T.SpotLight(L.col,Math.min(400,pw*(big?1.6:2.2)),Math.max(14,H*2.2),big?Math.PI/3:Math.PI/4,.6,1.6);
-  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(1024,1024);sp.shadow.bias=-.0006}S.add(sp);S.add(sp.target)});
- if(lights.length>maxL){S.children.filter(function(o){return o.isHemisphereLight}).forEach(function(h){h.intensity=.6})}
+ var maxL=24,shad=4,lim=on.slice(0,maxL);
+ lim.forEach(function(L,i){var th=BEAM[L.c.r]||1.05,cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th)));
+  var sp=new T.SpotLight(L.col,cd*LX,0,Math.min(1.45,th*1.25),th>=1?1:.55,2);
+  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(1024,1024);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
  // glowing screens light their surroundings a little
  return S}
 function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1;y+=1)for(var x=1.5;x<W-1;x+=1){if(exHit(x,y))continue;var sc=-Math.hypot(x-W/2,y-(D-2))+(exClear(x,y)*2);if(sc>bs){bs=sc;best={x:x,y:y}}}
