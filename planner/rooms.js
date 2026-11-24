@@ -29,6 +29,7 @@ function sideShared(r,sd){var hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?
  RM().forEach(function(q,iq){if(q===r)return;var hq=Math.min(q.h||H,H);if(!(hq>hr+1e-6||(Math.abs(hq-hr)<1e-6&&iq<ir)))return;
   ['n','e','s','w'].forEach(function(s2){if((s2==='n'||s2==='s')!==hor)return;var l2=s2==='n'?q.y:s2==='s'?q.y+q.d:s2==='w'?q.x:q.x+q.w;if(Math.abs(l2-line)>1e-6)return;
    var a=(hor?q.x:q.y)-o0,b=a+(hor?q.w:q.d);a=Math.max(0,a);b=Math.min(len,b);if(b>a+1e-6)out.push([a,b])})});return out}
+function doorCount(r){return ['n','e','s','w'].reduce(function(a,sd){return a+sideGaps(r,sd).length},0)}
 function sideLen(r,s){return s==='n'||s==='s'?r.w:r.d}
 function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==='s'&&r.y+r.d>=D-1e-6)||(s==='w'&&r.x<=1e-6)||(s==='e'&&r.x+r.w>=W-1e-6)}
 function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
@@ -81,8 +82,9 @@ function drawRooms(k){var a=RM();if(!a.length)return '';var on=BLD,wl=5*k,body='
     '<path d="M'+g.o.x+' '+g.o.y+' A'+g.L+' '+g.L+' 0 0 '+(((g.o.x-g.h.x)*(g.tip.y-g.h.y)-(g.o.y-g.h.y)*(g.tip.x-g.h.x))>0?1:0)+' '+g.tip.x+' '+g.tip.y+'" fill="none" stroke="'+(sel2?'#2f7de1':'#8a867c')+'" stroke-width="'+(1.2*k)+'" stroke-dasharray="'+(4*k)+' '+(3*k)+'"/>'+
     '<line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="'+(sel2?'#2f7de1':'#5f5b52')+'" stroke-width="'+(2.4*k)+'"/></g>'});
   labs+='<g opacity="'+(on?1:.55)+'"><text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2)+'" text-anchor="middle" font-size="'+(13*k)+'" font-weight="700" fill="'+shadeHex(col,-.35)+'">'+esc(r.n||'Room')+'</text><text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.d/2+15*k)+'" text-anchor="middle" font-size="'+(11*k)+'" fill="'+shadeHex(col,-.2)+'">'+fmt(r.w)+' × '+fmt(r.d)+' · '+fmt(r.h||P.room.h||10)+' ft</text></g>';
-  if(s&&selD==null)[['nw',0,0],['n',.5,0],['ne',1,0],['e',1,.5],['se',1,1],['s',.5,1],['sw',0,1],['w',0,.5]].forEach(function(q){var hx=r.x+r.w*q[1],hy=r.y+r.d*q[2],rr=7*k;
-   hand+='<rect class="rh" data-r="'+r.id+'" data-h="'+q[0]+'" x="'+(hx-rr)+'" y="'+(hy-rr)+'" width="'+(2*rr)+'" height="'+(2*rr)+'" rx="'+(2*k)+'" fill="#fff" stroke="#2f7de1" stroke-width="'+(2*k)+'" style="cursor:'+({n:'ns',s:'ns',e:'ew',w:'ew',nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw'})[q[0]]+'-resize"/>'})});
+  if(s&&selD==null){[['n',r.x,r.y,r.x+r.w,r.y],['s',r.x,r.y+r.d,r.x+r.w,r.y+r.d],['w',r.x,r.y,r.x,r.y+r.d],['e',r.x+r.w,r.y,r.x+r.w,r.y+r.d]].forEach(function(q){hand+='<line class="rh rwall" data-r="'+r.id+'" data-h="'+q[0]+'" x1="'+q[1]+'" y1="'+q[2]+'" x2="'+q[3]+'" y2="'+q[4]+'" stroke="rgba(47,125,225,0)" stroke-width="'+(16*k)+'" style="cursor:'+(q[0]==='n'||q[0]==='s'?'ns':'ew')+'-resize"/>'});
+  [['nw',0,0],['ne',1,0],['se',1,1],['sw',0,1]].forEach(function(q){var hx=r.x+r.w*q[1],hy=r.y+r.d*q[2],rr=7*k;
+   hand+='<rect class="rh" data-r="'+r.id+'" data-h="'+q[0]+'" x="'+(hx-rr)+'" y="'+(hy-rr)+'" width="'+(2*rr)+'" height="'+(2*rr)+'" rx="'+(2*k)+'" fill="#fff" stroke="#2f7de1" stroke-width="'+(2*k)+'" style="cursor:'+({n:'ns',s:'ns',e:'ew',w:'ew',nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw'})[q[0]]+'-resize"/>'})}});
  var bad='';if(BLD)badWall().forEach(function(it){var b=ibox(it);bad+='<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="rgba(214,48,49,.25)" stroke="#d63031" stroke-width="'+(2*k)+'"/>'});
  return body+'<g pointer-events="none">'+walls+'</g><g pointer-events="none">'+labs+bad+'</g>'+hand+doors}
 function shadeHex(hex,f){var c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&255,m=function(v){return Math.max(0,Math.min(255,Math.round(f<0?v*(1+f):v+(255-v)*f)))};return '#'+((1<<24)+(m(r)<<16)+(m(g)<<8)+m(b)).toString(16).slice(1)}
@@ -141,10 +143,10 @@ function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="ca
  else if(r){var its=P.items.filter(function(it){return within(ibox(it),r)}).length;h+='<div class="card sel"><span class="lab">Room</span>'+
   '<label class="fl">Name<input id="rm-n" value="'+esc(r.n||'')+'" maxlength="40"></label>'+
   '<label class="fl">Ceiling height<span class="sdim"><select id="rm-h">'+hOpts(r.h||H,H)+'</select><span class="mu">ft</span></span></label>'+
-  '<div class="srows"><div class="srw"><span>Size</span><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft · '+Math.round(r.w*r.d)+' sq ft</b></div><div class="srw"><span>Doors</span><b>'+(r.doors||[]).length+'</b></div><div class="srw"><span>Objects inside</span><b>'+its+'</b></div>'+((r.h||H)<H-.01?'<div class="srw"><span>Above its ceiling</span><b>'+fmt(H-(r.h||H))+' ft</b></div>':'')+'</div>'+
-  ((r.doors||[]).length?'':'<div class="warn">This room has no door. Drag one from the left onto its wall.</div>')+
+  '<div class="srows"><div class="srw"><span>Size</span><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft · '+Math.round(r.w*r.d)+' sq ft</b></div><div class="srw"><span>Doors</span><b>'+doorCount(r)+'</b></div><div class="srw"><span>Objects inside</span><b>'+its+'</b></div>'+((r.h||H)<H-.01?'<div class="srw"><span>Above its ceiling</span><b>'+fmt(H-(r.h||H))+' ft</b></div>':'')+'</div>'+
+  (doorCount(r)?'':'<div class="warn">This room has no door. Drag one from the left onto its wall.</div>')+
   '<label class="fl">Notes<textarea id="rm-no" rows="3" placeholder="Insulate the shop wall">'+esc(r.no||'')+'</textarea></label>'+
-  '<div class="sbtns"><button class="sb red" id="rm-del">Delete room</button></div><p class="muted">Drag the room to move it and what\'s inside. Drag its edges to resize.</p></div>'}
+  '<div class="sbtns"><button class="sb red" id="rm-del">Delete room</button></div><p class="muted">Drag the room to move it and what\'s inside. Drag a wall to move just that side, or a corner to resize both ways.</p></div>'}
  else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
  var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
  return h}
@@ -170,7 +172,7 @@ function roomsSummary(){var H=P.room.h||10,W=P.room.w,D=P.room.d,pw=power(P.item
  var area=W*D-RM().reduce(function(a,r){return a+r.w*r.d},0);
  var h='<div class="card"><span class="lab">Building</span><div class="btot"><div><span>Floor area</span><b>'+Math.round(W*D).toLocaleString()+' sq ft</b></div><div><span>Rooms</span><b>'+RM().length+'</b></div><div><span>Connected load</span><b>'+fmtW(pw.w)+'</b></div><div><span>Height</span><b>'+fmt(H)+' ft</b></div></div>'+unpRow()+'</div>';
  list.forEach(function(q){var its=roomItems(q.r),key=q.r?q.r.id:'o',low=its.filter(function(it){var c=defOf(it),n=c&&needs(c);return n&&n.ceil>q.h+1e-6}),bw=badWall().filter(function(it){return its.indexOf(it)>=0}),
-   warn=[];if(q.r&&!(q.r.doors||[]).length)warn.push('No door');if(low.length)warn.push(low.length+' too tall for '+fmt(q.h)+' ft');if(bw.length)warn.push(bw.length+' crossing a wall');
+   warn=[];if(q.r&&!doorCount(q.r))warn.push('No door');if(low.length)warn.push(low.length+' too tall for '+fmt(q.h)+' ft');if(bw.length)warn.push(bw.length+' crossing a wall');
   h+='<details class="card rcard" data-k="'+key+'"'+(openRm[key]?' open':'')+'><summary><i style="background:'+q.col+'"></i><b>'+esc(q.n)+'</b><small>'+fmt(q.h)+' ft · '+its.length+' object'+(its.length===1?'':'s')+'</small></summary>'+
    (warn.length?'<div class="warn">'+warn.join(' · ')+'</div>':'')+
    '<div class="req">'+reqHtml(its,q.h,true)+'</div>'+(q.r&&q.r.no?'<p class="muted"><b>Notes:</b> '+esc(q.r.no)+'</p>':'')+'</details>'});
