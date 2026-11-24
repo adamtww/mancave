@@ -32,16 +32,15 @@ function zIcon(p,c,k,mv){var cx=p.x,cy=p.y,st=mv?'#2f7de1':'#854F0B',sw=(mv?2:1.
  return (c.w===c.d&&/round|caged/i.test(c.n)?'<circle cx="'+cx+'" cy="'+cy+'" r="'+(p.w/2)+'" fill="#FAC775" stroke="'+st+'" stroke-width="'+sw+'"/><circle cx="'+cx+'" cy="'+cy+'" r="'+(p.w/5)+'" fill="#fff6d6"/>'
   :'<rect x="'+(cx-p.w/2)+'" y="'+(cy-p.d/2)+'" width="'+p.w+'" height="'+p.d+'" rx="'+(Math.min(p.w,p.d)*.2)+'" fill="#FAC775" stroke="'+st+'" stroke-width="'+sw+'"/>')+
   (mv?'<circle cx="'+(cx+p.w/2)+'" cy="'+(cy-p.d/2)+'" r="'+(3.2*k)+'" fill="#2f7de1" stroke="#fff" stroke-width="'+k+'"/>':'')}
-function drawZones(k){if(VW.lv==='g')return '';var on=VW.lv==='l'&&VW.md!=='p',h='';
+function drawZones(k){var hi='';if(VW.lv==='g')return {lo:'',hi:''};var on=VW.lv==='l'&&VW.md!=='p',h='';
  ZN().forEach(function(z){var L=zLayout(z),s=on&&selZ===z.id;
   h+='<g class="zone'+(on?'':' zoff')+'" data-z="'+z.id+'"><rect class="zb" x="'+z.x+'" y="'+z.y+'" width="'+z.w+'" height="'+z.d+'" fill="#EF9F27" fill-opacity="'+(s?.2:.13)+'" stroke="'+(s?'#2f7de1':'#BA7517')+'" stroke-width="'+((s?2.4:1.6)*k)+'"'+(s?'':' stroke-dasharray="'+(6*k)+' '+(4*k)+'"')+'/>';
   L.pts.forEach(function(p){if(p.bl)return;h+='<g class="zfx" data-z="'+z.id+'" data-i="'+p.i+'">'+zIcon(p,L.c,k,p.mv)+'</g>'});
   var lab='Light zone · '+L.n,lw=(lab.length*6.4+16)*k;
-  h+='<g pointer-events="none"><rect x="'+(z.x+6*k)+'" y="'+(z.y+6*k)+'" width="'+lw+'" height="'+(18*k)+'" rx="'+(9*k)+'" fill="'+(s?'#1d4f91':'#854F0B')+'"/><text x="'+(z.x+14*k)+'" y="'+(z.y+19*k)+'" font-size="'+(11*k)+'" font-weight="700" fill="#fff">'+lab+'</text></g>';
+  h+='</g>';hi+='<g pointer-events="none"'+(on?'':' opacity=".3"')+'><rect x="'+(z.x+6*k)+'" y="'+(z.y+6*k)+'" width="'+lw+'" height="'+(18*k)+'" rx="'+(9*k)+'" fill="'+(s?'#1d4f91':'#854F0B')+'"/><text x="'+(z.x+14*k)+'" y="'+(z.y+19*k)+'" font-size="'+(11*k)+'" font-weight="700" fill="#fff">'+lab+'</text></g>';if(s)hi+='<g class="zone" data-z="'+z.id+'">';
   if(s){[['nw',0,0],['n',.5,0],['ne',1,0],['e',1,.5],['se',1,1],['s',.5,1],['sw',0,1],['w',0,.5]].forEach(function(q){var hx=z.x+z.w*q[1],hy=z.y+z.d*q[2],r=7*k;
-   h+='<rect class="zh" data-z="'+z.id+'" data-h="'+q[0]+'" x="'+(hx-r)+'" y="'+(hy-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" rx="'+(2*k)+'" fill="#fff" stroke="#2f7de1" stroke-width="'+(2*k)+'" style="cursor:'+({n:'ns',s:'ns',e:'ew',w:'ew',nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw'})[q[0]]+'-resize"/>'})}
-  h+='</g>'});return h}
-function zRedraw(){if(G.zone)G.zone.innerHTML=drawZones(1/scale())}
+   hi+='<rect class="zh" data-z="'+z.id+'" data-h="'+q[0]+'" x="'+(hx-r)+'" y="'+(hy-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" rx="'+(2*k)+'" fill="#fff" stroke="#2f7de1" stroke-width="'+(2*k)+'" style="cursor:'+({n:'ns',s:'ns',e:'ew',w:'ew',nw:'nwse',se:'nwse',ne:'nesw',sw:'nesw'})[q[0]]+'-resize"/>'});hi+='</g>'}});return {lo:h,hi:hi}}
+function zRedraw(){if(!G.zone)return;var d=drawZones(1/scale());G.zone.innerHTML=d.lo;G.zoneh.innerHTML=d.hi}
 // default zone where it was dropped: up to 16 ft square, inside the room, shrunk until it clears other zones
 function zFit(cx,cy){var W=P.room.w,D=P.room.d;for(var s=16;s>=4;s--){var w=Math.min(s,W),d=Math.min(s,D),x=Math.round(Math.max(0,Math.min(W-w,cx-w/2))),y=Math.round(Math.max(0,Math.min(D-d,cy-d/2))),b={x:x,y:y,w:w,d:d};if(!zOverlap(b))return b}return null}
 function zAdd(cx,cy){var b=zFit(cx,cy);if(!b){toast('No open ceiling there for a light zone');return}var before=snapP();P.zid=(P.zid||0)+1;var z={id:'z'+P.zid,x:b.x,y:b.y,w:b.w,d:b.d,f:null,fc:50,rc:null,adj:{}};ZN().push(z);
