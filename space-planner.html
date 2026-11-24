@@ -197,6 +197,7 @@ g.obj.dim{opacity:.28}.pg summary{display:flex;align-items:center;gap:8px;paddin
 .zlay b{flex:1;text-align:center;font-size:15px;color:#2b2a27}.zlay em{font-style:normal;font-size:11px;color:#8a867c;margin-left:2px}
 .zst{width:32px;height:32px;border:1px solid #d9d6ce;border-radius:8px;background:#faf9f6;font-size:17px;line-height:1;color:#3a3936;cursor:pointer;padding:0}.zst:active{background:#eef4fe}
 .lnk.red{color:#b3261e}
+.cpw{padding:4px 2px}.cpw>b{font-size:15px}.cpt{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e8e5de;margin-top:6px;font-weight:600}.cpr{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #eeebe4;font-size:13px}.cpr em{display:block;font-style:normal;font-size:11.5px;color:#8a867c;margin-top:2px}.cpr b{white-space:nowrap}
 .lgrp{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a867c;padding:12px 2px 4px}.lgrp.hot{color:#b07a00;display:flex;align-items:center;gap:6px}.lgrp.hot::before{content:"";width:10px;height:10px;border-radius:50%;background:#f2b33d;box-shadow:0 0 0 3px rgba(242,179,61,.25)}
 .cnote{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:3;background:#fff;border:1px solid #dedad1;border-radius:10px;padding:7px 12px;font-size:12.5px;color:#5f5b52;box-shadow:0 1px 3px rgba(0,0,0,.08);max-width:min(460px,calc(100% - 40px));text-align:center}
 .card.sel .hero{background:#f5f4f0;border-radius:12px;height:120px;display:flex;align-items:center;justify-content:center;padding:10px}.card.sel .hero svg{height:100%;width:auto;max-width:100%}
@@ -2592,7 +2593,7 @@ function nudge(sp,list,b){var same=function(q){return list.some(function(o){var 
 function sigOf(it){return [it.r,it.x,it.y,it.rot].join('|')}
 function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.auto:!!(prev&&prev.auto),out=[],circ=[],links={},sig={},nid=1,W=P.room.w,D=P.room.d;
  // outlets you placed stay where they are; everything plugs into them first
- var man=(prev&&prev.outlets||[]).filter(function(o){return o.man}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;delete q.ldd;
+ var man=(prev&&prev.outlets||[]).filter(function(o){return o.man&&o.s!==-3}).map(function(o){var q=Object.assign({},o,pkBase(o.k),{sk:0,w:0});q.k=pkK(o.k);delete q.c;delete q.feed;delete q.ld;delete q.ldd;
   if(q.s>=0)q.a=Math.max(.5,Math.min((q.s%2===0?W:D)-.5,q.a));else{q.x=Math.max(.5,Math.min(W-.5,q.x));q.y=Math.max(.5,Math.min(D-.5,q.y))}return q});out=man.slice();
  var mk=function(sp,f){while(out.some(function(x){return x.id==='q'+nid}))nid++;var o=Object.assign({id:'q'+(nid++),s:sp.s},sp.s>=0?{a:sp.a}:{x:sp.x,y:sp.y},f);out.push(o);return o};
  var prevSpot=function(it,t){if(!prev||!prev.links)return null;var o=(prev.outlets||[]).filter(function(x){return x.id===prev.links[it.u]})[0];if(!o||o.man||opt.fresh||o.ty!==t)return null;var sp=o.s>=0?{s:o.s,a:o.a}:{s:-1,x:o.x,y:o.y};
@@ -2602,7 +2603,7 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  var mlink=function(x){var ceil=isC(x.it),b=ibox(x.it),s=x.sp,best=null,bd=1e9;man.forEach(function(o){if(o.sk>=o.cap||!pfits(o,s,ceil)||o.ldd)return;if(s.ded&&!o.ded&&!o.any&&o.sk>0)return;if(!o.any&&!o.ded&&o.ty!=='hw'&&o.w+s.W>o.V*o.A*CAP80)return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});
   if(!best)return;best.sk++;best.w+=s.W;if(s.ded&&!best.ded&&!best.any)best.ldd=1;if(best.any&&best.sk===1){best.V=s.V;best.A=s.A;best.ph=s.ph;best.ty=s.hw?'hw':s.t;best.ld=s.ded?1:0;if(ceil)best.feed=1}links[x.it.u]=best.id};
  L.filter(function(x){return x.sp.ded}).forEach(mlink);L.filter(function(x){return !x.sp.ded}).forEach(mlink);L=L.filter(function(x){return !links[x.it.u]});
- var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[];CL=[]}else if(opt.keep){var pa=function(x){var o=prev&&prev.links&&(prev.outlets||[]).filter(function(q){return q.id===prev.links[x.it.u]})[0];return !!(o&&!o.man)};L=L.filter(pa);CL=CL.filter(pa)}
+ var CL=L.filter(function(x){return isC(x.it)});L=L.filter(function(x){return !isC(x.it)});if(!auto){L=[]}else if(opt.keep){var pa=function(x){var o=prev&&prev.links&&(prev.outlets||[]).filter(function(q){return q.id===prev.links[x.it.u]})[0];return !!(o&&!o.man)};L=L.filter(pa)}
  // own circuits first
  L.filter(function(x){return x.sp.ded}).forEach(function(x){var s=x.sp,o=mk(nudge(x.home,out,ibox(x.it)),{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W});circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,out:[o.id]});links[x.it.u]=o.id});
  // everyday 120V loads share duplex outlets
@@ -2616,6 +2617,9 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  // ceiling objects: a wired feed at each fixture; big ones get their own circuit, the rest share 20A circuits
  var feeds=[];CL.forEach(function(x){var b=ibox(x.it),s=x.sp,o=mk({s:-3,x:h2(b.x+b.w/2),y:h2(b.y+b.d/2)},{ty:s.t,V:s.V,A:s.A,ph:s.ph,sk:1,w:s.W,feed:1});links[x.it.u]=o.id;
   if(s.ded)circ.push({id:0,ty:s.t,V:s.V,A:s.A,ph:s.ph,ded:1,feed:1,out:[o.id]});else feeds.push(o)});
+ // light zones: wired by the electrician, split into 20A circuits at 80%
+ ZN().forEach(function(z){var Lz=zLayout(z),pts=Lz.pts.filter(function(q){return !q.bl}),fw=(Lz.c.p&&Lz.c.p[1])||60;if(!pts.length)return;var per=Math.max(1,Math.floor(1920/fw)),gi=0;
+  while(gi<pts.length){var grp=pts.slice(gi,gi+per),gw=grp.length*fw,o=mk({s:-3,x:h2(grp[0].x),y:h2(grp[0].y)},{ty:'120-20',V:120,A:20,ph:1,sk:grp.length,w:gw,zw:gw,feed:1,zone:z.id});circ.push({id:0,ty:'120-20',V:120,A:20,ph:1,feed:1,zone:z.id,out:[o.id]});gi+=per}});
  // placed outlets get circuits too: big ones their own, the rest share like everything else
  var mshared=[];man.forEach(function(o){var dd=o.ded||o.ldd||o.ty==='hw'||(o.any&&o.ld);if(o.any&&!o.sk&&o.s===-3)o.feed=1;
   if(dd)circ.push({id:0,ty:o.ty,V:o.V,A:o.A,ph:o.ph,ded:1,feed:o.s===-3?1:0,out:[o.id]});else if(o.s===-3){o.feed=1;feeds.push(o)}else mshared.push(o)});
@@ -2628,20 +2632,22 @@ function buildPower(opt){opt=opt||{};var prev=P.pw,auto=opt.auto!=null?!!opt.aut
  circ.forEach(function(c){c.k=Math.min.apply(null,c.out.map(function(id){return perim(out.filter(function(o){return o.id===id})[0])}))});
  circ.sort(function(a,b){return a.k-b.k});circ.forEach(function(c,i){c.id=i+1;delete c.k;c.out.forEach(function(id){out.filter(function(o){return o.id===id})[0].c=c.id})});
  P.items.forEach(function(it){sig[it.u]=sigOf(it)});
- P.pw={outlets:out,circ:circ,links:links,sig:sig,show:prev?prev.show!==false:true,auto:auto}}
+ P.pw={outlets:out,circ:circ,links:links,sig:sig,show:prev?prev.show!==false:true,auto:auto,csig:ceilSig()}}
+// ceiling power is automatic: rebuilt quietly whenever ceiling objects or light zones change
+function ceilSig(){return JSON.stringify([P.items.filter(isC).map(function(it){return [it.u,it.r,it.x,it.y,it.rot]}),ZN(),P.room.h||10])}
 function outBy(id){var a=P.pw?P.pw.outlets:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
 function circBy(id){var a=P.pw?P.pw.circ:[];for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null}
 // is this object powered by what was built out?
-function pstat(it){var sp=pspec(defOf(it));if(!sp||!P.pw)return null;var o=outBy(P.pw.links[it.u]);
+function pstat(it){var sp=pspec(defOf(it));if(!sp)return null;if(isC(it))return {lv:'ok',auto:1};if(!P.pw)return null;var o=outBy(P.pw.links[it.u]);
  if(!o)return {lv:'red',why:(P.pw.auto?'Added after power was built out. ':'')+'Needs a '+tName(sp.t,sp)+'.'+(P.pw.auto?'':' Drag one from the Power panel, or build out power.')};
  if(o.man?!pfits(o,sp,isC(it)):o.ty!==sp.t)return {lv:'red',why:'Needs a '+tName(sp.t,sp)+'.'};
  var d=rdist(opos(o),ibox(it));if(d>(o.reach||REACH)+.01)return {lv:'red',o:o,why:'Moved out of reach of its outlet ('+fmt(d)+' ft away).'};
  if(sp.ph===3)return {lv:'amber',o:o,why:'Needs 3-phase power. If the building is single-phase, it needs a phase converter.'};
  return {lv:'ok',o:o}}
-function pwLoad(o){var w=0,names=[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
+function pwLoad(o){var w=o.zw||0,names=o.zone?['Light zone']:[];P.items.forEach(function(it){if(P.pw.links[it.u]===o.id){var c=defOf(it),s=pspec(c);if(s){w+=s.W;names.push(c.n)}}});return {w:w,names:names}}
 function circLoad(c){var w=0;c.out.forEach(function(id){var o=outBy(id);if(o)w+=pwLoad(o).w});return w}
 function pwChanges(){if(!P.pw)return 0;var n=0,used={};P.items.forEach(function(it){var s=pstat(it);if(s&&s.lv==='red')n++;if(P.pw.links[it.u])used[P.pw.links[it.u]]=1});
- P.pw.outlets.forEach(function(o){if(!o.gp&&!o.man&&!used[o.id])n++});return n}
+ P.pw.outlets.forEach(function(o){if(!o.gp&&!o.man&&!o.feed&&!used[o.id])n++});return n}
 var HPS=[3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150];
 function converter(){var hp=P.items.map(function(it){var s=pspec(defOf(it));return s&&s.ph===3?s.W/746:0}).filter(function(v){return v>0});if(!hp.length)return null;
  var big=Math.max.apply(null,hp),tot=hp.reduce(function(a,b){return a+b},0),need=Math.max(big*1.5,tot),size=HPS.filter(function(v){return v>=need})[0]||Math.ceil(need/25)*25;
@@ -2656,7 +2662,7 @@ function drawCeil(k){var g='';lowCeil().forEach(function(x){var b=ibox(x.it),cx=
 var BOLT='M13 2 4 14h7l-1 8 9-12h-7z';
 // before power is built out every powered object gets a grey bolt; after, only red (unpowered) or amber (needs attention)
 function drawPlugs(k){var g='';
- P.items.forEach(function(it){if(isC(it)!==(cv()))return;var s=P.pw?pstat(it):(pspec(defOf(it))?{lv:'need'}:null);if(!s||s.lv==='ok'||s.lv==='amber')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
+ P.items.forEach(function(it){if(isC(it)!==(cv()))return;var s=(P.pw||isC(it))?pstat(it):(pspec(defOf(it))?{lv:'need'}:null);if(!s||s.lv==='ok'||s.lv==='amber')return;var b=ibox(it),cx=b.x+Math.min(.45,b.w/3),cy=b.y+Math.min(.45,b.d/3),r=7*k;
   g+='<g pointer-events="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#d6453d" stroke="#fff" stroke-width="'+(1.5*k)+'"/><path d="'+BOLT+'" transform="translate('+(cx-4.8*k)+' '+(cy-4.8*k)+') scale('+(9.6*k/24)+')" fill="#fff"/></g>'});
  return g}
 function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';var g='',W=P.room.w,D=P.room.d,big=scale()>=16,selIt=byU(sel),hiO={},lines='';
@@ -2669,7 +2675,7 @@ function drawPower(k){var grp=pwGroup();if(!P.pw||(VW.md!=='p'&&!grp))return '';
   if(id===selO)g+='<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(o.reach||REACH)+'" fill="rgba(47,125,225,.05)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(4*k)+' '+(4*k)+'" pointer-events="none"/>';
   var LK=odrag&&odrag.moved&&odrag.id===id&&odrag.links||P.pw.links;P.items.forEach(function(it){if(LK[it.u]!==id)return;if(drag&&drag.moved&&drag.u===it.u)return;var b=ibox(it);if(!inReach(o,b))return;lines+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+(b.x+b.w/2)+'" y2="'+(b.y+b.d/2)+'" stroke="#1d4f91" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'})});
  g+=lines+'<defs><filter id="osh" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="'+(1.1*k)+'" stdDeviation="'+(1.4*k)+'" flood-color="#000" flood-opacity=".32"/></filter></defs>';
- P.pw.outlets.forEach(function(o){if((o.s===-3||o.s===-2)!==(cv()))return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var fIt=drag&&drag.moved?byU(drag.u):selIt,noFit=fIt&&VW.md==='p'&&pspec(defOf(fIt))&&!canPower(o,fIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
+ P.pw.outlets.forEach(function(o){if(o.s===-3||cv())return;if(odrag&&odrag.id===o.id&&odrag.moved)hiO[o.id]=1;var inG=grp&&grp.out[o.id];if(grp&&!inG&&VW.md!=='p')return;var fIt=drag&&drag.moved?byU(drag.u):selIt,noFit=fIt&&VW.md==='p'&&pspec(defOf(fIt))&&!canPower(o,fIt);var p=opos(o),n=[[0,1],[-1,0],[0,-1],[1,0]][o.s]||[0,0],off=o.s>=0?-11*k:0,cx=p.x+n[0]*off,cy=p.y+n[1]*off,col=inG||tCol(o),r=6*k,on=!!hiO[o.id]||!!inG;
   g+='<g class="out" data-o="'+o.id+'" style="cursor:pointer'+(grp&&!inG?';opacity:.25':noFit?';opacity:.3;filter:grayscale(1)':'')+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+(14*k)+'" fill="transparent"/><g transform="translate('+cx+' '+cy+') scale(1.45) translate('+(-cx)+' '+(-cy)+')" filter="url(#osh)">';
   if(on)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+3.5*k)+'" fill="none" stroke="#1d4f91" stroke-width="'+(2*k)+'"/>';
   if(o.man)g+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+1.8*k)+'" fill="none" stroke="#2b2a27" stroke-width="'+(1.1*k)+'"/>'+(o.s===-2?'<path d="M'+cx+' '+(cy-r-1.8*k)+'v'+(-5*k)+'" stroke="#2b2a27" stroke-width="'+(1.2*k)+'"/>':'');
@@ -2694,7 +2700,7 @@ function vbar(){var el=$('#vbar');if(!el)return;var I={g:'<path d="M3 17l9 4 9-4
  el.innerHTML='<div class="vseg" role="group" aria-label="Level">'+b('lv','g','Ground')+b('lv','c','Ceiling')+b('lv','l','Lights')+'</div><i class="vsep"></i><div class="vseg" role="group" aria-label="Show">'+b('md','o','Objects')+b('md','p','Power')+'</div>';
  el.querySelectorAll('.vb').forEach(function(x){x.onclick=function(){setView(x.dataset.k,x.dataset.v)}})}
 var pwOpenK=null,CCOL=['#185FA5','#0F6E56','#993C1D','#534AB7','#993556','#854F0B','#3B6D11','#A32D2D'];
-function gkey(c){var o=outBy(c.out[0]);return c.feed?'feed|'+c.ty+(c.ded?'|own':''):c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared')}
+function gkey(c){var o=outBy(c.out[0]);return c.zone?'zone':c.feed?'feed|'+c.ty+(c.ded?'|own':''):c.gp?'gp':c.ty==='hw'?'hw|'+(o.ph===3?'3-phase':o.V+'V')+' '+o.A+'A':c.ty+'|'+(c.ded?'own':'shared')}
 // the opened group: its circuits (each with a colour), their outlets and the objects on them
 function pwGroup(){if(!P.pw||!pwOpenK)return null;var g={col:{},out:{},items:{}},i=0;P.pw.circ.forEach(function(c){if(gkey(c)!==pwOpenK)return;var col=CCOL[i++%CCOL.length];g.col[c.id]=col;c.out.forEach(function(id){g.out[id]=col})});
  if(!i)return null;P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&g.out[oid])g.items[it.u]=oid});return g}
@@ -2702,8 +2708,8 @@ function pwGroup(){if(!P.pw||!pwOpenK)return null;var g={col:{},out:{},items:{}}
 function pwSummary(){var by={},order=[],grp=pwGroup();P.pw.circ.forEach(function(c){var o=outBy(c.out[0]),key=gkey(c);
   if(!by[key]){by[key]={t:c.ty,o:o,ded:c.ded,gp:c.gp,list:[],n:0};order.push(key)}by[key].list.push(c);by[key].n+=c.out.length});
  order.sort(function(a,b){return (a==='gp')-(b==='gp')||(a<b?-1:1)});
- return order.map(function(k){var g=by[k],nc=g.list.length,nm=g.list[0].feed?'Ceiling · '+tName(g.t,g.o).replace(' outlet','').replace(' wired connection','')+(g.ded?' · own circuit':''):g.gp?'General-purpose 120V 20A':g.t==='hw'?'Wired in · '+tName('hw',g.o).replace(' wired connection',''):tName(g.t,g.o).replace(' outlet','')+(g.ded?' · own circuit':' · shared');
-  var h='<details class="pg" data-k="'+esc(k)+'"'+(pwOpenK===k?' open':'')+'><summary><span>'+esc(nm)+'</span><b>'+nc+' circuit'+(nc>1?'s':'')+(g.n>nc?' · '+g.n+' outlets':'')+'</b></summary><div class="pgl">';
+ return order.map(function(k){var g=by[k],nc=g.list.length,nm=g.list[0].zone?'Lighting · light zones':g.list[0].feed?'Ceiling · '+tName(g.t,g.o).replace(' outlet','').replace(' wired connection','')+(g.ded?' · own circuit':''):g.gp?'General-purpose 120V 20A':g.t==='hw'?'Wired in · '+tName('hw',g.o).replace(' wired connection',''):tName(g.t,g.o).replace(' outlet','')+(g.ded?' · own circuit':' · shared');
+  var h='<details class="pg" data-k="'+esc(k)+'"'+(pwOpenK===k?' open':'')+'><summary><span>'+esc(nm)+'</span><b>'+nc+' circuit'+(nc>1?'s':'')+(g.n>nc&&!g.list[0].feed?' · '+g.n+' outlets':'')+'</b></summary><div class="pgl">';
   g.list.forEach(function(c){var o0=outBy(c.out[0]),cap=(o0.ph===3?1.732:1)*o0.V*o0.A*CAP80,w=circLoad(c),its=[];
    P.items.forEach(function(it){var oid=P.pw.links[it.u];if(oid&&c.out.indexOf(oid)>=0)its.push(it)});
    var cc=grp&&grp.col[c.id];h+='<div class="pc"'+(cc?' style="border-left-color:'+cc+'"':'')+'><button class="pch" data-o="'+c.out[0]+'"><span>'+(cc?'<i class="sw2" style="background:'+cc+'"></i>':'')+'C'+c.id+(c.out.length>1?' · '+c.out.length+' outlets':'')+'</span>'+(w?'<small class="'+(w>cap?'bad':'')+'">'+Math.round(w).toLocaleString()+' / '+Math.round(cap).toLocaleString()+' W · '+fmt(w/((o0.ph===3?1.732:1)*o0.V))+' / '+fmt(o0.A*CAP80)+' A</small>':'')+'</button>';
@@ -2753,7 +2759,7 @@ var PK={
 // earlier outlet types, folded into the generic ones
 var PKA={floor:'o20',duplex:'o15',usb:'o15',gfci:'o20',quad:'o20',ded:'d20',r30:'v30',r50:'v50',p3:'p60',jbox:'hw',disc:'hw',cjb:'chw',cdisc:'chw',crec:'c20',c240:'c30'};
 function pkK(k){return PK[k]?k:PKA[k]||'o20'}
-var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Hardwired','#6b7380']],c:[['Ceiling fixtures','#d6a01c'],['Drops to the floor','#b8862e']]};
+var PKG={g:[['120V','#2f7de1'],['240V','#e0701f'],['3-phase','#b42336'],['Hardwired','#6b7380'],['Drops to the floor','#b8862e']],c:[]};
 var PKO={};
 function pkBase(k){k=pkK(k);var K=PK[k],t=K.ty,o={k:k,cap:K.cap,ded:K.ded?1:0,any:t==='any'?1:0,reach:K.reach||0};
  if(t==='any')return Object.assign(o,{ty:'hw',V:240,A:60,ph:1});if(t.slice(0,2)==='3p')return Object.assign(o,{ty:t,V:240,A:+t.slice(2),ph:3});var s=t.split('-');return Object.assign(o,{ty:t,V:+s[0],A:+s[1],ph:1})}
@@ -2811,10 +2817,10 @@ function canPower(o,it,sp){sp=sp||pspec(defOf(it));if(!sp||!pfits(o,sp,isC(it)))
 // even if that means leaving the outlet it was on
 function inReach(o,b){return rdist(opos(o),b)<=(o.reach||REACH)}
 function plugFor(it,sp,b){var best=null,bd=1e9;P.pw.outlets.forEach(function(o){if(!canPower(o,it,sp))return;var d=rdist(opos(o),b);if(d<=(o.reach||REACH)&&d<bd){bd=d;best=o}});return best}
-function dragTether(d,it){var t=G.teth;if(!t)return;if(!d||VW.md!=='p'||!P.pw||isC(it)!==(cv())){t.innerHTML='';return}var sp=pspec(defOf(it));if(!sp){t.innerHTML='';return}
+function dragTether(d,it){var t=G.teth;if(!t)return;if(!d||VW.md!=='p'||!P.pw||isC(it)){t.innerHTML='';return}var sp=pspec(defOf(it));if(!sp){t.innerHTML='';return}
  var m=dims(it,d.rot),b={x:d.x,y:d.y,w:m.w,d:m.d},o=plugFor(it,sp,b);if(!o){t.innerHTML='';return}var k=1/scale(),p=opos(o),cx=b.x+b.w/2,cy=b.y+b.d/2;
  t.innerHTML='<g pointer-events="none"><line x1="'+p.x+'" y1="'+p.y+'" x2="'+cx+'" y2="'+cy+'" stroke="#fff" stroke-width="'+(3.6*k)+'" stroke-linecap="round"/><line x1="'+p.x+'" y1="'+p.y+'" x2="'+cx+'" y2="'+cy+'" stroke="#1d4f91" stroke-width="'+(1.8*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'"/><circle cx="'+cx+'" cy="'+cy+'" r="'+(3*k)+'" fill="#1d4f91" stroke="#fff" stroke-width="'+k+'"/></g>'}
-function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it)return null;var sp=pspec(defOf(it));if(!sp)return null;var old=outBy(P.pw.links[u]);
+function autoPlug(u){if(!P.pw)return null;var it=byU(u);if(!it||isC(it))return null;var sp=pspec(defOf(it));if(!sp)return null;var old=outBy(P.pw.links[u]);
  var best=plugFor(it,sp,ibox(it));
  if(!best||best===old)return null;P.pw.links[u]=best.id;P.pw.sig[u]=sigOf(it);if(old){old.sk=P.items.filter(function(x){return P.pw.links[x.u]===old.id}).length;old.w=pwLoad(old).w;if(!old.sk)delete old.ldd}
  if(best.any&&!P.items.some(function(x){return x!==it&&P.pw.links[x.u]===best.id})){best.V=sp.V;best.A=sp.A;best.ph=sp.ph;best.ty=sp.hw?'hw':sp.t}
@@ -2824,7 +2830,14 @@ function plugToast(o){if(o)toast('Plugged into '+(o.man?PK[pkK(o.k)].n:tName(o.t
 function pkCard(k,col){return '<div class="lcard pk" data-pk="'+k+'" style="--c:'+col+'" title="'+esc(PK[k].n)+'" role="button" tabindex="0"><div class="lart pw">'+PICON[k]+'</div><div class="lnm">'+esc(PK[k].n)+'</div><div class="lbdg"><span>'+pkBadge(k)+'</span></div></div>'}
 function pwTip(){var ceil=cv();return ceil?'Drag a box onto a light, fan or heater to power it. Drops and reels hang down to power things on the floor.':'Drag an outlet near a wall to put it on the wall, or anywhere else to put it in the floor. Objects plug into the nearest one that fits. Ceiling drops and reels are in Ceiling view.'}
 function renderPwLib(){pwHead();renderPwCat()}
-function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
+// ceiling and Lights levels: nothing to place; the app wires lights, fans and heaters and reports the circuits
+function ceilRows(){var rows=[];ZN().forEach(function(z,i){var L=zLayout(z),fw=(L.c.p&&L.c.p[1])||60;if(!L.n)return;var per=Math.max(1,Math.floor(1920/fw));rows.push({n:'Light zone '+(i+1)+' · '+L.n+' × '+L.c.n,w:L.W,c:Math.ceil(L.n/per),t:'120V 20A'})});
+ var sh=0,shn=[];P.items.forEach(function(it){var c=defOf(it),sp=pspec(c);if(!sp||!isC(it))return;if(sp.ded)rows.push({n:c.n,w:sp.W,c:1,t:(sp.V===240?'240V ':'120V ')+sp.A+'A · own circuit'});else{sh+=sp.W;shn.push(c.n)}});
+ if(sh)rows.push({n:shn.length+' other ceiling object'+(shn.length>1?'s':'')+' ('+shn.slice(0,3).join(', ')+(shn.length>3?'…':'')+')',w:sh,c:Math.ceil(sh/1920),t:'120V 20A shared'});return rows}
+function ceilPwPanel(){var rows=ceilRows(),tw=rows.reduce(function(a,r){return a+r.w},0),tc=rows.reduce(function(a,r){return a+r.c},0);
+ return '<div class="cpw"><b>Ceiling power is automatic</b><p class="muted">Lights, fans and heaters are wired in by the electrician, so there\'s nothing to place here. The app works out the circuits they need and keeps them up to date.</p>'+
+  (rows.length?'<div class="cpt"><span>'+tc+' circuit'+(tc===1?'':'s')+'</span><b>'+fmtW(tw)+'</b></div>'+rows.map(function(r){return '<div class="cpr"><span>'+esc(r.n)+'<em>'+r.t+(r.c>1?' · '+r.c+' circuits':'')+'</em></span><b>'+fmtW(r.w)+'</b></div>'}).join(''):'<p class="muted">Nothing on the ceiling needs power yet.</p>')+'<p class="muted" style="margin-top:10px">Outlets and drops for things on the floor are placed in Ground view.</p></div>'}
+function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;if(cv()){hd.innerHTML='<div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Power</span><span class="muted" style="margin:0;font-size:12px">'+(VW.lv==='l'?'Lights':'Ceiling')+'</span></div>';return}var ch=pwChanges(),has=!!P.pw,gpOn=!P.pwo||P.pwo.gp!==false,I=function(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>'};
  hd.innerHTML='<div class="row" style="align-items:center;justify-content:space-between"><span class="lab">Power</span><span class="muted" style="margin:0;font-size:12px">'+(cv()?'Ceiling':'Outlets &amp; circuits')+'</span></div>'+
   '<div class="pwa"><button id="pa-build" class="'+(has&&P.pw.auto?'':'pri')+'">'+I('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>')+'Build out</button>'+
   '<button id="pa-re" class="'+(ch?'pri':'')+'"'+(has?'':' disabled')+'>'+I('<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>')+'Rebuild'+(ch?'<i class="pab">'+ch+'</i>':'')+'</button>'+
@@ -2834,7 +2847,7 @@ function pwHead(){var hd=$('#pwhd');if(!hd||VW.md!=='p')return;var ch=pwChanges(
  $('#pa-re').onclick=function(){if(!P.pw)return;push();buildPower();selO=null;persist();render();toast('Power rebuilt'+(P.pw.outlets.some(function(o){return o.man})?'. Your placed outlets stayed put.':''))};
  $('#pa-clear').onclick=function(){if(!P.pw)return;push();P.pw=null;selO=null;persist();render();toast('Power cleared. Undo brings it back.')};
  var gp=$('#pa-gp');if(gp)gp.onchange=function(){push();P.pwo=Object.assign({},P.pwo,{gp:this.checked});if(P.pw&&P.pw.auto)buildPower();persist();render()}}
-function renderPwCat(){var h='';PKG[cv()?'c':'g'].forEach(function(gg){var name=gg[0],ks=Object.keys(PK).filter(function(k){return PK[k].g===name}),open=PKO[name]!==false;
+function renderPwCat(){if(cv()){$('#lib').innerHTML=ceilPwPanel();return}var h='';PKG.g.forEach(function(gg){var name=gg[0],ks=Object.keys(PK).filter(function(k){return PK[k].g===name}),open=PKO[name]!==false;
   h+='<div class="lsec'+(open?' open':'')+'"><button class="lsh" data-pc="'+esc(name)+'"><i style="background:'+gg[1]+'"></i><span class="lsn">'+esc(name)+'</span><span class="lct">'+ks.length+'</span><svg class="lchev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>';
   if(open)h+='<div class="lgrid">'+ks.map(function(k){return pkCard(k,gg[1])}).join('')+'</div>';h+='</div>'});
  $('#lib').innerHTML=h;
@@ -2886,7 +2899,7 @@ function objInner(it,k){var c=defOf(it),m=dims(it,it.rot),b={x:0,y:0,w:m.w,d:m.d
  var fs=11*k;if(on||(!art&&m.w/k>50)){var t=c.n.length>20?c.n.slice(0,19)+'…':c.n;h+='<text x="'+(m.w/2)+'" y="'+(m.d/2+fs*.35)+'" text-anchor="middle" font-size="'+fs+'" font-weight="'+(on?700:500)+'" fill="'+(on?'#1d4f91':'#3a3936')+'" stroke="#fff" stroke-width="'+(3*k)+'" paint-order="stroke" pointer-events="none">'+esc(t)+'</text>'}
  return h}
 var libV=null;
-function render(){if(sel||selO){libV=null;selZ=null}if(selZ&&!zBy(selZ))selZ=null;trimZones();if(P.pw&&P.pw.outlets.some(function(o){return o.gp}))buildPower();var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-obj"></g><g id="g-zone"></g><g id="g-pw"></g><g id="g-teth"></g><g id="g-ghost"></g>';G.zone=sv.querySelector('#g-zone');G.zone.addEventListener('pointerdown',zDown);G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost');G.teth=sv.querySelector('#g-teth')}if(!(drag&&drag.moved))G.teth.innerHTML='';
+function render(){if(sel||selO){libV=null;selZ=null}if(selZ&&!zBy(selZ))selZ=null;trimZones();if(P.pw&&P.pw.csig!==ceilSig())buildPower({keep:1});if(P.pw&&P.pw.outlets.some(function(o){return o.gp}))buildPower();var k=1/scale();if(!G.room){sv.innerHTML='<g id="g-room"></g><g id="g-reach"></g><g id="g-obj"></g><g id="g-zone"></g><g id="g-pw"></g><g id="g-teth"></g><g id="g-ghost"></g>';G.zone=sv.querySelector('#g-zone');G.zone.addEventListener('pointerdown',zDown);G.room=sv.querySelector('#g-room');G.obj=sv.querySelector('#g-obj');G.reach=sv.querySelector('#g-reach');G.pw=sv.querySelector('#g-pw');G.ghost=sv.querySelector('#g-ghost');G.teth=sv.querySelector('#g-teth')}if(!(drag&&drag.moved))G.teth.innerHTML='';
  G.room.innerHTML=drawRoom();var seen={};
  P.items.forEach(function(it){var el=G.obj.querySelector('[data-u="'+it.u+'"]');if(!el){el=document.createElementNS(NS,'g');el.setAttribute('class','obj'+(isC(it)?' ceil':'')+(isLt(defOf(it))?' lt':''));el.dataset.u=it.u;el.style.cursor='grab';el.style.transform='translate('+it.x+'px,'+it.y+'px)';G.obj.appendChild(el)}
   var key=[it.r,it.rot,sel===it.u,!!it.pin,k.toFixed(4)].join('|');if(el.dataset.k!==key){el.dataset.k=key;el.innerHTML=objInner(it,k)}
@@ -3024,11 +3037,12 @@ window.addEventListener('keydown',function(e){if(e.key==='Escape'&&ldrag)ldCance
 var ICO={power:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',water:'<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',vent:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',gas:'<rect x="8" y="6" width="8" height="15" rx="3"/><path d="M10 3h4v3h-4z"/>',ceil:'<path d="M4 4h16M12 7v13M9 10l3-3 3 3M9 17l3 3 3-3"/>',cool:'<path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/>',note:'<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>'};
 function ico(k){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5f5b52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICO[k]+'</svg>'}
 function power(list){var o={w:0,max:0,items:0,est:0,ded:{},sh:{}};list.forEach(function(it){var c=defOf(it);if(!c||!c.p)return;var V=c.p[0],W=c.p[1],A=c.p[2];o.items++;o.w+=W;o.max=Math.max(o.max,W);if(c.est)o.est++;if(c.p[3]){var k=V+'|'+A;(o.ded[k]=o.ded[k]||{V:V,A:A,n:0}).n++}else{(o.sh[V]=o.sh[V]||{V:V,w:0}).w+=W}});
+ if(list===P.items)ZN().forEach(function(z){var L=zLayout(z);if(!L.W)return;o.items+=L.n;o.w+=L.W;o.max=Math.max(o.max,L.W);(o.sh[120]=o.sh[120]||{V:120,w:0}).w+=L.W});
  o.circ=[];Object.keys(o.ded).forEach(function(k){var d=o.ded[k];o.circ.push(d.n+' × '+d.V+'V '+d.A+'A dedicated')});Object.keys(o.sh).forEach(function(k){var g=o.sh[k],n=Math.max(1,Math.ceil(g.w/(g.V*20*.8)));o.circ.push(n+' × '+g.V+'V 20A shared')});o.peak=o.items?o.max+(o.w-o.max)*.5:0;return o}
 // "Power · N objects not powered": one line, opens to a list of names (shortened with … if long);
 // the Power view has the details.
 var unpOpen=false;try{unpOpen=localStorage.getItem('sp-unp')==='1'}catch(_){}
-function unpList(){var by={},order=[];P.items.forEach(function(it){var c=defOf(it),sp=pspec(c);if(!sp)return;if(P.pw){var st=pstat(it);if(!st||st.lv!=='red')return}
+function unpList(){var by={},order=[];P.items.forEach(function(it){var c=defOf(it),sp=pspec(c);if(!sp||isC(it))return;if(P.pw){var st=pstat(it);if(!st||st.lv!=='red')return}
   if(!by[it.r]){by[it.r]={c:c,sp:sp,n:0,u:it.u};order.push(it.r)}by[it.r].n++});return order.map(function(r){return by[r]})}
 function unpTag(sp){return (sp.ph===3?'3φ '+sp.A+'A':sp.V===240?'240V '+sp.A+'A':'120V')+' · '+fmtW(sp.W)}
 function unpRow(){var L=unpList();if(!L.length)return '';var n=L.reduce(function(a,x){return a+x.n},0);
