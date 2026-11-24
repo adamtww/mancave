@@ -2,6 +2,8 @@
    A zone is a rectangle on the ceiling that needs light. The app picks how many fixtures it takes to reach the
    target brightness and lays them out in an even grid, spaced for the mounting height. Single fixtures can be dragged
    to line things up; changing the zone's size, fixture or target redraws the pattern, and Reset puts it back. */
+var ZK=[[2700,'Warm white',0xffc58f,'#ffc58f'],[3000,'Soft white',0xffd2a1,'#ffd2a1'],[4000,'Neutral white',0xffe7cf,'#ffe7cf'],[5000,'Cool white',0xfff3ea,'#fff3ea'],[6500,'Daylight',0xeef0ff,'#e3e8ff']];
+function zK(z){return ZK.filter(function(q){return q[0]===(z.k||5000)})[0]||ZK[3]}
 var selZ=null,zd=null,ZEFF=130,ZCU=.7,ZLLF=.85;
 function ZN(){return P.zones||(P.zones=[])}
 function zBy(id){return ZN().filter(function(z){return z.id===id})[0]||null}
@@ -22,7 +24,7 @@ function zLayout(z){var d=zDef(z),c=d.c,H=P.room.h||10,A=Math.max(1,z.w*z.d),lm=
   pts.push({i:k,x:x,y:y,w:fw,d:fd,rot:rot,mv:mv,bl:bl})}
  var n=pts.filter(function(p){return !p.bl}).length;
  return {r:d.r,c:c,cols:cols,rows:rows,sx:sx,sy:sy,S:S,N:N,n:n,lm:lm,fc:n*lm*ZCU*ZLLF/A,W:n*((c.p&&c.p[1])||60),pts:pts,auto:!z.rc}}
-function zFixAll(){var o=[];ZN().forEach(function(z){var L=zLayout(z);L.pts.forEach(function(p){if(!p.bl)o.push({z:z,c:L.c,r:L.r,x:p.x,y:p.y,w:p.w,d:p.d,rot:p.rot})})});return o}
+function zFixAll(){var o=[];ZN().forEach(function(z){var L=zLayout(z);L.pts.forEach(function(p){if(!p.bl)o.push({z:z,c:L.c,r:L.r,x:p.x,y:p.y,w:p.w,d:p.d,rot:p.rot,col:zK(z)[2]})})});return o}
 function trimZones(){var W=P.room.w,D=P.room.d;ZN().forEach(function(z){var ch=false;
  if(z.x+z.w>W){z.w=Math.max(2,W-z.x);if(z.x+z.w>W){z.x=Math.max(0,W-z.w)}ch=true}if(z.y+z.d>D){z.d=Math.max(2,D-z.y);if(z.y+z.d>D){z.y=Math.max(0,D-z.d)}ch=true}
  if(z.w>W){z.w=W;z.x=0}if(z.d>D){z.d=D;z.y=0}if(ch)z.adj={}})}
@@ -68,6 +70,7 @@ function zoneCard(){var z=zBy(selZ);if(!z)return '';var L=zLayout(z),ok=L.fc>=(z
   row=function(k,v){return '<div class="srw"><span>'+k+'</span><b>'+v+'</b></div>'},stp=function(id,t){return '<button class="zst" data-a="'+id+'" aria-label="'+t+'">'+(id[0]==='-'?'−':'+')+'</button>'};
  return '<div class="card sel zcardp"><div style="display:flex;align-items:center;justify-content:space-between"><span class="lab">Light zone</span><button class="lnk red" id="z-del">Delete</button></div>'+
   '<label class="fl">Fixture<select id="z-f"><option value="">Auto · '+esc(LIB[zAutoF()].n)+'</option>'+opts+'</select></label>'+
+  '<div class="fl">Light color<div class="zk">'+ZK.map(function(q){return '<button class="zkb'+(zK(z)[0]===q[0]?' on':'')+'" data-k="'+q[0]+'" title="'+q[1]+' · '+q[0]+'K"><i style="background:'+q[3]+'"></i><span>'+q[0]/1000+'K</span></button>'}).join('')+'</div><span class="muted" style="font-size:12px">'+zK(z)[1]+' · '+zK(z)[0]+'K</span></div>'+
   '<label class="fl">Target brightness<span class="zin"><input id="z-fc" type="number" min="5" max="300" step="5" value="'+(z.fc||50)+'" inputmode="numeric"><i>fc</i></span></label>'+
   '<div class="fl">Layout<div class="zlay"><span>'+stp('-c','Fewer columns')+'<b>'+L.cols+'</b>'+stp('+c','More columns')+'<em>across</em></span><span>'+stp('-r','Fewer rows')+'<b>'+L.rows+'</b>'+stp('+r','More rows')+'<em>down</em></span></div>'+(L.auto?'':'<button class="lnk" id="z-auto">Back to automatic count</button>')+'</div>'+
   '<div class="srows">'+row('Fixtures',L.n+(L.n<L.pts.length?' <span class="muted">('+(L.pts.length-L.n)+' blocked)</span>':''))+
@@ -80,6 +83,7 @@ function zoneCardWire(){var z=zBy(selZ);if(!z)return;var g=function(id){return d
  if(g('z-del'))g('z-del').onclick=function(){var before=snapP();P.zones=ZN().filter(function(q){return q.id!==z.id});selZ=null;hist.push(before);fut=[];persist();render()};
  if(g('z-f'))g('z-f').onchange=function(){var v=this.value||null;zSet(z,function(q){q.f=v;q.rc=null})};
  if(g('z-fc'))g('z-fc').onchange=function(){var v=Math.max(5,Math.min(300,+this.value||50));zSet(z,function(q){q.fc=v;q.rc=null})};
+ document.querySelectorAll('.zkb').forEach(function(b){b.onclick=function(){var v=+b.dataset.k;zSet(z,function(q){q.k=v},true)}});
  if(g('z-auto'))g('z-auto').onclick=function(){zSet(z,function(q){q.rc=null})};
  if(g('z-reset'))g('z-reset').onclick=function(){zSet(z,function(q){q.rc=null;q.adj={}})};
  document.querySelectorAll('.zst').forEach(function(b){b.onclick=function(){var L=zLayout(z),a=b.dataset.a,c=L.cols,r=L.rows;if(a==='-c')c=Math.max(1,c-1);if(a==='+c')c=Math.min(30,c+1);if(a==='-r')r=Math.max(1,r-1);if(a==='+r')r=Math.min(30,r+1);zSet(z,function(q){q.rc=[c,r]})}})}

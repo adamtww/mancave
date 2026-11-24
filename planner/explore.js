@@ -1000,7 +1000,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
   if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
  // light-zone fixtures
  if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M),drop=f.c.drop||0;cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
-  if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(f.x,H-drop/2,f.y);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:f.x,z:f.y,y:H-drop-.8,col:cs.light,c:f.c,off:false})});
+  if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(f.x,H-drop/2,f.y);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:f.x,z:f.y,y:H-drop-.8,col:f.col||cs.light,c:f.c,off:false})});
  // light: real fixtures. Brightness from lumens (LED ~130 lm/W) spread over each fixture's beam, in feet,
  // plus a fill light for what bounces off the floor and walls. Fixtures that aren't powered stay off.
  var LX=.1,on=lights.filter(function(L){return !L.off}),
