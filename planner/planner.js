@@ -749,9 +749,11 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
  d.innerHTML='<form method="dialog" class="dlg oed"><h2>'+title+'</h2>'+(lib?'<p class="muted">'+(ov?'This is your edited version. Only you see these changes.':'Changes are saved as your own version. The original stays the same for everyone else.')+'</p>':'')+
   '<div class="g2"><label class="fl">Name<input name="n" required autocomplete="off" value="'+esc(c?c.n:'')+'"></label>'+
   '<label class="fl">Category<select name="c">'+cs.map(function(x){return '<option'+(c&&c.c===x?' selected':'')+'>'+esc(x)+'</option>'}).join('')+'</select></label></div>'+
+  '<section class="cd plc" style="--hc:#0e8a8a"><h3>'+IC('<path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5"/>')+'Placement</h3><div class="seg2" role="radiogroup" aria-label="Placement">'+
+   '<label><input type="radio" name="place" value="f"'+(isC?'':' checked')+'>'+IC('<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>')+'<span>Sits on the floor</span></label>'+
+   '<label><input type="radio" name="place" value="c"'+(isC?' checked':'')+'>'+IC('<path d="M12 2v4"/><path d="M7 11a5 5 0 0 1 10 0z"/><path d="M10 15a2 2 0 0 0 4 0"/>')+'<span>Hangs from the ceiling</span></label></div></section>'+
   '<div class="cols"><div class="col">'+
-   cd('','#2f7de1','<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/>','Size','<div class="g2">'+U('w','Width',c?fmt(c.w):'','ft',' required')+U('d','Depth',c?fmt(c.d):'','ft',' required')+U('h','Height',num0(c&&c.h))+U('ceil','Min. ceiling height',n.ceil>0?fmt(n.ceil):'')+'</div>',false,
-    '<label class="tg sm"><input type="checkbox" name="ceiling"'+(isC?' checked':'')+'><span>Hangs from ceiling</span></label>')+
+   cd('','#2f7de1','<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/>','Size','<div class="g2">'+U('w','Width',c?fmt(c.w):'','ft',' required')+U('d','Depth',c?fmt(c.d):'','ft',' required')+U('h','Height',num0(c&&c.h))+U('ceil','Min. ceiling height',n.ceil>0?fmt(n.ceil):'')+'</div>')+
    cd('clrcd','#7a5af5','<path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/>','Clearance','<p class="hnt">Space that must stay empty to use it, shown as on the plan with its front facing down. Back 0 lets it stand against a wall.</p><div class="cbox">'+KB(1,'back')+KB(2,'left')+'<div class="cobj"><span>'+esc(c?c.n:'Object')+'</span><i>front ▼</i></div>'+KB(3,'right')+KB(0,'front')+'</div>',true)+
    cd('reachcd','#7a5af5','<circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2.5"/>','Reach','<p class="hnt">How far it covers around itself, like a light\'s pool or a fan\'s draft.</p><div class="rch"><div class="rdisk"><i></i></div><div class="g1">'+U('reach','Reach',num0(c&&c.reach))+U('drop','Hangs down',num0(c&&c.drop))+'</div></div>',true)+
   '</div><div class="col">'+
@@ -760,8 +762,8 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
    cd('','#8a867c','<path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/>','Notes','<textarea name="no" placeholder="Anything worth remembering about it">'+esc(c&&c.no||'')+'</textarea>',true)+
   '</div></div>'+
   '<div class="row" style="justify-content:space-between"><span class="row">'+(mine?'<button class="btn red" value="del" formnovalidate>Delete</button>':'')+(ov?'<button class="btn" value="revert" formnovalidate>Revert to original</button>':'')+'</span><span class="row"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn pri" value="save">Save</button></span></div></form>';
- var fm=d.querySelector('form'),syncC=function(){fm.classList.toggle('isceil',fm.elements.ceiling.checked)},syncP=function(){var on=+fm.elements.pv.value>0;fm.elements.pw.disabled=!on;fm.elements.pd.disabled=!on;fm.elements.pd.closest('.tg').classList.toggle('off',!on)};
- fm.elements.ceiling.onchange=syncC;fm.elements.pv.onchange=syncP;syncC();syncP();
+ var fm=d.querySelector('form'),syncC=function(){fm.classList.toggle('isceil',fm.elements.place.value==='c')},syncP=function(){var on=+fm.elements.pv.value>0;fm.elements.pw.disabled=!on;fm.elements.pd.disabled=!on;fm.elements.pd.closest('.tg').classList.toggle('off',!on)};
+ fm.querySelectorAll('input[name=place]').forEach(function(x){x.onchange=syncC});fm.elements.pv.onchange=syncP;syncC();syncP();
  fm.elements.n.oninput=function(){fm.querySelector('.cobj span').textContent=this.value||'Object'};
  var after=function(){syncDefs(true);renderLib()};
  d.onclose=function(){var v=d.returnValue,f=d.querySelector('form');if(v==='cancel'||!v)return;
@@ -769,7 +771,7 @@ function editObj(r){var c=r?LIB[r]:null,mine=!!(r&&MINE[r]),ov=r?EDITED[r]:null;
   if(v==='revert'){if(!confirm('Revert '+c.n+' to the original? Your changes to it will be lost.'))return;api('DELETE','/api/objects/'+ov).then(function(){return loadLib()}).then(function(){toast('Reverted to the original: '+LIB[r].n);after(r)}).catch(function(e){toast(e.message)});return}
   var F=function(k){return f.elements[k]},num=function(k){return parseFloat(F(k).value)||0},nd={n:F('n').value.trim(),c:F('c').value,w:num('w'),d:num('d'),h:num('h')||undefined,k:[num('k0'),num('k1'),num('k2'),num('k3')]};normObj(nd);
   var pv=+F('pv').value;if(pv)nd.p=[pv===240?240:120,num('pw'),pv===240?30:20,F('pd').checked?1:0];nd.req={water:F('water').checked,vent:F('vent').checked,gas:F('gas').checked,ceil:num('ceil')};if(F('no').value.trim())nd.no=F('no').value.trim();if(c&&c.cost)nd.cost=c.cost.slice();
-  if(F('ceiling').checked){nd.ceiling=true;nd.reach=num('reach');nd.drop=num('drop')}if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
+  if(F('place').value==='c'){nd.ceiling=true;nd.reach=num('reach');nd.drop=num('drop')}if(c&&c.a)nd.a=c.a.slice();if(c&&c.ov)nd.ov=1;if(c&&c.est)nd.est=c.est;if(!nd.n||!(nd.w>0&&nd.d>0)){toast('An object needs a name, width and depth');return}
   if(lib)nd.base=r;
   var key=mine?r:lib?(ov||('u'+me.id+'-ov-'+r).slice(0,80)):'u'+me.id+'-'+nd.n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36).slice(-4);
   api('PUT','/api/objects/'+key,{data:nd}).then(function(){toast((lib?'Saved your version':'Saved')+': '+nd.n);return loadLib()}).then(function(){if(!c)openCats['My objects']=true;after(lib?r:key)}).catch(function(e){toast(e.message)})};
@@ -822,5 +824,5 @@ function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'<
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render();syncDefs(true)}).catch(function(){tok=null;me=null;showWho()});
 renderLib();render();
-window.__sp={P:function(){return P},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
+window.__sp={P:function(){return P},edit:function(r,t){if(t){tok=tok||t;me=me||{id:0}}editObj(r)},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();

@@ -182,6 +182,13 @@ dialog.it2{max-width:min(760px,96vw)}
 .oed .ph>svg{color:#fff;background:var(--hc);border-radius:9px;padding:6px;width:34px;height:34px;box-sizing:border-box;flex:none}
 .oed .ph h2{margin:0;font-size:17px}.oed .ph p{margin:2px 0 0;font-size:12.5px;color:#6b6960;line-height:1.4}
 .oed .cd h3 .etag{margin-left:4px}
+.oed .plc{flex-direction:row;align-items:center;gap:14px;margin:10px 0;padding:6px 8px 6px 12px}.oed .plc h3{flex:none}
+.oed .seg2{display:flex;flex:1;max-width:460px;margin-left:auto;border:1px solid #d9d6ce;border-radius:10px;overflow:hidden;background:#fff}
+.oed .seg2 label{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:7px 10px;min-height:20px;font-size:13px;font-weight:600;color:#57534b;cursor:pointer;margin:0}
+.oed .seg2 label+label{border-left:1px solid #d9d6ce}.oed .seg2 label svg{width:18px;height:18px;flex:none}
+.oed .seg2 input{position:absolute;opacity:0;pointer-events:none}.oed .seg2 label:has(input:checked){background:#e9f1fe;color:#1d4f91}
+.oed .seg2 label:has(input:focus-visible){outline:2px solid #2f7de1;outline-offset:-2px}
+@media (max-height:780px){.oed .cd{padding:10px 12px;gap:8px}.oed .plc{margin:8px 0}.oed h2{margin-bottom:2px}.oed .cols,.oed .col{gap:10px}.oed .cbox{gap:4px}.oed .cobj{min-height:52px}}
 .oed .btn[disabled]{opacity:.45;cursor:default}
 /* selected card: size + clearance in one tappable box */
 .fbox{display:flex;align-items:stretch;width:100%;border:1px solid #d9d6ce;border-radius:10px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04);font:inherit;padding:0;cursor:pointer;text-align:left;margin:2px 0 4px;overflow:hidden;color:inherit}
