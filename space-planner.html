@@ -1255,7 +1255,7 @@ var EYE=5.4,RAD=0.8,WALK=9,RUN=16;
 var NOWALK=/^(c-half|c-pickle|g-vr|f-turf|g-putt|f-free|c-bowl|c-bowlmini|g-cornhole|g-axe|g-darts|x-tennis|c-net|b-stage|ht-riser)$/;
 function exLoad(){if(EX.T)return Promise.resolve(EX.T);return import('./vendor/three-0.170.0.module.min.js').then(function(m){EX.T=m;return m})}
 function setExplore(on){if(EX.on===on)return;EX.on=on;document.body.classList.toggle('exploring',on);strip();
- if(!on){exStop();return}
+ if(!on){exStop();setTimeout(function(){var a=document.activeElement;if(a&&a!==document.body&&a.blur)a.blur()},0);return}
  var host=$('#explore');host.innerHTML='<div class="exload">Building the room…</div>';
  // desktop: grab the mouse straight away (this click is what allows it); Esc then leaves Explore
  if(!TOUCH&&host.requestPointerLock){EX.locked=false;try{var pr=host.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){})}catch(_){}}
