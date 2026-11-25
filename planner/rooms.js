@@ -151,7 +151,7 @@ function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="ca
   '<section class="rcd"><h4>'+ic('#1D9E75','<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>')+'Ceiling height</h4>'+
    rhGauge(rh,H,col)+
    '<p class="muted">'+(rh<H-.01?fmt(H-rh)+' ft of space above the ceiling':'Full building height')+'</p></section>'+
-  '<section class="rcd"><h4>'+ic('#BA7517','<path d="M5 21V3h11v18M3 21h16"/><circle cx="13" cy="12" r="1"/>')+'Doors · '+drs.length+'</h4>'+(drs.length?drs.join(''):'<div class="warn">No door yet. Drag one from the left onto a wall.</div>')+'</section>'+
+  (doorCount(r)?'':'<div class="warn" style="margin-top:9px">No door yet. Drag one from the left onto a wall.</div>')+
   '<section class="rcd"><h4>'+ic('#888780','<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>')+'Notes</h4><textarea id="rm-no" rows="2" placeholder="Insulate the shop wall" aria-label="Notes">'+esc(r.no||'')+'</textarea></section>'+
   (its?'<p class="muted" style="margin:8px 2px 0">'+its+' object'+(its>1?'s':'')+' inside</p>':'')+
   '<button class="lnk red rdel" id="rm-del">Delete room</button></div>'}
