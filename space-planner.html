@@ -262,6 +262,18 @@ dialog.wide{max-width:min(880px,96vw)}
 .oed .rdisk i{width:22px;height:22px;border-radius:50%;background:#3a3936;border:3px solid #ffd666}
 @media (max-width:720px){.oed .cols{grid-template-columns:1fr}}
 dialog.it2{max-width:min(760px,96vw)}
+dialog.rsd{max-width:min(700px,96vw)}.rsw{padding:16px 18px}.rsh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.rsh b{font-size:17px}.rsh .x{border:0;background:none;font-size:22px;cursor:pointer;color:#6b6960}
+.rsg{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:center}
+.rsp{position:relative;height:270px}.rsbox{position:absolute;left:62px;right:62px;top:58px;bottom:58px;border:3px solid #3C3489;background:#EEEDFE;border-radius:5px;display:flex;align-items:center;justify-content:center}.rsbox b{font-size:19px;color:#3C3489}
+.rsa{position:absolute;z-index:2;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none;border-radius:50%;line-height:0}.rsa:active{transform:scale(.92)}.rsa.blk{opacity:.35}.rsa:focus-visible{outline:2px solid #2f7de1;outline-offset:2px}
+.rsa.out.n{left:calc(50% - 22px);top:4px}.rsa.out.s{left:calc(50% - 22px);bottom:4px}.rsa.out.w{left:6px;top:calc(50% - 22px)}.rsa.out.e{right:6px;top:calc(50% - 22px)}
+.rsa.in.n{left:calc(50% - 19px);top:70px}.rsa.in.s{left:calc(50% - 19px);bottom:70px}.rsa.in.w{left:74px;top:calc(50% - 19px)}.rsa.in.e{right:74px;top:calc(50% - 19px)}
+.rsf{position:absolute;font-size:12px;color:#8a867c;white-space:nowrap}.rsf.n{left:calc(50% + 30px);top:16px}.rsf.s{left:calc(50% + 30px);bottom:16px}.rsf.w{left:2px;top:calc(50% + 28px)}.rsf.e{right:2px;top:calc(50% + 28px)}
+.rsplan{width:100%;height:auto;max-height:230px}
+.rsrow{display:flex;align-items:flex-end;gap:10px;border-top:1px solid #eeebe4;margin-top:12px;padding-top:12px;flex-wrap:wrap}.rsrow label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#57534b;flex:1;min-width:84px}.rsrow .rsa2{flex:1.4}
+.rsrow .sdim{display:flex;align-items:center;gap:6px}.rsrow input{width:100%;box-sizing:border-box}.rsrow i{font-style:normal;color:#8a867c;font-size:13px}.rsrow em{font-style:normal;color:#8a867c;font-size:11.5px;margin-left:4px}.rsx{color:#8a867c;padding-bottom:9px}
+.rsnote{margin-top:10px;min-height:20px;font-size:13px;color:#6b6960}.rsnote.on{background:#fff3d6;color:#8a5a00;border-radius:8px;padding:7px 10px}
+.rsbtns{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.rsbtns .sb,.rsrow .sb{width:auto;flex:none;padding:9px 18px;margin:0}.rsrow input{padding:8px 10px;border:1px solid #d9d6ce;border-radius:9px;font:inherit;font-size:15px;background:#fff;color:#2b2a27}.rsrow input:focus{outline:2px solid #2f7de1;outline-offset:-1px;border-color:transparent}.rsrow i{white-space:nowrap}.rsrow .lt{display:flex;align-items:baseline;gap:2px}.rsbtns .pri{background:#2f7de1;border-color:#2f7de1;color:#fff}.rsbtn{width:100%;margin:6px 0 2px}
 .oed .ph{display:flex;gap:10px;align-items:flex-start}
 .oed .ph>svg{color:#fff;background:var(--hc);border-radius:9px;padding:6px;width:34px;height:34px;box-sizing:border-box;flex:none}
 .oed .ph h2{margin:0;font-size:17px}.oed .ph p{margin:2px 0 0;font-size:12.5px;color:#6b6960;line-height:1.4}
@@ -2533,7 +2545,7 @@ function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="ca
  else if(r){var its=P.items.filter(function(it){return within(ibox(it),r)}).length;h+='<div class="card sel"><span class="lab">Room</span>'+
   '<label class="fl">Name<input id="rm-n" value="'+esc(r.n||'')+'" maxlength="40"></label>'+
   '<label class="fl">Ceiling height<span class="sdim"><select id="rm-h">'+hOpts(r.h||H,H)+'</select><span class="mu">ft</span></span></label>'+
-  '<div class="srows"><div class="srw"><span>Size</span><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft · '+Math.round(r.w*r.d)+' sq ft</b></div><div class="srw"><span>Doors</span><b>'+doorCount(r)+'</b></div><div class="srw"><span>Objects inside</span><b>'+its+'</b></div>'+((r.h||H)<H-.01?'<div class="srw"><span>Above its ceiling</span><b>'+fmt(H-(r.h||H))+' ft</b></div>':'')+'</div>'+
+  '<div class="srows"><div class="srw"><span>Size</span><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft · '+Math.round(r.w*r.d)+' sq ft</b></div><button class="sb rsbtn" id="rm-rs">Resize room</button><div class="srw"><span>Doors</span><b>'+doorCount(r)+'</b></div><div class="srw"><span>Objects inside</span><b>'+its+'</b></div>'+((r.h||H)<H-.01?'<div class="srw"><span>Above its ceiling</span><b>'+fmt(H-(r.h||H))+' ft</b></div>':'')+'</div>'+
   (doorCount(r)?'':'<div class="warn">This room has no door. Drag one from the left onto its wall.</div>')+
   '<label class="fl">Notes<textarea id="rm-no" rows="3" placeholder="Insulate the shop wall">'+esc(r.no||'')+'</textarea></label>'+
   '<div class="sbtns"><button class="sb red" id="rm-del">Delete room</button></div><p class="muted">Drag the room to move it and what\'s inside. Drag a wall to move just that side, or a corner to resize both ways.</p></div>'}
@@ -2547,6 +2559,7 @@ function buildSideWire(){['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.o
  var r=rBy(selR);if(!r)return;var upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)};
  var n=$('#rm-n');if(n)n.onchange=function(){var v=n.value.trim()||r.n;push();r.n=v;persist();render()};
  var rh=$('#rm-h');if(rh)rh.onchange=function(){var v=parseFloat(rh.value);push();r.h=v;persist();render()};
+ var rsb=$('#rm-rs');if(rsb)rsb.onclick=openResize;
  var no=$('#rm-no');if(no)no.onchange=function(){push();r.no=no.value;persist()};
  var del=$('#rm-del');if(del)del.onclick=function(){upd(function(){P.rooms=RM().filter(function(q){return q!==r});selR=null;selD=null})};
  if(selD!=null&&r.doors[selD]){var d=r.doors[selD];
@@ -2567,6 +2580,66 @@ function roomsSummary(){var H=P.room.h||10,W=P.room.w,D=P.room.d,pw=power(P.item
    (warn.length?'<div class="warn">'+warn.join(' · ')+'</div>':'')+
    '<div class="req">'+reqHtml(its,q.h,true)+'</div>'+(q.r&&q.r.no?'<p class="muted"><b>Notes:</b> '+esc(q.r.no)+'</p>':'')+'</details>'});
  return h}
+/* ---- Resize room popup: arrows move one wall a foot at a time; width × depth or an area fits it smartly ---- */
+var RS=null;
+function rsFits(b,skip){var W=P.room.w,D=P.room.d;if(b.w<4||b.d<4||b.x<0||b.y<0||b.x+b.w>W+1e-6||b.y+b.d>D+1e-6)return false;return !RM().some(function(q){return q.id!==skip&&hit(b,q)})}
+function rsFree(s){var b=RS.b,o=RM().filter(function(q){return q.id!==RS.id}),W=P.room.w,D=P.room.d,lim,who='outer wall';
+ if(s==='n'){lim=b.y;o.forEach(function(q){if(q.x<b.x+b.w&&q.x+q.w>b.x&&q.y+q.d<=b.y+1e-6&&b.y-(q.y+q.d)<lim){lim=b.y-(q.y+q.d);who=q.n}})}
+ else if(s==='s'){lim=D-(b.y+b.d);o.forEach(function(q){if(q.x<b.x+b.w&&q.x+q.w>b.x&&q.y>=b.y+b.d-1e-6&&q.y-(b.y+b.d)<lim){lim=q.y-(b.y+b.d);who=q.n}})}
+ else if(s==='w'){lim=b.x;o.forEach(function(q){if(q.y<b.y+b.d&&q.y+q.d>b.y&&q.x+q.w<=b.x+1e-6&&b.x-(q.x+q.w)<lim){lim=b.x-(q.x+q.w);who=q.n}})}
+ else{lim=W-(b.x+b.w);o.forEach(function(q){if(q.y<b.y+b.d&&q.y+q.d>b.y&&q.x>=b.x+b.w-1e-6&&q.x-(b.x+b.w)<lim){lim=q.x-(b.x+b.w);who=q.n}})}
+ return {n:Math.round(lim*2)/2,who:who}}
+// nearest spot (fewest feet moved) where a w × d room fits
+function rsPlace(w,d){var b=RS.b,W=P.room.w,D=P.room.d,best=null;for(var y=0;y<=D-d+1e-6;y++)for(var x=0;x<=W-w+1e-6;x++){var c={x:x,y:y,w:w,d:d},m=Math.abs(x-b.x)+Math.abs(y-b.y);if((!best||m<best.m)&&rsFits(c,RS.id))best={x:x,y:y,m:m}}return best}
+// biggest room that still covers where this one is now (what "max" means)
+function rsMax(){var b=RS.o,W=P.room.w,D=P.room.d,o=RM().filter(function(q){return q.id!==RS.id}),best={a:0};
+ for(var y1=0;y1<=b.y;y1++)for(var y2=b.y+b.d;y2<=D;y2++){if(o.some(function(q){return hit({x:b.x,y:y1,w:b.w,d:y2-y1},q)}))continue;var l=0,r=W;
+  o.forEach(function(q){if(q.y<y2&&q.y+q.d>y1){if(q.x+q.w<=b.x+1e-6)l=Math.max(l,q.x+q.w);if(q.x>=b.x+b.w-1e-6)r=Math.min(r,q.x)}});var a=(r-l)*(y2-y1);if(a>best.a)best={a:a,x:l,y:y1,w:r-l,d:y2-y1}}return best}
+function rsNote(t){var n=$('#rs-note');if(!n)return;n.innerHTML=t||'';n.classList.toggle('on',!!t)}
+function rsSize(w,d){w=Math.max(4,Math.round(w));d=Math.max(4,Math.round(d));var p=rsPlace(w,d);
+ if(p){RS.b={x:p.x,y:p.y,w:w,d:d};rsNote(p.m?'Moved '+fmt(p.m)+' ft to make it fit.':'');return}
+ // nothing that size fits: keep the corner and take what's there
+ var b=RS.b,bw=0,bd=0;for(var dd=d;dd>=4&&!bw;dd--)for(var ww=w;ww>=4;ww--)if(rsFits({x:b.x,y:b.y,w:ww,d:dd},RS.id)){bw=ww;bd=dd;break}
+ if(bw){RS.b={x:b.x,y:b.y,w:bw,d:bd};rsNote('<b>Not enough room.</b> Set to '+fmt(bw)+' × '+fmt(bd)+' ft.')}else rsNote('<b>Not enough room.</b> Size not changed.')}
+function rsArea(A){var b=RS.b,r=b.w/b.d,W=P.room.w,D=P.room.d,c=[];if(!(A>=16))return;
+ for(var ww=4;ww<=W;ww++){var dd=Math.ceil(A/ww);if(dd<4||dd>D)continue;c.push({w:ww,d:dd,s:Math.abs(Math.log((ww/dd)/r))+(ww*dd-A)/A*2})}c.sort(function(p,q){return p.s-q.s});
+ for(var i=0;i<c.length&&i<60;i++){var p=rsPlace(c[i].w,c[i].d);if(p){RS.b={x:p.x,y:p.y,w:c[i].w,d:c[i].d};rsNote(p.m?'Moved '+fmt(p.m)+' ft to make it fit.':'');return}}
+ var m=rsMax();if(m.a>=16){RS.b={x:m.x,y:m.y,w:m.w,d:m.d};rsNote('<b>Not enough room.</b> Set to '+fmt(m.w)+' × '+fmt(m.d)+' ft ('+Math.round(m.a).toLocaleString()+' sq ft).')}else rsNote('<b>Not enough room.</b> Size not changed.')}
+function rsStep(s,d){var b=RS.b,f=rsFree(s);if(d>0&&f.n<1){rsNote('<b>Not enough room.</b>');return false}if(d<0&&((s==='n'||s==='s')?b.d<=4:b.w<=4))return false;rsNote('');
+ if(s==='n'){b.y-=d;b.d+=d}else if(s==='s'){b.d+=d}else if(s==='w'){b.x-=d;b.w+=d}else b.w+=d;rsDraw();return true}
+function rsArrow(s,out){var rot={n:0,e:90,s:180,w:270}[s]+(out?0:180),sz=out?44:38,col=out?'#2f7de1':'#7F77DD';
+ return '<div class="rsa '+(out?'out':'in')+' '+s+'" data-s="'+s+'" data-d="'+(out?1:-1)+'" role="button" tabindex="0" aria-label="'+(out?'Push the ':'Pull the ')+({n:'top',s:'bottom',w:'left',e:'right'})[s]+' wall '+(out?'out':'in')+'"><svg width="'+sz+'" height="'+sz+'" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="'+col+'"/><g transform="rotate('+rot+' 20 20)" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M20 29V11M12 18l8-8 8 8"/></g></svg></div>'}
+function rsDraw(){var b=RS.b,dl=$('#d-rs');if(!dl)return;$('#rs-w').value=fmt(b.w);$('#rs-d').value=fmt(b.d);$('#rs-a').value=Math.round(b.w*b.d);$('#rs-dim').textContent=fmt(b.w)+' × '+fmt(b.d)+' ft';
+ var mx=rsMax();$('#rs-max').textContent='max '+Math.round(mx.a).toLocaleString();
+ ['n','e','s','w'].forEach(function(s){var f=rsFree(s);dl.querySelector('.rsf.'+s).textContent=f.n>=1?fmt(f.n)+' ft free':f.who});
+ dl.querySelectorAll('.rsa').forEach(function(a){var s=a.dataset.s,o=+a.dataset.d>0;a.classList.toggle('blk',o?rsFree(s).n<1:((s==='n'||s==='s')?b.d<=4:b.w<=4))});
+ var W=P.room.w,D=P.room.d,sc=Math.min(260/W,190/D),h='<rect x="0" y="0" width="'+W*sc+'" height="'+D*sc+'" fill="none" stroke="#3a3936" stroke-width="3"/>';
+ RM().forEach(function(q){if(q.id===RS.id)return;h+='<rect x="'+q.x*sc+'" y="'+q.y*sc+'" width="'+q.w*sc+'" height="'+q.d*sc+'" fill="'+rCol(q)+'" fill-opacity=".18" stroke="'+shadeHex(rCol(q),-.3)+'" stroke-width="1.5"/><text x="'+(q.x+q.w/2)*sc+'" y="'+((q.y+q.d/2)*sc+4)+'" text-anchor="middle" font-size="10" fill="'+shadeHex(rCol(q),-.4)+'">'+esc(q.n)+'</text>'});
+ var o=RS.o,r=rBy(RS.id);h+='<rect x="'+o.x*sc+'" y="'+o.y*sc+'" width="'+o.w*sc+'" height="'+o.d*sc+'" fill="none" stroke="#8a867c" stroke-width="1.2" stroke-dasharray="4 3"/>'+
+  '<rect x="'+b.x*sc+'" y="'+b.y*sc+'" width="'+b.w*sc+'" height="'+b.d*sc+'" fill="'+rCol(r)+'" fill-opacity=".25" stroke="#2f7de1" stroke-width="2"/><text x="'+(b.x+b.w/2)*sc+'" y="'+((b.y+b.d/2)*sc+4)+'" text-anchor="middle" font-size="11" font-weight="700" fill="'+shadeHex(rCol(r),-.4)+'">'+esc(r.n)+'</text>';
+ var pv=$('#rs-plan');pv.setAttribute('viewBox','-4 -4 '+(W*sc+8)+' '+(D*sc+8));pv.innerHTML=h}
+function openResize(){var r=rBy(selR);if(!r)return;var dl=$('#d-rs');if(!dl){dl=document.createElement('dialog');dl.id='d-rs';dl.className='rsd';document.body.appendChild(dl)}
+ RS={id:r.id,o:{x:r.x,y:r.y,w:r.w,d:r.d},b:{x:r.x,y:r.y,w:r.w,d:r.d}};
+ dl.innerHTML='<div class="rsw"><div class="rsh"><b>Resize '+esc(r.n)+'</b><button class="x" id="rs-x" aria-label="Close">×</button></div>'+
+  '<div class="rsg"><div class="rsp"><div class="rsbox"><b id="rs-dim"></b></div>'+['n','e','s','w'].map(function(s){return rsArrow(s,true)+rsArrow(s,false)+'<span class="rsf '+s+'"></span>'}).join('')+'</div>'+
+  '<svg id="rs-plan" class="rsplan" role="img" aria-label="Plan preview"></svg></div>'+
+  '<div class="rsrow"><label>Width<span class="sdim"><input id="rs-w" type="number" min="4" step="1" inputmode="numeric"><i>ft</i></span></label><span class="rsx">×</span>'+
+  '<label>Depth<span class="sdim"><input id="rs-d" type="number" min="4" step="1" inputmode="numeric"><i>ft</i></span></label><span class="rsx">or</span>'+
+  '<label class="rsa2"><span class="lt">Area <em id="rs-max"></em></span><span class="sdim"><input id="rs-a" type="number" min="16" step="10" inputmode="numeric"><i>sq ft</i></span></label><button class="sb" id="rs-fit">Fit</button></div>'+
+  '<div class="rsnote" id="rs-note" role="status"></div>'+
+  '<div class="rsbtns"><button class="sb" id="rs-cancel">Cancel</button><button class="sb pri" id="rs-ok">Apply</button></div></div>';
+ var t=null,stop=function(){clearInterval(t);t=null};
+ dl.querySelectorAll('.rsa').forEach(function(a){a.addEventListener('pointerdown',function(e){e.preventDefault();var s=a.dataset.s,d=+a.dataset.d;rsStep(s,d);stop();var n=0;t=setInterval(function(){if(++n>3&&!rsStep(s,d))stop()},110)});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){a.addEventListener(ev,stop)});a.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();rsStep(a.dataset.s,+a.dataset.d)}}});
+ var wd=function(){rsSize(parseFloat($('#rs-w').value)||RS.b.w,parseFloat($('#rs-d').value)||RS.b.d);rsDraw()};
+ $('#rs-w').onchange=wd;$('#rs-d').onchange=wd;
+ var fit=function(){rsArea(parseFloat($('#rs-a').value));rsDraw()};$('#rs-fit').onclick=fit;$('#rs-a').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();fit()}};
+ var close=function(){stop();dl.close();RS=null};$('#rs-x').onclick=close;$('#rs-cancel').onclick=close;
+ $('#rs-ok').onclick=function(){var b=RS.b,o=RS.o;if(b.x===o.x&&b.y===o.y&&b.w===o.w&&b.d===o.d){close();return}var before=snapP(),mem=memberOf();
+  (r.doors||[]).forEach(function(d){if(d.s==='n'||d.s==='s')d.t+=o.x-b.x;else d.t+=o.y-b.y});r.x=b.x;r.y=b.y;r.w=b.w;r.d=b.d;
+  (r.doors||[]).forEach(function(d){var L=d.len||3,len=sideLen(r,d.s);d.t=Math.max(0,Math.min(len-L,d.t))});close();bCommit(before,mem)};
+ dl.addEventListener('cancel',function(){stop();RS=null},{once:true});
+ dl.showModal();rsDraw()}
 
 /* ================= Space Planner =================
    Rooms start at 7 x 7 ft. Objects are added from the library and the room lays itself out:
