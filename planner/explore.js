@@ -8,6 +8,8 @@ function exLoad(){if(EX.T)return Promise.resolve(EX.T);return import('./vendor/t
 function setExplore(on){if(EX.on===on)return;EX.on=on;document.body.classList.toggle('exploring',on);strip();
  if(!on){exStop();return}
  var host=$('#explore');host.innerHTML='<div class="exload">Building the room…</div>';
+ // desktop: grab the mouse straight away (this click is what allows it); Esc then leaves Explore
+ if(!TOUCH&&host.requestPointerLock){EX.locked=false;try{var pr=host.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){})}catch(_){}}
  exLoad().then(function(){exStart()}).catch(function(e){host.innerHTML='<div class="exload">Couldn\'t load the 3D view. Check your connection and try again.</div>'})}
 function exStop(){cancelAnimationFrame(EX.raf);EX.raf=0;if(document.pointerLockElement)document.exitPointerLock();if(EX.r){EX.r.dispose();EX.r=null}EX.S=null;$('#explore').innerHTML=''}
 
@@ -1038,16 +1040,17 @@ function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1
  return best||{x:W/2,y:D/2}}
 function exClear(x,z){var m=4;EX.solid.forEach(function(s){var dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));m=Math.min(m,Math.hypot(dx,dz))});return m}
 function exHit(x,z){var W=P.room.w,D=P.room.d;if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
-function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Click to look around · WASD / arrows to walk · Shift to run · Esc to free the mouse')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})||(P.zones&&P.zones.length)?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add a light zone in Lights view to see them here.</div>');
+function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Move the mouse to look · WASD / arrows to walk · Shift to run · Esc to leave')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})||(P.zones&&P.zones.length)?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add a light zone in Lights view to see them here.</div>');
  var cv=$('#excv'),r=EX.r=new T.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.5:2));r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;r.toneMapping=T.ACESFilmicToneMapping;r.outputColorSpace=T.SRGBColorSpace;
  EX.S=exBuild();EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
  var size=function(){var b=host.getBoundingClientRect();r.setSize(b.width,b.height,false);EX.cam.aspect=b.width/Math.max(1,b.height);EX.cam.updateProjectionMatrix()};size();EX.size=size;
  // desktop: pointer lock look; touch: joystick + drag look
- cv.onclick=function(){if(!TOUCH&&cv.requestPointerLock)cv.requestPointerLock()};
+ cv.onclick=function(){if(!TOUCH&&host.requestPointerLock&&document.pointerLockElement!==host){try{var pr=host.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){})}catch(_){}}};
+ host.onmousemove=function(e){if(document.pointerLockElement===host){EX.yaw-=e.movementX*.0025;EX.pitch=Math.max(-1.3,Math.min(1.3,EX.pitch-e.movementY*.0025))}};
  var joy=$('#exjoy'),jk=joy.querySelector('i');EX.joy={x:0,y:0,id:null};EX.look=null;
  cv.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;var b=joy.getBoundingClientRect();
   if(e.clientX<b.right+40&&e.clientY>b.top-40&&EX.joy.id==null){EX.joy.id=e.pointerId;EX.joy.cx=b.left+b.width/2;EX.joy.cy=b.top+b.height/2}else if(!EX.look)EX.look={id:e.pointerId,x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId)});
- cv.addEventListener('pointermove',function(e){if(e.pointerType==='mouse'){if(document.pointerLockElement===cv){EX.yaw-=e.movementX*.0025;EX.pitch=Math.max(-1.3,Math.min(1.3,EX.pitch-e.movementY*.0025))}return}
+ cv.addEventListener('pointermove',function(e){if(e.pointerType==='mouse')return;
   if(EX.joy.id===e.pointerId){var dx=e.clientX-EX.joy.cx,dy=e.clientY-EX.joy.cy,L=Math.hypot(dx,dy),R=44;if(L>R){dx*=R/L;dy*=R/L}EX.joy.x=dx/R;EX.joy.y=dy/R;jk.style.transform='translate('+dx+'px,'+dy+'px)'}
   else if(EX.look&&EX.look.id===e.pointerId){EX.yaw-=(e.clientX-EX.look.x)*.005;EX.pitch=Math.max(-1.3,Math.min(1.3,EX.pitch-(e.clientY-EX.look.y)*.005));EX.look.x=e.clientX;EX.look.y=e.clientY}});
  var up=function(e){if(EX.joy.id===e.pointerId){EX.joy.id=null;EX.joy.x=EX.joy.y=0;jk.style.transform=''}if(EX.look&&EX.look.id===e.pointerId)EX.look=null};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
@@ -1060,3 +1063,8 @@ window.addEventListener('keydown',function(e){if(!EX.on||/INPUT|SELECT|TEXTAREA/
 window.addEventListener('keyup',function(e){EX.keys[e.key.toLowerCase()]=false});
 window.addEventListener('blur',function(){EX.keys={}});
 window.addEventListener('resize',function(){if(EX.on&&EX.size)EX.size()});
+
+// Esc leaves Explore: the browser frees the mouse on Esc, so leaving the lock (while this window still has focus) means leave
+document.addEventListener('pointerlockchange',function(){var h=$('#explore');if(document.pointerLockElement===h){EX.locked=true;return}
+ if(EX.on&&EX.locked&&document.hasFocus()){EX.locked=false;setExplore(false)}else EX.locked=false});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EX.on&&!document.pointerLockElement){e.preventDefault();setExplore(false)}});
