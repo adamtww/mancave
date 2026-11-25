@@ -2515,7 +2515,14 @@ function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clien
  else{var x1=b0.x,y1=b0.y,x2=b0.x+b0.w,y2=b0.y+b0.d,hh=rd.h;
   if(/w/.test(hh))x1=Math.round(Math.max(0,Math.min(x2-4,b0.x+dx)));if(/e/.test(hh))x2=Math.round(Math.min(W,Math.max(x1+4,x2+dx)));
   if(/n/.test(hh))y1=Math.round(Math.max(0,Math.min(y2-4,b0.y+dy)));if(/s/.test(hh))y2=Math.round(Math.min(D,Math.max(y1+4,y2+dy)));nb={x:x1,y:y1,w:x2-x1,d:y2-y1}}
- if(others.some(function(q){return hit(nb,q)}))return;
+ // blocked by a neighbour: slide along it, getting as close as the drag asks for on each axis
+ var clear=function(b){return !others.some(function(q){return hit(b,q)})};
+ if(!clear(nb)){var cur={x:r.x,y:r.y,w:r.w,d:r.d},walk=function(from,to,key){var b=JSON.parse(JSON.stringify(from)),st=to[key]>b[key]?1:-1;
+   while(Math.abs(to[key]-b[key])>1e-6){var n=JSON.parse(JSON.stringify(b));n[key]+=st;if(key==='x'&&rd.mode==='size'&&/w/.test(rd.h))n.w-=st;if(key==='y'&&rd.mode==='size'&&/n/.test(rd.h))n.d-=st;
+    if(!clear(n)||n.w<4||n.d<4)break;b=n}return b};
+  if(rd.mode==='move'){var a1=walk(walk(cur,nb,'x'),nb,'y'),a2=walk(walk(cur,nb,'y'),nb,'x');nb=(Math.abs(a1.x-cur.x)+Math.abs(a1.y-cur.y)>=Math.abs(a2.x-cur.x)+Math.abs(a2.y-cur.y))?a1:a2}
+  else{var hh=rd.h,b=cur;if(/w/.test(hh))b=walk(b,{x:nb.x},'x');if(/e/.test(hh))b=walk(b,{w:nb.w},'w');if(/n/.test(hh))b=walk(b,{y:nb.y},'y');if(/s/.test(hh))b=walk(b,{d:nb.d},'d');nb=b}
+  if(nb.x===r.x&&nb.y===r.y&&nb.w===r.w&&nb.d===r.d)return}
  var mx=nb.x-b0.x,my=nb.y-b0.y;r.x=nb.x;r.y=nb.y;r.w=nb.w;r.d=nb.d;
  if(rd.mode==='move'){rd.its.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my});rd.zs.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my;var a={};Object.keys(q[3]).forEach(function(k2){a[k2]=[q[3][k2][0]+mx,q[3][k2][1]+my]});q[0].adj=a})}
  else(r.doors||[]).forEach(function(d,i){var d0=rd.doors0[i],len=sideLen(r,d.s);d.t=Math.max(0,Math.min(len-(d.len||3),d0.t+((d.s==='n'||d.s==='s')?(b0.x-r.x):(b0.y-r.y))))});
