@@ -65,7 +65,7 @@ function needs(c){var a=c.a||[],q=c.req||{},o={};
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,selO=null,lastFail=null;
-function blank(){return {id:null,name:'Untitled room',room:{w:10,d:10,h:10},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
+function blank(){return {id:null,name:'Untitled room',room:{w:10,d:10,h:15},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
 P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=migrate(Object.assign(blank(),sv0))}catch(_){}
 function snapP(){return JSON.stringify(P)}
 function push(){hist.push(snapP());if(hist.length>60)hist.shift();fut=[]}

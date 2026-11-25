@@ -2478,7 +2478,7 @@ function autoDoor(r){var best=null;['s','n','e','w'].forEach(function(s){if(onEd
 function rFit(cx,cy){var W=P.room.w,D=P.room.d;for(var s=0;s<=8;s++){var w=Math.min(12-s,W),d=Math.min(10-s,D),x=Math.round(Math.max(0,Math.min(W-w,cx-w/2))),y=Math.round(Math.max(0,Math.min(D-d,cy-d/2))),b={x:x,y:y,w:w,d:d};
  if(!RM().some(function(r){return hit(b,r)}))return b}return null}
 function rAdd(cx,cy){var b=rFit(cx,cy);if(!b){toast('No open floor there for a room');return}var before=snapP(),mem=memberOf();P.rid=(P.rid||0)+1;
- var r={id:'r'+P.rid,n:'Room '+P.rid,x:b.x,y:b.y,w:b.w,d:b.d,h:(P.room.h||10)>10?9:(P.room.h||10),doors:[],no:''};RM().push(r);r.doors.push(autoDoor(r));
+ var r={id:'r'+P.rid,n:'Room '+P.rid,x:b.x,y:b.y,w:b.w,d:b.d,h:Math.min(9,P.room.h||15),doors:[],no:''};RM().push(r);r.doors.push(autoDoor(r));
  var fl=pushFix(mem);hist.push(before);fut=[];selR=r.id;selD=null;persist();render();if(fl.length)toast(fl.length+' object'+(fl.length>1?'s':'')+' couldn\'t be moved clear of the new walls')}
 function bCommit(before,mem){var fl=pushFix(mem);if(before!==snapP()){hist.push(before);if(hist.length>60)hist.shift();fut=[];persist()}render();if(fl.length)toast(fl.length+' object'+(fl.length>1?'s':'')+' won\'t fit on either side of the wall. They\'re marked red.')}
 /* ---- drawing ---- */
@@ -2751,7 +2751,7 @@ function needs(c){var a=c.a||[],q=c.req||{},o={};
 
 /* ---------------- the room ---------------- */
 var P,hist=[],fut=[],sel=null,selO=null,lastFail=null;
-function blank(){return {id:null,name:'Untitled room',room:{w:10,d:10,h:10},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
+function blank(){return {id:null,name:'Untitled room',room:{w:10,d:10,h:15},dyn:true,items:[],defs:{},uid:1,pw:null,pwo:{gp:true}}}
 P=blank();try{var sv0=JSON.parse(localStorage.getItem('space-planner-cur')||'null');if(sv0&&sv0.room&&Array.isArray(sv0.items))P=migrate(Object.assign(blank(),sv0))}catch(_){}
 function snapP(){return JSON.stringify(P)}
 function push(){hist.push(snapP());if(hist.length>60)hist.shift();fut=[]}
