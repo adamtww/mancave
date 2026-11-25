@@ -260,12 +260,12 @@ function rhGauge(v,H,col){var y=rhY(v,H),dk=shadeHex(col,-.35),py=rhY(6,H);
   '<g id="rh-line"><line x1="56" y1="'+y+'" x2="206" y2="'+y+'" stroke="'+dk+'" stroke-width="3.5"/><rect x="40" y="'+(y-16)+'" width="182" height="32" fill="transparent" style="cursor:ns-resize"/>'+
   '<circle cx="131" cy="'+y+'" r="10" fill="#fff" stroke="'+dk+'" stroke-width="2.5" style="cursor:ns-resize"/><path d="M127.5 '+(y-2.5)+'l3.5-3.5 3.5 3.5M127.5 '+(y+2.5)+'l3.5 3.5 3.5-3.5" stroke="'+dk+'" stroke-width="1.7" fill="none" pointer-events="none"/></g>'+
   '<g fill="#8a867c" pointer-events="none"><circle cx="24" cy="'+(py+3)+'" r="3.2"/><rect x="22.6" y="'+(py+6.5)+'" width="2.8" height="'+(RHV.fl-py-7)+'" rx="1.4"/></g><text x="31" y="'+(RHV.fl-3)+'" font-size="9" fill="#a4a097">6 ft</text></svg>'+
-  '<label class="rhv" style="top:calc('+(y/RHV.h*100)+'% - 15px)"><input id="rh-in" type="number" min="7" max="'+H+'" step="0.5" value="'+v+'" inputmode="decimal" aria-label="Ceiling height in feet"><i>ft</i></label></div>'}
+  '<label class="rhv" style="top:calc('+(y/RHV.h*100)+'% - 16px)"><select id="rh-in" aria-label="Ceiling height in feet">'+hOpts(v,H)+'</select><i>ft</i></label></div>'}
 function rhWire(r,setH){var sv2=$('#rh-svg'),inp=$('#rh-in');if(!sv2)return;var H=P.room.h||10,dragging=false,cur=r.h||H;
- var show=function(v){var y=rhY(v,H),g=$('#rh-line');g.setAttribute('transform','translate(0,'+(y-rhY(r.h||H,H))+')');var f=$('#rh-fill');f.setAttribute('y',y);f.setAttribute('height',RHV.fl-y);inp.value=v;inp.parentNode.style.top='calc('+(y/RHV.h*100)+'% - 15px)'};
+ var show=function(v){var y=rhY(v,H),g=$('#rh-line');g.setAttribute('transform','translate(0,'+(y-rhY(r.h||H,H))+')');var f=$('#rh-fill');f.setAttribute('y',y);f.setAttribute('height',RHV.fl-y);inp.value=String(v);inp.parentNode.style.top='calc('+(y/RHV.h*100)+'% - 16px)'};
  var at=function(e){var b=sv2.getBoundingClientRect(),yy=(e.clientY-b.top)/b.height*RHV.h,v=(RHV.fl-yy)/(RHV.fl-RHV.top)*H;return Math.max(7,Math.min(H,Math.round(v*2)/2))};
  sv2.addEventListener('pointerdown',function(e){dragging=true;sv2.setPointerCapture(e.pointerId);cur=at(e);show(cur);e.preventDefault()});
  sv2.addEventListener('pointermove',function(e){if(!dragging)return;cur=at(e);show(cur)});
  sv2.addEventListener('pointerup',function(){if(!dragging)return;dragging=false;setH(cur)});sv2.addEventListener('pointercancel',function(){dragging=false;show(r.h||H)});
  sv2.onkeydown=function(e){if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();setH((r.h||H)+.5)}if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();setH((r.h||H)-.5)}};
- inp.onchange=function(){var v=parseFloat(inp.value);if(isNaN(v)){inp.value=r.h||H;return}setH(v)};inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();inp.blur()}}}
+ inp.onchange=function(){var v=parseFloat(inp.value);if(!isNaN(v))setH(v)}}
