@@ -3607,7 +3607,7 @@ var howOpen=false;try{howOpen=localStorage.getItem('sp-howto')==='1'}catch(_){}
 // touch screens get touch words; switches if someone picks up a mouse (or a pen/finger) mid-session
 var TOUCH=false;try{TOUCH=matchMedia('(pointer: coarse)').matches||(navigator.maxTouchPoints>0&&!matchMedia('(pointer: fine)').matches)}catch(_){}
 document.body.classList.toggle('touch',TOUCH);document.addEventListener('pointerdown',function(e){var t=e.pointerType!=='mouse';if(t===TOUCH)return;TOUCH=t;document.body.classList.toggle('touch',TOUCH);var k=document.querySelector('#howto .hkeys');if(k)k.innerHTML=howRows();libTip()},true);
-function libTip(){var l=document.getElementById('libtip');if(l)l.textContent=TOUCH?'Tap an object to see its details. Hold and drag it onto the plan to place it.':'Click an object to see its details. Drag it onto the plan to place it.'}
+function libTip(){var l=document.getElementById('libtip');if(l)l.textContent=TOUCH?'Tap an object to see its details. Drag it onto the plan to place it.':'Click an object to see its details. Drag it onto the plan to place it.'}
 function howRows(){var kb=function(t){return '<span class="kb">'+t+'</span>'},row=function(k,t){return '<span class="hk">'+k+'</span><span>'+t+'</span>'},pw=!!P.pw;
  if(TOUCH)return row(kb('Tap'),'See an object\'s details')+row(kb('Hold')+kb('Drag'),'Place it on the plan')+row(kb('✎'),'Edit an object\'s details')+row(kb('Drag'),'Move an object on the plan')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('↺')+kb('↻'),'Turn the selected one')+row(kb('Remove'),'Remove the selected one')+row(kb('Pinch'),'Zoom')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Double-tap floor'),'See the whole room again')+(pw?row(kb('Tap outlet'),'See its circuit and what it powers'):'')+row(kb('Tap floor'),'Deselect');
  return row(kb('Click'),'See an object\'s details')+row(kb('Drag'),'Place it on the plan')+row(kb('Right-click')+kb('✎'),'Edit an object\'s details')+row(kb('Drag'),'Move an object on the plan')+row(kb('Push into wall'),'Turn it to face the room')+row(kb('R')+kb('Shift R'),'Turn right / left')+row(kb('Del'),'Remove the selected one')+row(kb('Scroll'),'Zoom (pinch on a trackpad)')+row(kb('Drag floor'),'Move around when zoomed in')+row(kb('Double-click'),'Fit the whole room')+(pw?row(kb('Click outlet'),'See its circuit and what it powers'):'')+row(kb('Esc'),'Deselect')}
@@ -3696,7 +3696,7 @@ document.addEventListener('touchmove',function(e){if(e.touches&&e.touches.length
 var lastTE=0;document.addEventListener('touchend',function(e){var n=Date.now(),t=e.target;if(n-lastTE<350&&e.changedTouches&&e.changedTouches.length===1&&t.closest&&!t.closest('#sv,button,input,select,textarea,label,a,summary,[role=button],.lcard'))e.preventDefault();lastTE=n},{passive:false});
 window.addEventListener('wheel',function(e){if(e.ctrlKey&&!(e.target.closest&&e.target.closest('#sv')))e.preventDefault()},{passive:false});
 /* ---------------- drag from the library: hold and drag a card onto the plan to place it by hand ----------------
-   Mouse: press and drag. Touch: hold for a moment, then drag (a quick swipe still scrolls the list).
+   Mouse: press and drag. Touch: drag sideways toward the plan, or hold briefly then drag; an up/down swipe still scrolls the list.
    It lands where it's dropped (or the nearest free spot), skipping auto-placement. Push past a wall to turn it. */
 var ldrag=null,ldClick=0,ldCard=null;
 function ldCancel(){if(!ldrag)return;clearTimeout(ldrag.timer);if(ldrag.chip)ldrag.chip.remove();if(ldrag.card)ldrag.card.classList.remove('lifting');ghost(null);document.body.classList.remove('ldragging');ldrag=null}
@@ -3721,9 +3721,10 @@ function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.
  var po=autoPlug(it.u);hist.push(before);fut=[];lastFail=null;persist();render();pop(it.u);plugToast(po)}
 $('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0)return;if(ldrag)ldCancel();
  ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
- if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
+ if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},150)});
 window.addEventListener('pointermove',function(e){var d=ldrag;if(!d)return;var dist=Math.hypot(e.clientX-d.sx,e.clientY-d.sy);
- if(!d.started){if(d.touch){if(dist>10)ldCancel()}else if(dist>6)ldStart();if(!ldrag||!ldrag.started)return}
+ // touch: a sideways move (toward the plan) picks the card up straight away; an up/down swipe scrolls the list
+ if(!d.started){if(d.touch){if(dist>8){if(Math.abs(e.clientX-d.sx)>Math.abs(e.clientY-d.sy)*.8)ldStart();else ldCancel()}}else if(dist>6)ldStart();if(!ldrag||!ldrag.started)return}
  e.preventDefault();ldMove(e)},{passive:false});
 window.addEventListener('pointerup',function(e){if(!ldrag)return;if(!ldrag.started){ldCancel();return}ldDrop(e)});
 // the browser can take a touch back (system gesture, scroll); never leave a half-finished drag stuck, or no card can be dragged again
