@@ -669,14 +669,15 @@ function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.
  var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
  if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
  var po=autoPlug(it.u);hist.push(before);fut=[];lastFail=null;persist();render();pop(it.u);plugToast(po)}
-$('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0||ldrag)return;
+$('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0)return;if(ldrag)ldCancel();
  ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
  if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},320)});
 window.addEventListener('pointermove',function(e){var d=ldrag;if(!d)return;var dist=Math.hypot(e.clientX-d.sx,e.clientY-d.sy);
  if(!d.started){if(d.touch){if(dist>10)ldCancel()}else if(dist>6)ldStart();if(!ldrag||!ldrag.started)return}
  e.preventDefault();ldMove(e)},{passive:false});
 window.addEventListener('pointerup',function(e){if(!ldrag)return;if(!ldrag.started){ldCancel();return}ldDrop(e)});
-window.addEventListener('pointercancel',function(){if(ldrag&&!ldrag.started)ldCancel()});
+// the browser can take a touch back (system gesture, scroll); never leave a half-finished drag stuck, or no card can be dragged again
+window.addEventListener('pointercancel',function(){if(ldrag)ldCancel()});
 // once a held card is lifted, stop the list from scrolling under the finger
 window.addEventListener('touchmove',function(e){if(ldrag&&ldrag.started)e.preventDefault()},{passive:false});
 window.addEventListener('keydown',function(e){if(e.key==='Escape'&&ldrag)ldCancel()});
