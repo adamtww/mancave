@@ -838,7 +838,9 @@ $('#b-newobj').onclick=function(){editObj(null)};
 $('#b-undo').onclick=function(){undo()};$('#b-redo').onclick=function(){redo()};
 
 /* ---------------- saving rooms ---------------- */
-function pack(){var defs={};P.items.forEach(function(i){var c=defOf0(i);if(c)defs[i.r]=c});return {room:P.room,dyn:P.dyn,uid:P.uid,pw:P.pw,pwo:P.pwo,items:P.items.map(function(i){var o={u:i.u,r:i.r,x:i.x,y:i.y,rot:i.rot,pin:!!i.pin,n:i.n};if(i.w)o.w=i.w;if(i.d)o.d=i.d;if(i.k)o.k=i.k.slice();if(i.reach!=null)o.reach=i.reach;return o}),defs:defs}}
+// everything that makes up the layout; anything left out here is lost when the room is opened on another device
+function pack(){var defs={};P.items.forEach(function(i){var c=defOf0(i);if(c)defs[i.r]=c});var cl=function(v){return v==null?v:JSON.parse(JSON.stringify(v))};
+ return {room:P.room,dyn:P.dyn,uid:P.uid,pw:P.pw,pwo:P.pwo,items:cl(P.items),defs:defs,zones:cl(P.zones||[]),zid:P.zid||0,rooms:cl(P.rooms||[]),rid:P.rid||0,floors:cl(P.floors||[]),fid:P.fid||0}}
 $('#rname').onchange=function(){P.name=this.value.trim()||'Untitled room';persist()};
 $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to save rooms to your account');return}P.name=$('#rname').value.trim()||'Untitled room';var b={name:P.name,data:pack()};
  (P.id?api('PUT','/api/spaces/'+P.id,b):api('POST','/api/spaces',b).then(function(j){P.id=j.id})).then(function(){persist();toast('Saved “'+P.name+'”')}).catch(function(e){toast(e.message)})};
