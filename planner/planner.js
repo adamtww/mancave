@@ -52,7 +52,7 @@ function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&B
 function syncDefs(say){if(!P||!P.items)return 0;P.defs=P.defs||{};var seen={},n=0;P.items.forEach(function(i){var r=i.r;if(seen[r])return;seen[r]=1;var L=LIB[r],D=P.defs[r];
   if(!L||!(MINE[r]||EDITED[r]||(D&&D.uv)))return;var j=JSON.stringify(L);if(D&&JSON.stringify(D)===j)return;P.defs[r]=JSON.parse(j);n+=P.items.filter(function(x){return x.r===r}).length});
  if(n){relayout();persist();render();if(say)toast('Updated '+n+' object'+(n>1?'s':'')+' on the floor plan')}else if(say)render();return n}
-function defOf0(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
+function defOf0(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||(BY[it.r]&&BY[it.r].hide?BY[it.r]:null)}
 // A placed object can have its own clearance (it.k) or reach (it.reach); its own size lives in it.w / it.d (see dims).
 var DEFX=typeof WeakMap!=='undefined'?new WeakMap():null;
 function defOf(it){var c=defOf0(it);if(!c||!(it.k||it.reach!=null))return c;var e=DEFX&&DEFX.get(it);if(e&&e.c===c&&e.k===it.k&&e.re===it.reach)return e.v;

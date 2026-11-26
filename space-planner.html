@@ -364,7 +364,7 @@ body.building #g-floorh{display:none}
 <dialog id="d-open"></dialog>
 <script>
 var CATS=[
- ["Rooms & Zones","#8a8fa8"],["Building & Support","#7c8098"],["Built-ins & Counters","#8d7b68"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],["Bedroom","#c07fa8"],["Bathroom","#5aa7c9"],
+ ["Rooms & Zones","#8a8fa8"],["Arcade & Gaming","#b14bff"],["Bar & Lounge","#ff8a3d"],["Furniture & Seating","#a07a5a"],["Bedroom","#c07fa8"],["Bathroom","#5aa7c9"],
  ["Kitchen – Residential","#ffd166"],["Kitchen – Commercial","#ffb000"],["Fitness","#3ddc97"],["Court & Rink","#34c3ff"],
  ["Creator / Maker","#ff4fa3"],["Woodworking","#c9a26b"],["Home Theater & Music","#6c7cff"],["Auto & Garage","#e5533d"],["Metal & Fabrication","#6f87a6"],["Crafts & Office","#3fb5a8"],["Storage & Utility","#a39e8f"],["Indoor Garden","#7bd389"]];
 /* ceiling categories (objects with ceiling:true live on the ceiling, not the floor) */
@@ -415,10 +415,10 @@ var CATALOG=[
  {r:"r-truck",c:"Rooms & Zones",n:"Truck bay + roll-up door",w:14,d:26,z:1,a:["truck"],no:"Full-size pickup ≈ 7×20 ft; 14×26 leaves room to open doors. Roll-up door ~12 ft wide."},
  // Building & Support
  {r:"b-elec",c:"Building & Support",n:"Electrical room / main panel",w:6,d:8,z:1,no:"Code requires ~3 ft clear working space in front of panels."},
- {r:"b-net",h:6.5,c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
+ {r:"b-net",hide:1,h:6.5,c:"Building & Support",n:"Network / AV rack",w:3,d:3,cl:3,cf:1,p:[120,1000,20,1],est:1,cost:[800,3000]},
  {r:"b-mop",c:"Building & Support",n:"Janitor closet / mop sink",w:5,d:6,z:1,a:["plumbing"]},
- {r:"b-gas",h:6,c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
- {r:"b-hvac",h:6,c:"Building & Support",n:"AC air handler (floor, ducted)",w:4,d:4,cl:3,cf:1,p:[240,6000,40,1],est:1,a:["hvac"],cost:[4000,12000],no:"Indoor half of a ducted split system, in a closet or on the floor; the condenser sits outside."},
+ {r:"b-gas",hide:1,h:6,c:"Building & Support",n:"Shielding-gas cylinder cage",w:4,d:3,cl:0,a:["gas"],cost:[300,900]},
+ {r:"b-hvac",hide:1,h:6,c:"Building & Support",n:"AC air handler (floor, ducted)",w:4,d:4,cl:3,cf:1,p:[240,6000,40,1],est:1,a:["hvac"],cost:[4000,12000],no:"Indoor half of a ducted split system, in a closet or on the floor; the condenser sits outside."},
  // Arcade & Gaming
  {r:"g-sim",h:4.5,c:"Arcade & Gaming",n:"Racing sim rig (triple screens)",w:6,d:6,cl:2,p:[120,1500,20,1],est:1,no:"PC + direct-drive wheel + screens (+ motion if added).",cost:[3000,12000]},
  {r:"g-cab",h:6,c:"Arcade & Gaming",n:"Arcade video cabinet",w:3,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,cost:[1500,4500]},
@@ -433,17 +433,17 @@ var CATALOG=[
  {r:"g-pool",h:2.6,c:"Arcade & Gaming",n:"Pool table",w:4.5,d:8.5,cl:4.5,no:"Clearance sized for standard 58\" cues (room ≈ 13.5×17.5 ft).",cost:[1500,12000]},
  {r:"g-console",h:4.5,c:"Arcade & Gaming",n:"Console / PC gaming station",w:6,d:4,cl:4,cf:1,p:[120,800,20,0],est:1,cost:[800,4000]},
  // Bar & Lounge
- {r:"b-wall",h:10,c:"Built-ins & Counters",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it.",cost:[400,2000]},
- {r:"b-stage",h:2,c:"Built-ins & Counters",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets.",cost:[2000,8000]},
- {r:"l-bar",h:7,c:"Built-ins & Counters",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license.",cost:[6000,25000]},
+ {r:"b-wall",h:10,c:"Storage & Utility",n:"Wall / partition",bi:1,bmin:0.33,bmax:1,bl:1,w:8,d:0.5,cl:0,p:null,no:"Interior partition. Stretch it to length; drag a corner dot to turn it.",cost:[400,2000]},
+ {r:"b-stage",h:2,c:"Home Theater & Music",n:"Stage / platform",bi:1,bmin:4,bmax:20,bl:0,w:12,d:8,cl:2,cf:1,p:[120,1500,20,0],est:1,no:"Raised platform for a band, DJ or presentations. Power covers a couple of stage outlets.",cost:[2000,8000]},
+ {r:"l-bar",h:7,c:"Bar & Lounge",n:"Bar counter + back bar",bi:1,bmin:6,bmax:10,bl:0,w:15,d:8,cl:4,cf:1,p:[120,300,20,0],est:1,no:"Idea: buy one from a closed restaurant. Private use = no liquor license.",cost:[6000,25000]},
  {r:"l-keg",h:3.4,c:"Bar & Lounge",n:"Kegerator",w:2,d:2.5,cl:2,cf:1,p:[120,300,20,0],ov:1,est:1,cost:[700,2500]},
  {r:"l-ice",h:2.8,c:"Bar & Lounge",n:"Ice maker (residential)",w:1.5,d:2,cl:2,cf:1,p:[120,400,15,1],ov:1,est:1,no:"Needs water line + drain.",cost:[600,2000]},
  {r:"l-icec",h:6.5,c:"Bar & Lounge",n:"Ice machine (commercial)",w:2.5,d:2.5,cl:2.5,cf:1,p:[120,1200,20,1],est:1,a:["commercial"],cost:[3000,7000]},
  {r:"l-fridge",h:2.8,c:"Bar & Lounge",n:"Bar fridge",w:2,d:2,cl:2,cf:1,p:[120,200,20,0],ov:1,cost:[300,1500]},
  {r:"l-seat",h:2.8,c:"Bar & Lounge",n:"Lounge seating group",w:12,d:10,cl:0,cost:[3000,12000]},
  {r:"l-tv",h:9,c:"Bar & Lounge",n:"Big screen / projector wall",w:12,d:2,cl:0,p:[120,500,20,0],est:1,cost:[2500,9000]},
- {r:"l-barc",h:3.5,c:"Built-ins & Counters",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights.",cost:[3000,12000]},
- {r:"l-rail",h:3.5,c:"Built-ins & Counters",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft).",cost:[800,3500]},
+ {r:"l-barc",h:3.5,c:"Bar & Lounge",n:"Bar counter",bi:1,bmin:1.5,bmax:3.5,bl:1,w:12,d:2.5,cl:3,cf:1,p:[120,500,20,0],est:1,no:"Just the counter, no back bar. Allow about 2 ft of counter per stool (6 stools on 12 ft). Outlets under the bar top for blenders and lights.",cost:[3000,12000]},
+ {r:"l-rail",h:3.5,c:"Bar & Lounge",n:"Drink rail / long high-top",bi:1,bmin:1,bmax:2.5,bl:1,w:15,d:2,cl:3,cf:1,p:null,no:"Bar-height ledge for standing or stools; about 2 ft per stool (7 on 15 ft).",cost:[800,3500]},
  {r:"f-stool",h:2.6,c:"Furniture & Seating",n:"Bar stool",w:1.5,d:1.5,cl:0,p:null,no:"Most stools are 16–21 in wide; space them about 2 ft apart, center to center.",cost:[60,350]},
  {r:"f-sofa",h:2.8,c:"Furniture & Seating",n:"Sofa",w:7,d:3,cl:1.5,cf:1,p:null,no:"Standard 3-seaters run about 78–90 in wide and 35–40 in deep. The front clearance is the 14–18 in gap to a coffee table.",cost:[900,4000]},
  {r:"f-chair",h:3.4,c:"Furniture & Seating",n:"Armchair / recliner",w:3,d:3,cl:1.5,cf:1,p:null,no:"Power recliners plug into a regular outlet (small draw).",cost:[400,2500]},
@@ -456,8 +456,8 @@ var CATALOG=[
  {r:"kr-fridge",h:5.8,c:"Kitchen – Residential",n:"Refrigerator (home)",w:3,d:3,cl:3,cf:1,p:[120,700,20,1],cost:[1200,4000]},
  {r:"kr-dw",h:2.9,c:"Kitchen – Residential",n:"Dishwasher (home)",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,1],ov:1,cost:[500,1500]},
  {r:"kr-micro",h:3,c:"Kitchen – Residential",n:"Base cabinet + microwave",w:3,d:2,cl:3,cf:1,p:[120,1500,20,1],cost:[400,1500],no:"Microwave on a 3 ft run of counter. Microwaves want their own 20 A circuit."},
- {r:"kr-counter",h:3,c:"Built-ins & Counters",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
- {r:"kr-prep",h:3,c:"Built-ins & Counters",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
+ {r:"kr-counter",h:3,c:"Kitchen – Residential",n:"Counter + sink run",bi:1,bmin:2,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,p:[120,1800,20,0],no:"Countertop appliance outlets.",cost:[3000,10000]},
+ {r:"kr-prep",h:3,c:"Kitchen – Residential",n:"Prep counter / base cabinets",bi:1,bmin:2,bmax:3,bl:1,w:6,d:2,cl:3,cf:1,p:[120,1500,20,0],est:1,no:"Countertop outlets. Code calls for at least two 20 A small-appliance circuits serving kitchen counters.",cost:[1500,6000]},
  {r:"kr-sink",h:3,c:"Kitchen – Residential",n:"Kitchen sink + disposal",w:3,d:2,cl:3,cf:1,p:[120,800,15,1],est:1,a:["plumbing"],no:"Garbage disposal on its own 15 A circuit.",cost:[500,2000]},
  {r:"kr-freezer",h:5.8,c:"Kitchen – Residential",n:"Upright freezer",w:3,d:2.5,cl:3,cf:1,p:[120,600,15,1],no:"About 28–33 in wide. Draws roughly 3–6 A; a dedicated 15 A circuit keeps a tripped breaker elsewhere from thawing it.",cost:[600,1800]},
  {r:"kr-gasrange",h:3.1,c:"Kitchen – Residential",n:"Gas range (home)",w:2.5,d:2.5,k:[3.5,0,0,0],p:[120,300,20,1],cost:[800,4000],no:"Needs a gas line and a hood vented outside; 120V only for the igniters and clock."},
@@ -469,7 +469,7 @@ var CATALOG=[
  {r:"kr-chest",h:2.8,c:"Kitchen – Residential",n:"Chest freezer",w:4,d:2.5,k:[3,0.25,0,0],p:[120,300,15,1],cost:[300,1200],no:"The lid opens up, so keep shelves off the wall above it."},
  {r:"kr-trash",h:3,c:"Kitchen – Residential",n:"Trash / recycling pull-out cabinet",w:1.5,d:2,k:[3.5,0,0,0],cost:[200,800]},
  {r:"kr-bev",h:2.8,c:"Kitchen – Residential",n:"Beverage fridge (under-counter)",w:2,d:2,k:[3.5,0,0,0],p:[120,200,20,0],cost:[600,2500]},
- {r:"kr-pantry",h:6,c:"Built-ins & Counters",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
+ {r:"kr-pantry",h:6,c:"Kitchen – Residential",n:"Pantry / storage shelving",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,p:null,cost:[300,2500]},
  // Kitchen commercial
  {r:"kc-range",h:4.8,c:"Kitchen – Commercial",n:"Commercial range (gas)",w:3,d:3,cl:3.5,cf:1,p:[120,200,15,1],est:1,a:["commercial"],cost:[2500,8000]},
  {r:"kc-hood",h:8,c:"Kitchen – Commercial",n:"Type I hood + fire suppression",w:8,d:4,cl:0,p:[120,1500,20,1],ov:1,est:1,a:["commercial"],hide:1,cost:[8000,30000],no:"Retired: hangs over the cooking line. The commercial-kitchen alert covers it."},
@@ -526,8 +526,8 @@ var CATALOG=[
  {r:"m-resin",h:4.5,c:"Creator / Maker",n:"Resin printing bench (printer + wash/cure)",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
  {r:"m-vinyl",h:4,c:"Creator / Maker",n:"Vinyl cutter / plotter on a stand",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
  {r:"m-mill",h:5,c:"Creator / Maker",n:"Desktop CNC router / mill, on a stand",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
- {r:"m-bench",h:5,c:"Built-ins & Counters",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
- {r:"m-filament",h:6,c:"Built-ins & Counters",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
+ {r:"m-bench",h:5,c:"Creator / Maker",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
+ {r:"m-filament",h:6,c:"Creator / Maker",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
  // Woodworking
  {r:"w-tsaw",h:3.3,c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"],cost:[3000,6000]},
  {r:"w-band",h:6,c:"Woodworking",n:"Bandsaw",w:3,d:3,cl:3,p:[120,1500,20,1],est:1,cost:[900,2500]},
@@ -540,10 +540,10 @@ var CATALOG=[
  {r:"w-dust",h:6.5,c:"Woodworking",n:"Dust collector 2 HP",w:3,d:5,cl:2,p:[240,2400,20,1],est:1,a:["dust"],cost:[1000,3000]},
  {r:"w-cnc",h:4.5,c:"Woodworking",n:"CNC router table",w:6,d:10,cl:3,p:[240,3000,20,1],est:1,cost:[8000,25000]},
  {r:"w-comp",h:5.5,c:"Woodworking",n:"Shop air compressor",w:3,d:3,cl:2,p:[240,3700,30,1],est:1,cost:[800,2500]},
- {r:"w-bench",h:3,c:"Built-ins & Counters",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
- {r:"w-assy",h:3,c:"Built-ins & Counters",n:"Assembly table",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
- {r:"w-lumber",h:7,c:"Built-ins & Counters",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
- {r:"w-wall",h:7,c:"Built-ins & Counters",n:"Tool wall + charging bench",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
+ {r:"w-bench",h:3,c:"Woodworking",n:"Workbench",bi:1,bmin:2,bmax:4,bl:1,w:8,d:3,cl:3,cf:1,p:[120,1000,20,0],cost:[500,2500]},
+ {r:"w-assy",h:3,c:"Woodworking",n:"Assembly table",bi:1,bmin:3,bmax:5,bl:0,w:8,d:4,cl:3,cost:[400,1500]},
+ {r:"w-lumber",h:7,c:"Woodworking",n:"Lumber rack",bi:1,bmin:1,bmax:3,bl:1,w:10,d:2,cl:3,cf:1,cost:[200,1200]},
+ {r:"w-wall",h:7,c:"Woodworking",n:"Tool wall + charging bench",bi:1,bmin:0.5,bmax:2,bl:1,w:10,d:2,cl:3,cf:1,p:[120,500,20,0],cost:[300,2000]},
  // Garden
  {r:"h-rack",h:6.5,c:"Indoor Garden",n:"Hydroponic rack with LEDs",w:4,d:2,cl:3,cf:1,p:[120,600,20,0],est:1,a:["garden"],cost:[600,2500]},
  {r:"h-micro",h:6,c:"Indoor Garden",n:"Microgreens / sprout shelf",w:4,d:2,cl:3,cf:1,p:[120,300,20,0],est:1,a:["garden"],cost:[200,800]},
@@ -3051,7 +3051,7 @@ function migrate(x){(x.items||[]).forEach(function(it){var n=ALIAS[it.r];if(n&&B
 function syncDefs(say){if(!P||!P.items)return 0;P.defs=P.defs||{};var seen={},n=0;P.items.forEach(function(i){var r=i.r;if(seen[r])return;seen[r]=1;var L=LIB[r],D=P.defs[r];
   if(!L||!(MINE[r]||EDITED[r]||(D&&D.uv)))return;var j=JSON.stringify(L);if(D&&JSON.stringify(D)===j)return;P.defs[r]=JSON.parse(j);n+=P.items.filter(function(x){return x.r===r}).length});
  if(n){relayout();persist();render();if(say)toast('Updated '+n+' object'+(n>1?'s':'')+' on the floor plan')}else if(say)render();return n}
-function defOf0(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||null}
+function defOf0(it){return (P.defs&&P.defs[it.r])||LIB[it.r]||(BY[it.r]&&BY[it.r].hide?BY[it.r]:null)}
 // A placed object can have its own clearance (it.k) or reach (it.reach); its own size lives in it.w / it.d (see dims).
 var DEFX=typeof WeakMap!=='undefined'?new WeakMap():null;
 function defOf(it){var c=defOf0(it);if(!c||!(it.k||it.reach!=null))return c;var e=DEFX&&DEFX.get(it);if(e&&e.c===c&&e.k===it.k&&e.re===it.reach)return e.v;
