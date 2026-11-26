@@ -144,7 +144,7 @@ function exArcade(T,c,w,d,h,M,k,g){var r=c.r;if(!/^(g-|x-motion$)/.test(r))retur
 /* ---------- Building & Support, Built-ins & Counters, Bar & Lounge: detailed shapes ----------
    Same rules as the arcade pass: boxes, cylinders and a few spheres, shared materials, and repeated small things
    (bottles, cans, records, spools, slats, boards) drawn as one instanced mesh each so they cost a single draw call. */
-var EXG={};
+var EXG={},EXFT={};
 function exGeo(T,k){if(!EXG[k])EXG[k]=k==='box'?new T.BoxGeometry(1,1,1):k==='cyl'?new T.CylinderGeometry(.5,.5,1,10):k==='sph'?new T.SphereGeometry(.5,10,7):k==='tor'?new T.TorusGeometry(.5,.12,6,18):null;return EXG[k]}
 function exBuilt(T,c,w,d,h,M,k,g){var r=c.r;
  if(!/^(b-net|b-gas|b-hvac|b-stage|l-|kr-|kc-|f-(stool|sofa|chair|coffee|tv|dine8|round4|sectL|sectU|fire|fireplace|hightop|game4|chess|massage)$|f-(gym|tread|row|bike|free|rack|cable|ellip|stair|turf|sauna|plunge)$|c-|x-(batting|tennis|return)$|m-|w-|h-|ht-|mu-|a-|o-|cr-|s-|mf-|bd-|ba-)/.test(r))return false;
@@ -1090,6 +1090,22 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
+ // floor surfaces: textured slabs a hair above the concrete, with painted lines for bays and rinks
+ if(P.floors&&P.floors.length){var rnd=function(a){a=a||1;return Math.random()*a},speck=function(g,s,n,cols,sz){for(var i=0;i<n;i++){g.fillStyle=cols[i%cols.length];g.fillRect(rnd(s),rnd(s),sz,sz)}},
+   FT={wood:[4,.6,function(g,s){var h=s/8;for(var r=0;r<8;r++){g.fillStyle=r%2?'#c4935c':'#cf9f68';g.fillRect(0,r*h,s,h);g.fillStyle='rgba(90,55,20,.08)';for(var q=0;q<30;q++)g.fillRect(rnd(s),r*h+rnd(h),rnd(s/3),1);g.fillStyle='#8e6232';g.fillRect(0,r*h,s,1.5);var j=(r*0.37%1)*s;g.fillRect(j,r*h,2,h);g.fillRect((j+s*.55)%s,r*h,2,h)}}],
+    carpet:[2,.98,function(g,s){g.fillStyle='#8d93a3';g.fillRect(0,0,s,s);speck(g,s,9000,['#7d8394','#9ba1b0','#878d9d'],1.5);g.fillStyle='rgba(0,0,0,.08)';g.fillRect(0,0,s,1.5);g.fillRect(0,0,1.5,s)}],
+    rubber:[2,.95,function(g,s){g.fillStyle='#34373b';g.fillRect(0,0,s,s);speck(g,s,1400,['#5d6168','#4a4e54','#6f7379'],2);g.fillStyle='#1f2124';g.fillRect(0,0,s,2);g.fillRect(0,0,2,s)}],
+    epoxy:[2,.28,function(g,s){g.fillStyle='#a3abb2';g.fillRect(0,0,s,s);speck(g,s,2200,['#7f878e','#e6eaee','#5f676e','#c3cbd2'],2.5)}],
+    sport:[2,.55,function(g,s){g.fillStyle='#3c7fc6';g.fillRect(0,0,s,s);g.fillStyle='#2f6fb3';for(var i=0;i<2;i++){g.fillRect(i*s/2,0,2,s);g.fillRect(0,i*s/2,s,2)}g.fillStyle='rgba(255,255,255,.12)';for(var x=0;x<s;x+=s/16)for(var y=0;y<s;y+=s/16)g.fillRect(x+4,y+4,3,3)}],
+    turf:[6,1,function(g,s){g.fillStyle='#5fa94b';g.fillRect(0,0,s,s/2);g.fillStyle='#55a042';g.fillRect(0,s/2,s,s/2);speck(g,s,9000,['#4b9139','#6cb957','#5aa646'],1.5)}],
+    rink:[4,.18,function(g,s){g.fillStyle='#eef3f7';g.fillRect(0,0,s,s);speck(g,s,600,['#e2e9ef','#f7fafc'],2)}],
+    park:[4,.85,function(g,s){g.fillStyle='#bdbab2';g.fillRect(0,0,s,s);speck(g,s,5000,['#b0ada5','#c8c5bd','#a9a69e'],2)}],
+    tile:[2,.3,function(g,s){g.fillStyle='#e6e7e2';g.fillRect(0,0,s,s);speck(g,s,500,['#dcddd8','#efefea'],2);g.fillStyle='#c4c6c0';g.fillRect(0,0,s,3);g.fillRect(0,0,3,s);g.fillRect(0,s/2,s,3);g.fillRect(s/2,0,3,s)}]};
+  P.floors.forEach(function(f){var spec=FT[f.m]||FT.wood;EXFT[f.m]=EXFT[f.m]||exTex(T,spec[2],256,[1,1]);var tx=EXFT[f.m].clone();tx.needsUpdate=true;tx.repeat.set(f.w/spec[0],f.d/spec[0]);
+   var mesh=new T.Mesh(new T.BoxGeometry(f.w,.015,f.d),exMat(T,0xb4b4b4,{r:spec[1],map:tx}));mesh.position.set(f.x+f.w/2,.0075,f.y+f.d/2);mesh.receiveShadow=true;S.add(mesh);
+   var line=function(x,z,w,d,hex){var m=new T.Mesh(new T.BoxGeometry(w,.004,d),exMat(T,hex,{r:.6}));m.position.set(x,.017,z);m.receiveShadow=true;S.add(m)},cx=f.x+f.w/2,cz=f.y+f.d/2,lo=f.w>=f.d;
+   if(f.m==='park'){if(lo){line(cx,f.y+.4,f.w,.25,0xf2c230);line(cx,f.y+f.d-.4,f.w,.25,0xf2c230)}else{line(f.x+.4,cz,.25,f.d,0xf2c230);line(f.x+f.w-.4,cz,.25,f.d,0xf2c230)}}
+   if(f.m==='rink'){if(lo)line(cx,cz,.3,f.d,0xb8302a);else line(cx,cz,f.w,.3,0xb8302a);var R=Math.min(f.w,f.d)/5,ring=new T.Mesh(new T.RingGeometry(R-.1,R+.1,48),exMat(T,0x2a5aa8,{r:.6}));ring.rotation.x=-Math.PI/2;ring.position.set(cx,.018,cz);S.add(ring)}})}
  // rooms: drywall partitions with door openings, a lower ceiling where the room has one
  if(P.rooms&&P.rooms.length){var dw=exMat(T,0xe7e3db,{r:.92,map:exTex(T,function(g,s){g.fillStyle='#e7e3db';g.fillRect(0,0,s,s);for(var i=0;i<s*s/6;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'255,255,255')+','+(Math.random()*.035)+')';g.fillRect(Math.random()*s,Math.random()*s,1.5,1.5)}g.fillStyle='rgba(0,0,0,.035)';g.fillRect(0,0,2,s)},256,[1,1])}),
    leafM=exMat(T,0x9c7a55,{r:.55}),frameM=exMat(T,0xf2f0ea,{r:.6}),lidM=exMat(T,0xeeece6,{r:.95}),lidTop=exMat(T,0x8a8a86,{r:.95}),TH=WT,

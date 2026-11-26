@@ -190,7 +190,7 @@ function buildSideWire(){['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.o
   document.querySelectorAll('input[name=dsw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
   $('#d-flip').onclick=function(){upd(function(){d.hg=d.hg?0:1})};
   $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})}}}
-function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;if(on){sel=null;selO=null;selZ=null;libV=null}renderLib();render()}
+function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
 /* ---- per-room summary ---- */
 var openRm={};
 function roomItems(r){return P.items.filter(function(it){var b=ibox(it),id=rid(b);return r?id===r.id:id==='o'||id===null})}

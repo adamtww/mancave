@@ -44,7 +44,7 @@ function zRedraw(){if(!G.zone)return;var d=drawZones(1/scale());G.zone.innerHTML
 // default zone where it was dropped: up to 16 ft square, inside the room, shrunk until it clears other zones
 function zFit(cx,cy){var W=P.room.w,D=P.room.d;for(var s=16;s>=4;s--){var w=Math.min(s,W),d=Math.min(s,D),x=Math.round(Math.max(0,Math.min(W-w,cx-w/2))),y=Math.round(Math.max(0,Math.min(D-d,cy-d/2))),b={x:x,y:y,w:w,d:d};if(!zOverlap(b))return b}return null}
 function zAdd(cx,cy){var b=zFit(cx,cy);if(!b){toast('No open ceiling there for a light zone');return}var before=snapP();P.zid=(P.zid||0)+1;var z={id:'z'+P.zid,x:b.x,y:b.y,w:b.w,d:b.d,f:null,fc:50,rc:null,adj:{}};ZN().push(z);
- hist.push(before);fut=[];selZ=z.id;sel=null;selO=null;libV=null;persist();render()}
+ hist.push(before);fut=[];selZ=z.id;sel=null;selO=null;selF=null;libV=null;persist();render()}
 // pointer: move, resize, drag one fixture
 function zDown(e){if(VW.lv!=='l'||VW.md==='p'||e.button>0)return;var t=e.target,h=t.closest('.zh'),f=t.closest('.zfx'),g=t.closest('.zone');if(!g)return;var z=zBy(g.dataset.z);if(!z)return;
  e.stopPropagation();e.preventDefault();zd={id:z.id,mode:h?'size':f?'fix':'move',h:h&&h.dataset.h,i:f&&+f.dataset.i,p0:toFt(e),b0:{x:z.x,y:z.y,w:z.w,d:z.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP()};

@@ -256,6 +256,22 @@ dialog.rsd{max-width:min(700px,96vw)}.rsw{padding:16px 18px}.rsh{display:flex;ju
 .mseg2 .vb{padding:5px 10px}
 .bar{height:8px;border-radius:4px;background:#ece9e2;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px}
 .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kgrid .muted{grid-column:1/-1;margin:2px 0 0}
+
+/* floor surfaces */
+#g-floor .floor.on{cursor:move}
+.flib{display:flex;align-items:center;gap:12px;padding:12px;margin:0 0 12px;border:1.5px solid #e2ddd2;border-radius:12px;background:linear-gradient(180deg,#fffaf2,#fff);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;transition:border-color .15s,box-shadow .15s,opacity .15s}
+.flib:hover{border-color:#cdbf9f;box-shadow:0 2px 8px rgba(0,0,0,.06)}.flib:focus-visible{outline:2px solid #2f7de1;outline-offset:2px}
+.flib.lifted{opacity:.55;border-style:dashed;border-color:#2f7de1}
+.flib .flart{position:relative;flex:0 0 78px;height:66px}.flib .flart i{position:absolute;left:44px;top:22px}
+.flib b{display:block;font-size:14px}.flib span{display:block;font-size:12px;color:#6b675f;margin-top:2px;line-height:1.35}
+.flib em{display:flex;align-items:center;gap:5px;color:#2f7de1;font-weight:700;font-style:normal;margin-top:6px;font-size:12px}
+.fltip{position:fixed;left:0;top:0;z-index:61;pointer-events:none;background:#1c1c1f;color:#fff;font-size:12.5px;font-weight:600;padding:6px 10px;border-radius:8px;white-space:nowrap}
+.fmh{display:flex;align-items:center;gap:10px;margin:8px 0 10px}.fmh b{display:block;font-size:15px}.fmh span{font-size:12px;color:#8a867c}
+.fmg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:6px}
+.fmb{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px;border:1.5px solid transparent;border-radius:9px;background:none;font:inherit;font-size:11px;font-weight:600;color:#2b2a27;cursor:pointer;min-width:0}
+.fmb svg{width:100%;height:auto}.fmb:hover{border-color:#cfd9e8}.fmb.on{border-color:#2f7de1;background:#eef4fd}
+.fon{font-size:12px;color:#6b675f;margin-top:8px}.fon b{color:#2b2a27}
+body.building #g-floorh{display:none}
 </style>
 </head>
 <body>
