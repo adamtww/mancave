@@ -1038,7 +1038,7 @@ function exCeilShape(T,c,w,d,M){var g=new T.Group(),k=Kit(T,g),r=c.r,lamp=/^cl-/
   disc=function(y,rad,mat,seg){var m=new T.Mesh(new T.CircleGeometry(rad,seg||24),mat);m.rotation.x=Math.PI/2;m.position.y=y;g.add(m);return m},
   cord=function(x,z,len,rad){var m=k.cyl(x,0,z,rad||.012,rad||.012,len,blk,6);return m},
   sph=function(x,y,z,rr,mat){var m=new T.Mesh(exGeo(T,'sph'),mat);m.scale.set(rr*2,rr*2,rr*2);m.position.set(x,y,z);g.add(m);return m},
-  spin=null,res=function(){return {g:g,light:lamp?lc:null,spin:spin,cords:/^(cl-(pend|pool|task|shop|vapor|black|growb|growp|hbl)|cs-sub|cc-unith|cc-irtube)$/.test(r)}};
+  spin=null,res=function(){return {g:g,light:lamp?lc:null,spin:spin,cords:/^(cl-(pend|pool|task|shop|vapor|black|growb|growp|hbl|semi|drum|chand|sputnik|linear)|cs-sub|cc-unith|cc-irtube)$/.test(r)}};
  switch(r){
  /* ---------- Lighting ---------- */
  case 'cl-hbr':{var R=Math.min(w,d)/2;k.box(-.15,0,-.15,.3,.25,.3,dk);k.cyl(0,-.1,0,.05,.05,.1,chr);var fins=[];for(var i=0;i<16;i++){var a=i*Math.PI/8;fins.push([Math.cos(a)*R*.6,-.25,Math.sin(a)*R*.6,R*.75,.32,.03,0,-a,0])}inst('box',dk,fins);k.cyl(0,-.45,0,R*.45,R,.2,dk,28);disc(-.451,R*.92,glow,28);break}
@@ -1047,6 +1047,20 @@ function exCeilShape(T,c,w,d,M){var g=new T.Group(),k=Kit(T,g),r=c.r,lamp=/^cl-/
   if(vap){var df=new T.Mesh(new T.CylinderGeometry(d*.45,d*.45,w-.1,14,1,false,0,Math.PI),mc(T,0xffffff,{e:lc,ei:1.6,op:.85,r:.3}));df.rotation.z=Math.PI/2;df.rotation.x=Math.PI;df.position.y=-hh;g.add(df);inst('box',mc(T,0x8d939a,{m:.4}),[[-w/3,-hh-.1,0,.06,.2,d+.04],[w/3,-hh-.1,0,.06,.2,d+.04]])}
   else{var nt=r==='cl-black'?1:2;for(var t=0;t<nt;t++){var tb=k.cyl(0,-hh-.06,(nt>1?(t-.5)*d*.45:0),.05,.05,w-.15,r==='cl-black'?mc(T,0x111111,{e:0x8a4aff,ei:2.4}):glow,10);tb.rotation.z=Math.PI/2;tb.position.y=-hh-.06}inst('box',r==='cl-black'?blk:wht,[[-w/2+.04,-hh-.08,0,.08,.16,d],[w/2-.04,-hh-.08,0,.08,.16,d]])}
   if(drop>.3)[-1,1].forEach(function(s){cord(s*(w/2-.4),0,drop+.01)});break}
+ case 'cl-wafer':{var rw=Math.min(w,d)/2;k.cyl(0,-.03,0,rw,rw,.03,wht,24);disc(-.031,rw*.82,glow);break}
+ case 'cl-flush':{var rf=Math.min(w,d)/2;k.cyl(0,drop-.06,0,rf*.8,rf*.8,.06,wht,24);var dm=sph(0,drop-.06,0,rf*.9,mc(T,0xffffff,{e:lc,ei:1.4,op:.95,r:.35}));dm.scale.y=.55;k.cyl(0,drop-.06-rf*.45,0,.05,.05,.04,mc(T,0xd9b86a,{m:.35,r:.35}),10);break}
+ case 'cl-semi':{var rs=Math.min(w,d)/2,brass=mc(T,0xd9b86a,{m:.35,r:.35});k.cyl(0,drop-.06,0,.22,.22,.06,brass,18);k.cyl(0,.35,0,.025,.025,drop-.4,brass,8);[0,1,2].forEach(function(i){var a=i*2.094;k.box(Math.cos(a)*rs*.45,.25,Math.sin(a)*rs*.45,.03,.18,.03,brass)});
+  var bw=new T.Mesh(new T.SphereGeometry(rs*.9,28,14,0,Math.PI*2,Math.PI/2,Math.PI/2),mc(T,0xffffff,{e:lc,ei:1.5,op:.92,r:.25}));bw.scale.y=.6;bw.position.y=.32;g.add(bw);var rim=new T.Mesh(new T.TorusGeometry(rs*.9,.025,6,32),brass);rim.rotation.x=Math.PI/2;rim.position.y=.32;g.add(rim);k.cyl(0,.32-rs*.54-.06,0,.04,.02,.08,brass,8);break}
+ case 'cl-drum':{var rd2=Math.min(w,d)/2,fab=mc(T,0xe9e1d0,{r:.95,e:0xffd9a0,ei:.35});k.cyl(0,drop-.05,0,.2,.2,.05,wht,16);cord(0,0,drop);var dr=new T.Mesh(new T.CylinderGeometry(rd2,rd2,.8,36,1,true),fab);dr.material.side=T.DoubleSide;dr.position.y=.4;dr.castShadow=true;g.add(dr);
+  [0,.8].forEach(function(y){var t=new T.Mesh(new T.TorusGeometry(rd2,.015,4,36),mc(T,0x8a7a5a,{m:.5}));t.rotation.x=Math.PI/2;t.position.y=y;g.add(t)});disc(.02,rd2*.97,mc(T,0xffffff,{e:lc,ei:1.6,op:.9,r:.3}),36);sph(0,.4,0,.12,mc(T,0xffffff,{e:0xffd9a0,ei:2.4}));break}
+ case 'cl-chand':{var rc=Math.min(w,d)/2,br=mc(T,0xd9b86a,{m:.35,r:.35});k.cyl(0,drop-.06,0,.22,.22,.06,br,16);var ch=[];for(var y5=.9;y5<drop-.06;y5+=.12)ch.push([0,y5,0,.04,.08,.02,0,(Math.round(y5/.12)%2)*Math.PI/2,0]);inst('box',br,ch);
+  k.cyl(0,0,0,.08,.14,.9,br,14);sph(0,-.05,0,.09,br);var cn=[],fl=[];for(var i6=0;i6<6;i6++){var a6=i6*Math.PI/3,ax=Math.cos(a6)*rc*.8,az=Math.sin(a6)*rc*.8,arm=k.box(ax/2,.25,az/2,rc*.8,.04,.04,br);arm.rotation.y=-a6;
+   k.cyl(ax,.22,az,.1,.06,.06,br,12);cn.push([ax,.44,az,.06,.34,.06]);fl.push([ax,.66,az,.07,.12,.07])}inst('cyl',mc(T,0xf6f1e4,{r:.5}),cn);inst('sph',mc(T,0xffffff,{e:0xffc070,ei:2.6}),fl);break}
+ case 'cl-sputnik':{var rp=Math.min(w,d)/2,br2=mc(T,0xd9b86a,{m:.35,r:.35});k.cyl(0,drop-.06,0,.2,.2,.06,br2,16);k.cyl(0,.15,0,.025,.025,drop-.2,br2,8);sph(0,0,0,.18,br2);var rodsS=[],bulbs=[];
+  for(var i7=0;i7<12;i7++){var th=Math.acos(1-2*(i7+.5)/12),ph=i7*2.4,dx=Math.sin(th)*Math.cos(ph),dy=Math.cos(th)*.7,dz=Math.sin(th)*Math.sin(ph),L=rp*(i7%2?.75:.95);
+   var rod=new T.Mesh(exGeo(T,'cyl'),br2);rod.scale.set(.025,L,.025);rod.position.set(dx*L/2,dy*L/2,dz*L/2);rod.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),new T.Vector3(dx,dy,dz).normalize());g.add(rod);bulbs.push([dx*L,dy*L,dz*L,.13,.13,.13])}
+  inst('sph',mc(T,0xffffff,{e:0xffd9a0,ei:2.6}),bulbs);break}
+ case 'cl-linear':{k.box(0,0,0,w,.18,d*.45,mc(T,0x1c1c1f,{r:.4}));var lp=new T.Mesh(new T.PlaneGeometry(w-.1,d*.35),glow);lp.rotation.x=Math.PI/2;lp.position.y=-.001;g.add(lp);[-1,1].forEach(function(s2){cord(s2*(w/2-.5),0,drop,.008);k.cyl(s2*(w/2-.5),drop-.04,0,.12,.12,.04,mc(T,0x1c1c1f),12)});break}
  case 'cl-panel':case 'cl-down':case 'cs-inceil':{var round=r!=='cl-panel',sp=r==='cs-inceil';if(round){var rr=Math.min(w,d)/2;var ring=new T.Mesh(new T.TorusGeometry(rr*.85,rr*.12,6,28),wht);ring.rotation.x=Math.PI/2;ring.position.y=-.03;g.add(ring);
    if(sp){disc(-.02,rr*.8,mc(T,0xd8d6d0,{r:.8}));var dots=[];for(var q=0;q<40;q++){var aa=q*2.4,rd=Math.sqrt(q/40)*rr*.7;dots.push([Math.cos(aa)*rd,-.025,Math.sin(aa)*rd,.04,.005,.04])}inst('cyl',mc(T,0x6a6a66),dots)}else{k.cyl(0,-.05,0,rr*.75,rr*.7,.05,wht,24);disc(-.051,rr*.62,glow)}}
   else{k.box(0,-.06,0,w,.06,d,wht);var pp=new T.Mesh(new T.PlaneGeometry(w-.12,d-.12),glow);pp.rotation.x=Math.PI/2;pp.position.y=-.061;g.add(pp)}break}
