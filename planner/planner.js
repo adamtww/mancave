@@ -586,7 +586,9 @@ function fanDrop(it){var c=defOf(it),d=c&&c.drop||0;if(!isFan(c))return d;var b=
 function okC(c,b,obs,W,D){if(!inside(b,W,D))return false;if((P.rooms&&P.rooms.length||PREF)&&!wallOK(b,null,true))return false;for(var i=0;i<obs.length;i++){var p=obs[i];if(hit(b,p.b)&&!stackOK(c,b,p.d,p.b))return false}return true}
 function others(it){var lv=isC(it);return P.items.filter(function(o){return o!==it&&isC(o)===lv}).map(function(o){var mo=dims(o,o.rot),bo={x:o.x,y:o.y,w:mo.w,d:mo.d};return {b:bo,c:clr(defOf(o),bo,o.rot),d:defOf(o)}})}
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
- for(var yy=0;yy+m.d<=D+1e-6;yy+=.5)for(var xx=0;xx+m.w<=W+1e-6;xx+=.5){var dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(c.ceiling?okC(c,b,obs,W,D):ok(b,clr(c,b,rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
+ var gx=[],gy=[];for(var g0=0;g0+m.w<=W+1e-6;g0+=.5)gx.push(g0);for(var g1=0;g1+m.d<=D+1e-6;g1+=.5)gy.push(g1);
+ if(!c.ceiling&&RM().length){gx=gx.concat(faceStops(m.w,0).filter(function(v){return v>=-1e-6&&v+m.w<=W+1e-6}));gy=gy.concat(faceStops(m.d,1).filter(function(v){return v>=-1e-6&&v+m.d<=D+1e-6}))}
+ for(var iy=0;iy<gy.length;iy++)for(var ix=0;ix<gx.length;ix++){var xx=gx[ix],yy=gy[iy],dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(c.ceiling?okC(c,b,obs,W,D):ok(b,clr(c,b,rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
  return best}
 function ghost(sp,it,rot){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
 // pushing past a wall turns the object to sit against that wall: front-facing pieces face into the room, others run their long side along it
@@ -604,7 +606,7 @@ sv.addEventListener('pointermove',function(e){if(touches[e.pointerId]){touches[e
  else{rot=it.rot;m=dims(it,rot);if(drag.rot!==it.rot){var m0=dims(it,drag.rot);drag.dx=m.w/2;drag.dy=m.d/2}x=Math.round((p.x-drag.dx)*2)/2;y=Math.round((p.y-drag.dy)*2)/2}
  x=Math.max(0,Math.min(W-m.w,x));y=Math.max(0,Math.min(D-m.d,y));drag.x=x;drag.y=y;drag.rot=rot;drawAs(drag,it,rot);dragTether(drag,it);
  drag.el.classList.add('drag');drag.el.style.transform='translate('+x+'px,'+y+'px)';
- drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&drag.spot.x===x&&drag.spot.y===y;drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
+ drag.spot=nearestFree(it,x,y,drag.obs,rot);var exact=drag.spot&&Math.abs(drag.spot.x-x)<=WH+1e-6&&Math.abs(drag.spot.y-y)<=WH+1e-6;if(exact&&(drag.spot.x!==x||drag.spot.y!==y)){x=drag.x=drag.spot.x;y=drag.y=drag.spot.y;drag.el.style.transform='translate('+x+'px,'+y+'px)'}drag.el.style.opacity=exact?1:.6;ghost(exact?null:drag.spot,it,rot)});
 function tEnd(e){delete touches[e.pointerId];if(tpts().length<2)pinch=null}
 sv.addEventListener('pointercancel',function(e){tEnd(e);pan=null;sv.style.cursor='';if(odrag){var d=odrag;odrag=null;if(d.moved){P=JSON.parse(d.before);render()}}});
 sv.addEventListener('dblclick',function(e){if(!e.target.closest('g.obj')&&zoomed())fitView()});
@@ -842,10 +844,10 @@ $('#b-save').onclick=function(){if(!tok){toast('Sign in to the test app first to
 $('#b-new').onclick=function(){push();P=blank();V={z:1,cx:null,cy:null};sel=null;selO=null;lastFail=null;persist();render()};
 $('#b-open').onclick=function(){if(!tok){toast('Sign in to the test app first to open saved rooms');return}api('GET','/api/spaces').then(function(j){var d=$('#d-open');
  d.innerHTML='<form method="dialog" class="dlg"><h2>Open a room</h2>'+(j.spaces.length?'<div class="spl">'+j.spaces.map(function(s){return '<button value="'+s.id+'"><span>'+esc(s.name)+'</span><small>'+esc(s.updated_at.slice(0,16))+'</small></button>'}).join('')+'</div>':'<p class="muted">No saved rooms yet.</p>')+'<div class="row" style="justify-content:flex-end"><button class="btn" value="">Close</button></div></form>';
- d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true},zones:x.zones||[],zid:x.zid||0,rooms:x.rooms||[],rid:x.rid||0});sel=null;selO=null;selZ=null;selR=null;selD=null;lastFail=null;persist();render();syncDefs(true);toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
+ d.onclose=function(){var id=d.returnValue;if(!id)return;api('GET','/api/spaces/'+id).then(function(r){push();var x=migrate(r.space.data);P=Object.assign(blank(),{id:r.space.id,name:r.space.name,room:x.room,dyn:x.dyn!==false,uid:x.uid||1,items:x.items||[],defs:x.defs||{},pw:x.pw||null,pwo:x.pwo||{gp:true},zones:x.zones||[],zid:x.zid||0,rooms:x.rooms||[],rid:x.rid||0});wallNudge();sel=null;selO=null;selZ=null;selR=null;selD=null;lastFail=null;persist();render();syncDefs(true);toast('Opened “'+P.name+'”')}).catch(function(e){toast(e.message)})};modal(d)}).catch(function(e){toast(e.message)})};
 function showWho(){$('#who').innerHTML=me?'Signed in as <b>'+esc(me.username)+'</b>'+(me.admin?' · library owner':''):'Not signed in · <a href="index.html">sign in to the test app</a> to save'}
 showWho();
 if(tok)api('GET','/api/me').then(function(j){me=j.user;showWho();return loadLib()}).then(function(){renderLib();render();syncDefs(true)}).catch(function(){tok=null;me=null;showWho()});
-renderLib();render();
+if(wallNudge())persist();renderLib();render();
 window.__sp={P:function(){return P},ev:function(s){return eval(s)},fd:function(u){return fanDrop(byU(u))},edit:function(r,t){if(t){tok=tok||t;me=me||{id:0}}editObj(r)},explore:function(on){setExplore(on)},ex:function(){return EX},build:function(){buildPower();render()},pstat:function(u){return pstat(byU(u))},changes:pwChanges,conv:converter,layout:layout,add:add,setSize:setSize,lib:function(){return LIB},sel:function(){return sel},undo:undo};
 })();

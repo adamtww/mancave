@@ -35,9 +35,17 @@ function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==
 function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
 var PREF=null;
 // walls: the footprint sits wholly in one room or wholly in the open floor; clearance stays on the same side; doors stay clear
-function wallOK(b,c,ceil){var a=RM();if(!a.length)return PREF?PREF.indexOf('o')>=0:true;var r=roomOfBox(b);if(r===null)return false;var id=r==='o'?'o':r.id;if(PREF&&PREF.indexOf(id)<0)return false;
+// walls have thickness: 3D walls are WT thick, centred on the room's edge line, so floor objects keep WH clear of both faces
+var WT=.4,WH=WT/2;
+function wallOK(b,c,ceil){var a=RM();if(!a.length)return PREF?PREF.indexOf('o')>=0:true;var r=roomOfBox(ceil?b:{x:b.x-WH,y:b.y-WH,w:b.w+2*WH,d:b.d+2*WH});if(r===null)return false;var id=r==='o'?'o':r.id;if(PREF&&PREF.indexOf(id)<0)return false;
  if(c){if(r==='o'){for(var i=0;i<a.length;i++)if(hit(c,a[i]))return false}else if(!within(c,r))return false}
  if(!ceil){var db=doorBoxes();for(var j=0;j<db.length;j++)if(hit(b,db[j]))return false}return true}
+// x (or y) positions that put an object of size m flush against a wall face
+function faceStops(m,ax){var o=[];RM().forEach(function(r){var a=ax?r.y:r.x,L=ax?r.d:r.w;o.push(a+WH,a+L-WH-m,a-WH-m,a+L+WH)});return o}
+// older layouts placed objects right on the wall line: slide them out of the wall (at most WH each way)
+function wallNudge(){if(!RM().length)return 0;var n=0;P.items.forEach(function(it){var c=defOf(it);if(!c||c.ceiling)return;var b=ibox(it);if(wallOK(b,clr(c,b,it.rot),false))return;
+  var obs=others(it),W=P.room.w,D=P.room.d,best=null;[0,-WH,WH].forEach(function(dx){[0,-WH,WH].forEach(function(dy){if(best)return;var nb={x:b.x+dx,y:b.y+dy,w:b.w,d:b.d};if(ok(nb,clr(c,nb,it.rot),obs,W,D))best=[dx,dy]})});
+  if(best){it.x+=best[0];it.y+=best[1];n++}});return n}
 function crossesWall(b){return RM().length&&roomOfBox(b)===null}
 // rooms next to each other (sharing part of a wall); the open floor neighbours every room
 function adjRooms(id){if(id==='o')return RM().map(function(r){return r.id});var r=rBy(id),out=['o'];if(!r)return out;
