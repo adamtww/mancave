@@ -2448,7 +2448,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
  var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.layers.enable(2);m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
  wall(W/2,-.25,W+1,.5,W);wall(W/2,D+.25,W+1,.5,W);wall(-.25,D/2,.5,D,D);wall(W+.25,D/2,.5,D,D);
- var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
+ var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
  // floor surfaces: textured slabs a hair above the concrete, with painted lines for bays and rinks
@@ -2484,7 +2484,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
     if(g.sn.x!==0){leaf.geometry=new T.BoxGeometry(L-.1,6.9,.13)}leaf.castShadow=true;S.add(leaf);
     var kb=new T.Mesh(new T.SphereGeometry(.09,10,8),M.steel);kb.position.set(g.tip.x-g.sn.x*.3+(g.sn.x===0?.12:0),3.2,g.tip.y-g.sn.y*.3+(g.sn.y===0?.12:0));S.add(kb);
     EX.solid.push({x:Math.min(hx,g.tip.x)-.08,z:Math.min(hz,g.tip.y)-.08,w:Math.abs(g.tip.x-hx)+.16,d:Math.abs(g.tip.y-hz)+.16})});
-   if(wh<H-.05){var lt=Math.min(.35,H-wh),lid=new T.Mesh(new T.BoxGeometry(r.w-TH-.04,lt,r.d-TH-.04),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+lt/2,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;lid.layers.enable(2);S.add(lid)}})}
+   if(wh<H-.05){var lt=Math.min(.35,H-wh),lid=new T.Mesh(new T.BoxGeometry(r.w,lt,r.d),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+lt/2,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;lid.layers.enable(2);S.add(lid)}})}
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
   if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
    if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
@@ -2520,10 +2520,10 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
    I=g.lm*.6/(A*.0929)*y*.014;
   var sp=new T.SpotLight(col,I,0,ang,.5,1);sp.position.set(cx,y,cz);sp.target.position.set(cx,0,cz);
   if(nSh<MAXSH){sp.castShadow=true;var ms=nSh<4?2048:1024;sp.shadow.mapSize.set(ms,ms);sp.shadow.bias=-.0004;sp.shadow.normalBias=.02;sp.shadow.radius=6;sp.shadow.camera.near=.5;sp.shadow.camera.far=y+2;nSh++}
-  S.add(sp);S.add(sp.target);if(g.room)bounce.push({cx:cx,cz:cz,y:y,ang:ang,col:col,I:I})});
+  S.add(sp);S.add(sp.target);if(g.room)bounce.push({cx:cx,cz:cz,y:y,ang:ang,col:col,I:I,hd:hd})});
  // bounce: light coming back off a room's floor and walls. Only the walls and ceiling block it (shadow layer 2), so furniture doesn't cast odd shadows, and it stays in the room
- bounce.forEach(function(q){if(nSh>=MAXSH)return;var up=new T.PointLight(q.col,q.I*.32,0,1);up.position.set(q.cx,q.y*.55,q.cz);
-  up.castShadow=true;up.shadow.camera.layers.set(2);up.shadow.mapSize.set(256,256);up.shadow.bias=-.002;up.shadow.normalBias=.05;up.shadow.radius=6;up.shadow.camera.near=.3;up.shadow.camera.far=60;nSh++;S.add(up)});
+ bounce.forEach(function(q){if(nSh>=MAXSH)return;var up=new T.PointLight(q.col,q.I*.4,q.hd*1.3,1);up.position.set(q.cx,q.y*.55,q.cz);
+  up.castShadow=true;up.shadow.camera.layers.set(2);up.shadow.mapSize.set(512,512);up.shadow.bias=-.002;up.shadow.normalBias=.05;up.shadow.radius=3;up.shadow.camera.near=.3;up.shadow.camera.far=60;nSh++;S.add(up)});
  var maxL=Math.max(0,16-groups.length-bounce.length),lim=solo.length<=maxL?solo:Array.apply(null,Array(maxL)).map(function(_,i){return solo[Math.floor(i*solo.length/Math.max(1,maxL))]}),boost=solo.length/Math.max(1,lim.length),hasR=P.rooms&&P.rooms.length;
  var segD=function(px,pz,ax,az,bx,bz){var vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz||1)));return Math.hypot(px-ax-t*vx,pz-az-t*vz)},
   wallD=function(L){var m=1e9;(P.rooms||[]).forEach(function(r){var x0=r.x,z0=r.y,x1=r.x+r.w,z1=r.y+r.d;m=Math.min(m,segD(L.x,L.z,x0,z0,x1,z0),segD(L.x,L.z,x1,z0,x1,z1),segD(L.x,L.z,x0,z1,x1,z1),segD(L.x,L.z,x0,z0,x0,z1))});return m};
