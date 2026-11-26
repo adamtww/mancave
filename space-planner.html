@@ -2539,7 +2539,9 @@ function exClear(x,z){var m=4;EX.solid.forEach(function(s){var dx=Math.max(s.x-x
 function exHit(x,z){var W=P.room.w,D=P.room.d;if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
 function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Move the mouse to look · WASD / arrows to walk · Shift to run · Esc to leave')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})||(P.zones&&P.zones.length)?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add a light zone in Lights view to see them here.</div>');
  var cv=$('#excv'),r=EX.r=new T.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.5:2));r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;r.toneMapping=T.ACESFilmicToneMapping;r.outputColorSpace=T.SRGBColorSpace;
- EX.S=exBuild();EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
+ EX.S=exBuild();
+ // nothing in the scene moves while you walk around, so work the shadows out once on entry and reuse them every frame
+ r.shadowMap.autoUpdate=false;r.shadowMap.needsUpdate=true;EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
  var size=function(){var b=host.getBoundingClientRect();r.setSize(b.width,b.height,false);EX.cam.aspect=b.width/Math.max(1,b.height);EX.cam.updateProjectionMatrix()};size();EX.size=size;
  // desktop: pointer lock look; touch: joystick + drag look
  cv.onclick=function(){if(!TOUCH&&host.requestPointerLock&&document.pointerLockElement!==host){try{var pr=host.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){})}catch(_){}}};
