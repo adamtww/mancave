@@ -1099,7 +1099,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var floor=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xb9b4ab,{r:.55,map:exTex(T,function(g,s){g.fillStyle='#aaa59c';g.fillRect(0,0,s,s);for(var i=0;i<s*s/8;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'255,255,255')+','+(Math.random()*.05)+')';g.fillRect(Math.random()*s,Math.random()*s,2,2)}g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=3;g.strokeRect(0,0,s,s);for(var k=0;k<12;k++){g.fillStyle='rgba(80,70,60,'+(Math.random()*.05)+')';g.beginPath();g.arc(Math.random()*s,Math.random()*s,20+Math.random()*70,0,7);g.fill()}},512,[W/10,D/10])}));
  floor.rotation.x=-Math.PI/2;floor.position.set(W/2,0,D/2);floor.receiveShadow=true;S.add(floor);
  var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
- var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
+ var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.layers.enable(2);m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
  wall(W/2,-.25,W+1,.5,W);wall(W/2,D+.25,W+1,.5,W);wall(-.25,D/2,.5,D,D);wall(W+.25,D/2,.5,D,D);
  var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);S.add(ceil);
  // objects
@@ -1125,7 +1125,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  // rooms: drywall partitions with door openings, a lower ceiling where the room has one
  if(P.rooms&&P.rooms.length){var dw=exMat(T,0xe7e3db,{r:.92,map:exTex(T,function(g,s){g.fillStyle='#e7e3db';g.fillRect(0,0,s,s);for(var i=0;i<s*s/6;i++){g.fillStyle='rgba('+(Math.random()<.5?'0,0,0':'255,255,255')+','+(Math.random()*.035)+')';g.fillRect(Math.random()*s,Math.random()*s,1.5,1.5)}g.fillStyle='rgba(0,0,0,.035)';g.fillRect(0,0,2,s)},256,[1,1])}),
    leafM=exMat(T,0x9c7a55,{r:.55}),frameM=exMat(T,0xf2f0ea,{r:.6}),lidM=exMat(T,0xeeece6,{r:.95}),lidTop=exMat(T,0x8a8a86,{r:.95}),TH=WT,
-   seg=function(x,z,w,d,y0,y1,len){if(w<=.01||d<=.01||y1-y0<=.01)return;var m=new T.Mesh(new T.BoxGeometry(w,y1-y0,d),dw.clone());m.material.map=dw.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(Math.max(.3,len/8),Math.max(.3,(y1-y0)/8));m.position.set(x,(y0+y1)/2,z);m.castShadow=true;m.receiveShadow=true;S.add(m)};
+   seg=function(x,z,w,d,y0,y1,len){if(w<=.01||d<=.01||y1-y0<=.01)return;var m=new T.Mesh(new T.BoxGeometry(w,y1-y0,d),dw.clone());m.layers.enable(2);m.material.map=dw.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(Math.max(.3,len/8),Math.max(.3,(y1-y0)/8));m.position.set(x,(y0+y1)/2,z);m.castShadow=true;m.receiveShadow=true;S.add(m)};
   P.rooms.forEach(function(r){var wh=Math.min(r.h||H,H);
    ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=sideGaps(r,sd),cur=0,parts=[];
     gaps.forEach(function(g){if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>7.05)parts.push([g[0],g[1],7,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
@@ -1137,7 +1137,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
     if(g.sn.x!==0){leaf.geometry=new T.BoxGeometry(L-.1,6.9,.13)}leaf.castShadow=true;S.add(leaf);
     var kb=new T.Mesh(new T.SphereGeometry(.09,10,8),M.steel);kb.position.set(g.tip.x-g.sn.x*.3+(g.sn.x===0?.12:0),3.2,g.tip.y-g.sn.y*.3+(g.sn.y===0?.12:0));S.add(kb);
     EX.solid.push({x:Math.min(hx,g.tip.x)-.08,z:Math.min(hz,g.tip.y)-.08,w:Math.abs(g.tip.x-hx)+.16,d:Math.abs(g.tip.y-hz)+.16})});
-   if(wh<H-.05){var lt=Math.min(.35,H-wh),lid=new T.Mesh(new T.BoxGeometry(r.w-TH-.04,lt,r.d-TH-.04),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+lt/2,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;S.add(lid)}})}
+   if(wh<H-.05){var lt=Math.min(.35,H-wh),lid=new T.Mesh(new T.BoxGeometry(r.w-TH-.04,lt,r.d-TH-.04),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+lt/2,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;lid.layers.enable(2);S.add(lid)}})}
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
   if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
    if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
@@ -1154,7 +1154,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
   lmOf=function(L){return ((L.c.p&&L.c.p[1])||60)*(L.c.r==='cl-black'?25:130)},
   tot=on.reduce(function(a,L){return a+lmOf(L)},0),litA=(function(){var seen={},a=0;on.forEach(function(L){var rm=roomAt(L.x,L.z),k=rm?'r'+rm.id:L.zone?'z'+L.zone.id:'s'+L.x+','+L.z;if(seen[k])return;seen[k]=1;a+=rm?rm.w*rm.d:L.zone?L.zone.w*L.zone.d:100});return Math.max(50,Math.min(W*D,a))})(),eAvg=tot*.6/(litA*.0929);
  EX.lux=Math.round(eAvg);var nOff=lights.length-on.length;if(nOff)setTimeout(function(){toast(nOff===1?'1 light isn\'t powered, so it\'s off. Plug it in on the Power view.':nOff+' lights aren\'t powered, so they\'re off. Plug them in on the Power view.')},400);
- S.add(new T.HemisphereLight(0xd8dde6,0xb3a58f,lights.length?Math.min(2.8,.3+eAvg*.004):1.1));
+ var hemi=new T.HemisphereLight(0xd8dde6,0xb3a58f,lights.length?.3:1.1);S.add(hemi);
  if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
   var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
  // One soft overhead light per room (and per light zone on the open floor), as bright as all its fixtures together,
@@ -1162,15 +1162,22 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var grp={},solo=[];on.forEach(function(L){var rm=roomAt(L.x,L.z),key=rm?'r'+rm.id:L.zone?'z'+L.zone.id:null;if(!key){solo.push(L);return}
   var g=grp[key]||(grp[key]={lm:0,col:{r:0,g:0,b:0},n:0,b:rm?{x:rm.x,y:rm.y,w:rm.w,d:rm.d}:{x:L.zone.x,y:L.zone.y,w:L.zone.w,d:L.zone.d}});
   var lm=lmOf(L),cc=new T.Color(L.col);g.lm+=lm;g.col.r+=cc.r*lm;g.col.g+=cc.g*lm;g.col.b+=cc.b*lm;g.n++});
- var groups=Object.keys(grp).map(function(k){return grp[k]}).sort(function(a,b){return b.lm-a.lm}),nSh=0,MAXSH=10;
+ Object.keys(grp).forEach(function(k){grp[k].room=k.charAt(0)==='r'});
+ var groups=Object.keys(grp).map(function(k){return grp[k]}).sort(function(a,b){return b.lm-a.lm}),nSh=0,MAXSH=12,
+  roomA=(P.rooms||[]).reduce(function(a,r){return a+r.w*r.d},0),openA=Math.max(50,W*D-roomA),openLm=groups.filter(function(g){return !g.room}).reduce(function(a,g){return a+g.lm},0)+solo.reduce(function(a,L){return a+lmOf(L)},0);
+ // the fill everywhere is set by what actually lights the open floor; rooms get their own bounce light instead
+ if(lights.length)hemi.intensity=Math.min(2.2,.5+openLm*.6/(openA*.0929)*.004);var bounce=[];
  groups.forEach(function(g){var b=g.b,cx=b.x+b.w/2,cz=b.y+b.d/2,Hc=hAt(cx,cz),y=Hc-.25,hd=Math.hypot(b.w,b.d)/2,ang=Math.min(1.45,Math.atan(hd*1.2/Math.max(1,y))),
    col=new T.Color(g.col.r/g.lm,g.col.g/g.lm,g.col.b/g.lm),A=b.w*b.d,
    // aim for the average floor brightness the fixtures would give (lumens x utilisation / area), decay 1 keeps it even edge to edge
    I=g.lm*.6/(A*.0929)*y*.014;
-  var sp=new T.SpotLight(col,I,0,ang,1,1);sp.position.set(cx,y,cz);sp.target.position.set(cx,0,cz);
+  var sp=new T.SpotLight(col,I,0,ang,.5,1);sp.position.set(cx,y,cz);sp.target.position.set(cx,0,cz);
   if(nSh<MAXSH){sp.castShadow=true;var ms=nSh<4?2048:1024;sp.shadow.mapSize.set(ms,ms);sp.shadow.bias=-.0004;sp.shadow.normalBias=.02;sp.shadow.radius=6;sp.shadow.camera.near=.5;sp.shadow.camera.far=y+2;nSh++}
-  S.add(sp);S.add(sp.target)});
- var maxL=Math.max(0,16-groups.length),lim=solo.length<=maxL?solo:Array.apply(null,Array(maxL)).map(function(_,i){return solo[Math.floor(i*solo.length/Math.max(1,maxL))]}),boost=solo.length/Math.max(1,lim.length),hasR=P.rooms&&P.rooms.length;
+  S.add(sp);S.add(sp.target);if(g.room)bounce.push({cx:cx,cz:cz,y:y,ang:ang,col:col,I:I})});
+ // bounce: light coming back off a room's floor and walls. Only the walls and ceiling block it (shadow layer 2), so furniture doesn't cast odd shadows, and it stays in the room
+ bounce.forEach(function(q){if(nSh>=MAXSH)return;var up=new T.PointLight(q.col,q.I*.32,0,1);up.position.set(q.cx,q.y*.55,q.cz);
+  up.castShadow=true;up.shadow.camera.layers.set(2);up.shadow.mapSize.set(256,256);up.shadow.bias=-.002;up.shadow.normalBias=.05;up.shadow.radius=6;up.shadow.camera.near=.3;up.shadow.camera.far=60;nSh++;S.add(up)});
+ var maxL=Math.max(0,16-groups.length-bounce.length),lim=solo.length<=maxL?solo:Array.apply(null,Array(maxL)).map(function(_,i){return solo[Math.floor(i*solo.length/Math.max(1,maxL))]}),boost=solo.length/Math.max(1,lim.length),hasR=P.rooms&&P.rooms.length;
  var segD=function(px,pz,ax,az,bx,bz){var vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz||1)));return Math.hypot(px-ax-t*vx,pz-az-t*vz)},
   wallD=function(L){var m=1e9;(P.rooms||[]).forEach(function(r){var x0=r.x,z0=r.y,x1=r.x+r.w,z1=r.y+r.d;m=Math.min(m,segD(L.x,L.z,x0,z0,x1,z0),segD(L.x,L.z,x1,z0,x1,z1),segD(L.x,L.z,x0,z1,x1,z1),segD(L.x,L.z,x0,z0,x0,z1))});return m};
  lim.forEach(function(L){var th=BEAM[L.c.r]||1.05,ang=Math.min(1.45,th*1.25),cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th))),sh=nSh<MAXSH;
