@@ -8,7 +8,7 @@ var selZ=null,zd=null,ZEFF=130,ZCU=.7,ZLLF=.85;
 function ZN(){return P.zones||(P.zones=[])}
 function zBy(id){return ZN().filter(function(z){return z.id===id})[0]||null}
 function zAutoF(z){return (z?hAt(z.x+z.w/2,z.y+z.d/2):(P.room.h||10))>=15?'cl-hbr':'cl-shop'}
-function zDef(z){var r=z.f||zAutoF(z);return {r:r,c:(P.defs&&P.defs[r])||LIB[r]}}
+function zDef(z){var r=z.f||zAutoF(z),c=(P.defs&&P.defs[r])||LIB[r];if(!c){r=zAutoF(z);c=(P.defs&&P.defs[r])||LIB[r]}return {r:r,c:c}}
 function zLm(c){return ((c&&c.p&&c.p[1])||60)*ZEFF}
 function zOverlap(b,skip){return ZN().some(function(z){return z.id!==skip&&hit(b,z)})||RM().some(function(r){return hit(b,r)&&!within(b,r)})}
 function zObst(){var o=[];P.items.forEach(function(it){var c=defOf(it);if(!c||!c.ceiling)return;var b=ibox(it);o.push(isFan(c)?rodBox(b):b)});return o}
