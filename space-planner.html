@@ -2505,11 +2505,16 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  if(!lights.length){var dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(W*.3,H*3,D*.2);dl.target.position.set(W/2,0,D/2);dl.castShadow=true;dl.shadow.mapSize.set(1024,1024);var sc=dl.shadow.camera;sc.left=-W;sc.right=W;sc.top=D;sc.bottom=-D;sc.far=H*6;S.add(dl);S.add(dl.target);
   var nx=Math.max(1,Math.min(4,Math.round(W/15))),nz=Math.max(1,Math.min(3,Math.round(D/15)));for(var ix=0;ix<nx;ix++)for(var iz=0;iz<nz;iz++){var pl=new T.PointLight(0xfff4e0,Math.max(40,H*H*.9),Math.max(W,D),1.5);pl.position.set(W*(ix+.5)/nx,H-1,D*(iz+.5)/nz);S.add(pl)}}
  var maxL=24,hasR=P.rooms&&P.rooms.length,shad=hasR?8:4,lim=on.length<=maxL?on:Array.apply(null,Array(maxL)).map(function(_,i){return on[Math.floor(i*on.length/maxL)]}),boost=on.length/Math.max(1,lim.length);
- // with rooms, the shadow budget goes to lights whose beam reaches a wall, so light doesn't pass through into the next room
- if(hasR){var nearW=function(L){var reach=L.y*1.6+2;return P.rooms.some(function(r){var dx=Math.max(r.x-L.x,0,L.x-(r.x+r.w)),dz=Math.max(r.y-L.z,0,L.z-(r.y+r.d)),inR=dx===0&&dz===0;if(inR)return true;return Math.hypot(dx,dz)<reach})?1:0};lim=lim.slice().sort(function(a,b){return nearW(b)-nearW(a)})}
- lim.forEach(function(L,i){var th=BEAM[L.c.r]||1.05,cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th)));
-  var sp=new T.SpotLight(L.col,cd*LX*boost,0,Math.min(1.45,th*1.25),th>=1?1:.55,2);
-  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(i<shad){sp.castShadow=true;sp.shadow.mapSize.set(i<4?1024:512,i<4?1024:512);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
+ // rooms: a light whose cone reaches past a wall would shine through it (only a few lights can afford shadows).
+ // The lights that most need it get real shadows; every other one has its cone narrowed so it stops at the nearest wall.
+ var segD=function(px,pz,ax,az,bx,bz){var vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz||1)));return Math.hypot(px-ax-t*vx,pz-az-t*vz)},
+  wallD=function(L){var m=1e9;(P.rooms||[]).forEach(function(r){var x0=r.x,z0=r.y,x1=r.x+r.w,z1=r.y+r.d;m=Math.min(m,segD(L.x,L.z,x0,z0,x1,z0),segD(L.x,L.z,x1,z0,x1,z1),segD(L.x,L.z,x0,z1,x1,z1),segD(L.x,L.z,x0,z0,x0,z1))});return m};
+ var plan=lim.map(function(L){var th=BEAM[L.c.r]||1.05,ang=Math.min(1.45,th*1.25),q={L:L,th:th,ang:ang,need:0,dw:1e9};if(hasR){q.dw=wallD(L);q.need=L.y*Math.tan(ang)-q.dw}return q});
+ if(hasR)plan.sort(function(a,b){return b.need-a.need});
+ plan.forEach(function(q,i){var L=q.L,th=q.th,cd=lmOf(L)*.85/(2*Math.PI*(1-Math.cos(th))),sh=i<shad&&(!hasR||q.need>0||i<4),ang=q.ang;
+  if(hasR&&!sh&&q.need>0)ang=Math.max(.2,Math.atan(Math.max(0,q.dw-.2)/Math.max(1,L.y)));
+  var sp=new T.SpotLight(L.col,cd*LX*boost,0,ang,th>=1?1:.55,2);
+  sp.position.set(L.x,L.y,L.z);sp.target.position.set(L.x,0,L.z);if(sh){sp.castShadow=true;sp.shadow.mapSize.set(i<4?1024:512,i<4?1024:512);sp.shadow.bias=-.0006;sp.shadow.radius=4}S.add(sp);S.add(sp.target)});
  // glowing screens light their surroundings a little
  return S}
 function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1;y+=1)for(var x=1.5;x<W-1;x+=1){if(exHit(x,y))continue;var sc=-Math.hypot(x-W/2,y-(D-2))+(exClear(x,y)*2);if(sc>bs){bs=sc;best={x:x,y:y}}}
