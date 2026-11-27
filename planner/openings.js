@@ -6,6 +6,8 @@ var selE=null,ed=null;
 function ED(){return P.edoors||(P.edoors=[])}
 function BLDG(){return {x:0,y:0,w:P.room.w,d:P.room.d}}
 var EDEF={door:{len:3,h:6.67},roll:{len:12,h:12}};
+// tallest standard roll-up that fits under the roof (the coil needs ~2 ft)
+function rollH(){var H=P.room.h||10,c=[16,14,12,10,9,8].filter(function(v){return v+2<=H+1e-6});return c[0]||null}
 function eH(d){return d.h||EDEF[d.k].h}
 function eGeo(d){var g=dGeo(BLDG(),d);if(d.k==='roll'){var dep=Math.min(eH(d),d.s==='n'||d.s==='s'?P.room.d:P.room.w),a=g.a,b=g.b,n=g.n;
   g.zone={x:Math.min(a.x,b.x,a.x+n.x*dep),y:Math.min(a.y,b.y,a.y+n.y*dep),w:Math.abs(b.x-a.x)+Math.abs(n.x*dep),d:Math.abs(b.y-a.y)+Math.abs(n.y*dep)}}return g}
@@ -21,9 +23,9 @@ function nearT(L,len,want,ok){var lo=.5,hi=L-.5-len;if(hi<lo-1e-6)return null;va
 // how far the pointer is from an opening placed at t on a side of rect r
 function spotDist(p,r,sd,t,len){var hor=sd==='n'||sd==='s',cx=hor?r.x+t+len/2:(sd==='w'?r.x:r.x+r.w),cy=hor?(sd==='n'?r.y:r.y+r.d):r.y+t+len/2;return Math.hypot(p.x-cx,p.y-cy)}
 // nearest spot on an outside wall for an opening of this kind
-function eSpot(p,k,len,skip){var B=BLDG(),best=null;['n','e','s','w'].forEach(function(sd){var L=sideLen(B,sd);if(L<len+1)return;var hor=sd==='n'||sd==='s',along=hor?p.x:p.y,line=hor?Math.abs(p.y-(sd==='n'?0:B.d)):Math.abs(p.x-(sd==='w'?0:B.w));
+function eSpot(p,k,len,skip){if(k==='roll'&&skip==null&&!rollH())return null;var B=BLDG(),best=null;['n','e','s','w'].forEach(function(sd){var L=sideLen(B,sd);if(L<len+1)return;var hor=sd==='n'||sd==='s',along=hor?p.x:p.y,line=hor?Math.abs(p.y-(sd==='n'?0:B.d)):Math.abs(p.x-(sd==='w'?0:B.w));
   if(skip==null&&(line>6||along<-2||along>L+2))return;
-  var mk=function(t){var d={k:k,s:sd,t:t,len:len,h:skip!=null?eH(ED()[skip]):EDEF[k].h,sw:-1,hg:0};if(skip!=null){var o=ED()[skip];d.sw=o.sw;d.hg=o.hg;d.gl=o.gl;d.op=o.op}else if(k==='roll')d.op=1;return d},
+  var mk=function(t){var d={k:k,s:sd,t:t,len:len,h:skip!=null?eH(ED()[skip]):k==='roll'?Math.min(12,rollH()||12):EDEF[k].h,sw:-1,hg:0};if(skip!=null){var o=ED()[skip];d.sw=o.sw;d.hg=o.hg;d.gl=o.gl;d.op=o.op}else if(k==='roll')d.op=1;return d},
    t=nearT(L,len,along-len/2,function(t){return eFits(mk(t),skip)&&!EW().some(function(w){return w.s===sd&&t<w.t+w.len+.5&&w.t<t+len+.5})});if(t==null)return;
   var dist=spotDist(p,B,sd,t,len);if(!best||dist<best.dist)best={dist:dist,d:mk(t)}});return best?best.d:null}
 // openings on one side of a room that sits against the outside wall
@@ -54,7 +56,7 @@ function eAdd(d){var before=snapP(),mem=memberOf();ED().push(d);selE=ED().length
 // right panel for the selected opening
 function eCard(){var d=ED()[selE];if(!d)return '';var H=P.room.h||10,SN={n:'Top',s:'Bottom',w:'Left',e:'Right'},roll=d.k==='roll',hh=eH(d),
   opt=function(v,cur,lab){return '<option value="'+v+'"'+(Math.abs(v-cur)<1e-6?' selected':'')+'>'+(lab||fmt(v)+' ft')+'</option>'},
-  ws=roll?[8,9,10,12,14,16,18,20]:[3,6],hs=roll?[8,9,10,12,14,16]:[6.67,8];
+  ws=roll?[8,9,10,12,14,16,18,20]:[3,6],hs=roll?[8,9,10,12,14,16].filter(function(v){return v+2<=H+1e-6}):[6.67,8];
  if(ws.indexOf(d.len)<0)ws.push(d.len);if(hs.indexOf(hh)<0)hs.push(hh);
  var h='<div class="card sel"><span class="lab">'+(roll?'Roll-up door':'Exterior door')+' · '+SN[d.s]+' wall</span>'+
   '<div class="bgrid"><label class="fl">Width<select id="e-w">'+ws.sort(function(a,b){return a-b}).map(function(v){return opt(v,d.len,roll?null:(v>=5?'6 ft (double)':'3 ft (single)'))}).join('')+'</select></label>'+
@@ -82,7 +84,7 @@ function eGhost(d,k){var g=eGeo(d),o='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+
 // Explore: start just inside the first walk-in door, facing in
 function eSpawn(){var d=ED().filter(function(q){return q.k==='door'})[0];if(!d)return null;var g=eGeo(d),m={x:(g.a.x+g.b.x)/2,y:(g.a.y+g.b.y)/2},n=g.n,p={x:m.x+n.x*(d.sw!==-1?d.len+1.5:3),y:m.y+n.y*(d.sw!==-1?d.len+1.5:3)};
  return {x:p.x,y:p.y,yaw:Math.atan2(-n.x,-n.y)}}
-function trimEdoors(){var B=BLDG();P.edoors=ED().filter(function(d){var L=sideLen(B,d.s);if(d.len>L-1)return false;d.t=Math.max(.5,Math.min(L-.5-d.len,d.t));return true})}
+function trimEdoors(){var B=BLDG(),H=P.room.h||10;ED().forEach(function(d){if(d.k==='roll'&&eH(d)+2>H+1e-6){var f=rollH();d.h=f||Math.max(7,H-2)}});P.edoors=ED().filter(function(d){var L=sideLen(B,d.s);if(d.len>L-1)return false;d.t=Math.max(.5,Math.min(L-.5-d.len,d.t));return true})}
 /* ---------------- windows ----------------
    On the building's outside walls: P.ewins = [{s,t,len,h,sill,ty:'fixed'|'slider',gt:'clear'|'tint'|'frost'}].
    On a room's walls: room.wins (same fields, t measured along that room's side). A window in a wall two rooms share shows in both. */
@@ -152,7 +154,7 @@ function wCardWire(){var w=selW&&wList(selW.h)[selW.i];if(!w)return;var host=sel
  document.querySelectorAll('input[name=wty]').forEach(function(x){x.onchange=function(){var v=x.value;upd(function(){w.ty=v})}});
  document.querySelectorAll('input[name=wgt]').forEach(function(x){x.onchange=function(){var v=x.value;upd(function(){w.gt=v})}});
  $('#w-del').onclick=function(){upd(function(){wList(host).splice(selW.i,1);selW=null})};$('#w-dup').onclick=dupWin}
-function trimWins(){var B=BLDG();P.ewins=EW().filter(function(w){var L=sideLen(B,w.s);if(w.len>L-1)return false;w.t=Math.max(.5,Math.min(L-.5-w.len,w.t));return true})}
+function trimWins(){var B=BLDG(),H=P.room.h||10;EW().forEach(function(w){if(wTop(w)>H-.4){w.h=Math.max(1,up5(H-.4-w.sill)-.5);if(wTop(w)>H-.4){w.sill=Math.max(0,H-.4-w.h)}}});P.ewins=EW().filter(function(w){var L=sideLen(B,w.s);if(w.len>L-1)return false;w.t=Math.max(.5,Math.min(L-.5-w.len,w.t));return true})}
 /* ---------------- duplicate ---------------- */
 var DUPI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
 function dupBtn(id){return '<button class="sb" id="'+id+'" title="Duplicate ('+(/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl+')+'D)">'+DUPI+'Duplicate</button>'}

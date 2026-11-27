@@ -144,7 +144,7 @@ function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(functio
   else if(c.dataset.t==='win'){var ws=wSpot(p);st.b=ws;if(ws){var g=wGeoOf(ws.h,ws.w);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(9*k)+'" pointer-events="none"/><line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#bfe0f2" stroke-width="'+(3*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}
   else if(c.dataset.t==='edoor'||c.dataset.t==='roll'){var k2=c.dataset.t==='roll'?'roll':'door',es=eSpot(p,k2,EDEF[k2].len);st.b=es;G.ghost.innerHTML=es?eGhost(es,k):''}
   else{var dd=doorSpot(p);st.b=dd;if(dd){var g=dGeo(rBy(dd.r),dd.d);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(8*k)+'" pointer-events="none"/><line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="#2f7de1" stroke-width="'+(2.4*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}};
- c.onpointerup=c.onpointercancel=function(e){var s=st;st=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();if(!s.on||e.type!=='pointerup'||!s.b)return;
+ c.onpointerup=c.onpointercancel=function(e){var s=st;st=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();if(s.on&&e.type==='pointerup'&&!s.b&&c.dataset.t==='roll'&&!rollH()){toast('The building needs to be at least 10 ft tall for a roll-up door (8 ft door + 2 ft for the coil)');return}if(!s.on||e.type!=='pointerup'||!s.b)return;
   if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else if(c.dataset.t==='win')wAdd(s.b);else if(c.dataset.t==='edoor'||c.dataset.t==='roll')eAdd(s.b);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
 function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<3)return;var along,dist;
   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d));if(along<-1||along>len+1)return}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w));if(along<-1||along>len+1)return}
@@ -158,7 +158,7 @@ function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null
   '<div class="fl">Swings<div class="seg2 dseg"><label><input type="radio" name="dsw" value="1"'+(d.sw!==-1?' checked':'')+'><span>Into the room</span></label><label><input type="radio" name="dsw" value="-1"'+(d.sw===-1?' checked':'')+'><span>Out</span></label></div></div>'+
   '<button class="sb" id="d-flip" style="width:100%;margin-top:8px">Hinge on the other side</button>'+
   '<div class="sbtns">'+dupBtn('d-dup')+'<button class="sb red" id="d-del">Delete door</button></div><p class="muted">Drag the door along the walls to move it.</p></div>'}
- else if(r){var its=P.items.filter(function(it){return within(ibox(it),r)}).length,col=rCol(r),rh=r.h||H,SN={n:'Top',s:'Bottom',w:'Left',e:'Right'},
+ else if(r){var rm0=roomMin(r),its=P.items.filter(function(it){return within(ibox(it),r)}).length,col=rCol(r),rh=r.h||H,SN={n:'Top',s:'Bottom',w:'Left',e:'Right'},
    sc=Math.min(46/r.w,60/r.d),ic=function(bg,p){return '<span class="rci" style="background:'+bg+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg></span>'},
    drs=[];(r.doors||[]).forEach(function(d,i){drs.push('<button class="rdr" data-i="'+i+'"><b>'+SN[d.s]+' wall</b><span>'+fmt(d.len||3)+' ft · swings '+(d.sw===-1?'out':'in')+'</span></button>')});
   RM().forEach(function(q){if(q===r)return;(q.doors||[]).forEach(function(d){var g=dGeo(q,d),on=['n','e','s','w'].filter(function(sd){return sideGaps(r,sd).some(function(){return true})&&(function(){var hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w;return (d.s==='n'||d.s==='s')===hor&&Math.abs((hor?g.a.y:g.a.x)-line)<1e-6&&(hor?Math.max(g.a.x,g.b.x)>r.x&&Math.min(g.a.x,g.b.x)<r.x+r.w:Math.max(g.a.y,g.b.y)>r.y&&Math.min(g.a.y,g.b.y)<r.y+r.d)})()})[0];
@@ -167,8 +167,8 @@ function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null
   '<section class="rcd"><h4>'+ic('#378ADD','<path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v3M15 7v2"/>')+'Size<span>'+Math.round(r.w*r.d).toLocaleString()+' sq ft</span></h4>'+
    '<div class="rsz"><svg width="54" height="66" viewBox="-4 -3 54 66" aria-hidden="true"><rect x="'+(23-r.w*sc/2)+'" y="'+(30-r.d*sc/2)+'" width="'+r.w*sc+'" height="'+r.d*sc+'" rx="2" fill="'+col+'" fill-opacity=".22" stroke="'+shadeHex(col,-.35)+'" stroke-width="2"/></svg><div><b>'+fmt(r.w)+' × '+fmt(r.d)+' ft</b><button class="sb" id="rm-rs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Resize</button></div></div></section>'+
   '<section class="rcd"><h4>'+ic('#1D9E75','<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>')+'Ceiling height</h4>'+
-   rhGauge(rh,H,col)+
-   '<p class="muted">'+(rh<H-.01?fmt(H-rh)+' ft of space above the ceiling':'Full building height')+'</p></section>'+
+   rhGauge(rh,H,col,{min:rm0.v,why:rm0.why})+
+   '<p class="muted">'+(rh<H-.01?fmt(H-rh)+' ft of space above the ceiling':'Full building height')+(rm0.why?'. Can\'t go below '+fmt(rm0.v)+' ft: '+esc(rm0.why):'')+'.</p></section>'+
   (doorCount(r)?'':'<div class="warn" style="margin-top:9px">No door yet. Drag one from the left onto a wall.</div>')+
   '<section class="rcd"><h4>'+ic('#888780','<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>')+'Notes</h4><textarea id="rm-no" rows="2" placeholder="Insulate the shop wall" aria-label="Notes">'+esc(r.no||'')+'</textarea></section>'+
   (its?'<p class="muted" style="margin:8px 2px 0">'+its+' object'+(its>1?'s':'')+' inside</p>':'')+
@@ -182,8 +182,8 @@ function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(s
  document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
  var r=rBy(selR);if(!r)return;var upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)};
  var n=$('#rm-n');if(n)n.onchange=function(){var v=n.value.trim()||r.n;push();r.n=v;persist();render()};
- var setH=function(v){var H=P.room.h||10;v=Math.max(7,Math.min(H,Math.round(v*2)/2));if(v===(r.h||H))return;push();r.h=v;persist();render()};
- rhWire(r,setH);
+ var rmn=roomMin(r),setH=function(v){var H=P.room.h||10;v=Math.round(v*2)/2;if(v<rmn.v){toast('Can\'t go below '+fmt(rmn.v)+' ft: '+rmn.why);v=rmn.v}v=Math.min(H,v);if(v===(r.h||H))return;push();r.h=v;persist();render()};
+ rhWire(r,setH,{min:rmn.v});
  document.querySelectorAll('#side .rdr[data-i]').forEach(function(b){b.onclick=function(){selD=+b.dataset.i;render()}});
  var rsb=$('#rm-rs');if(rsb)rsb.onclick=openResize;
  var no=$('#rm-no');if(no)no.onchange=function(){push();r.no=no.value;persist()};
@@ -270,14 +270,14 @@ function openResize(){var r=rBy(selR);if(!r)return;var dl=$('#d-rs');if(!dl){dl=
 /* ---- ceiling height: a side view you drag, with a box for an exact number ---- */
 var RHV={w:260,h:120,fl:108,top:14};
 function rhY(v,H){return RHV.fl-(v/H)*(RHV.fl-RHV.top)}
-function rhGauge(v,H,col,opt){opt=opt||{};var y=rhY(v,H),dk=shadeHex(col,-.35),py=rhY(6,H);
+function rhGauge(v,H,col,opt){opt=opt||{};var y=rhY(v,H),ly=opt.why?rhY(opt.min,H):0,dk=shadeHex(col,-.35),py=rhY(6,H);
  return '<div class="rhg"><svg id="rh-svg" viewBox="0 0 '+RHV.w+' '+RHV.h+'" role="slider" aria-label="Ceiling height" aria-valuemin="'+(opt.min||7)+'" aria-valuemax="'+H+'" aria-valuenow="'+v+'" tabindex="0">'+
   '<line x1="6" y1="'+RHV.top+'" x2="'+(RHV.w-6)+'" y2="'+RHV.top+'" stroke="#8a867c" stroke-dasharray="4 3"/><text x="'+(RHV.w-8)+'" y="'+(RHV.top-3)+'" text-anchor="end" font-size="10" fill="#8a867c">'+(opt.lab||'building '+fmt(H)+' ft')+'</text>'+
   '<rect id="rh-fill" x="56" y="'+y+'" width="150" height="'+(RHV.fl-y)+'" fill="'+col+'" fill-opacity=".2"/>'+
   '<line x1="6" y1="'+RHV.fl+'" x2="'+(RHV.w-6)+'" y2="'+RHV.fl+'" stroke="#3a3936" stroke-width="2.5"/>'+
   '<g id="rh-line"><line x1="56" y1="'+y+'" x2="206" y2="'+y+'" stroke="'+dk+'" stroke-width="3.5"/><rect x="40" y="'+(y-16)+'" width="182" height="32" fill="transparent" style="cursor:ns-resize"/>'+
   '<circle cx="131" cy="'+y+'" r="10" fill="#fff" stroke="'+dk+'" stroke-width="2.5" style="cursor:ns-resize"/><path d="M127.5 '+(y-2.5)+'l3.5-3.5 3.5 3.5M127.5 '+(y+2.5)+'l3.5 3.5 3.5-3.5" stroke="'+dk+'" stroke-width="1.7" fill="none" pointer-events="none"/></g>'+
-  '<g fill="#8a867c" pointer-events="none"><circle cx="24" cy="'+(py+3)+'" r="3.2"/><rect x="22.6" y="'+(py+6.5)+'" width="2.8" height="'+(RHV.fl-py-7)+'" rx="1.4"/></g><text x="31" y="'+(RHV.fl-3)+'" font-size="9" fill="#a4a097">6 ft</text></svg>'+
+  (opt.why?'<line x1="40" y1="'+ly+'" x2="222" y2="'+ly+'" stroke="#d63031" stroke-width="1.4" stroke-dasharray="3 3" pointer-events="none"/><text x="44" y="'+(ly+11)+'" font-size="9" fill="#d63031" pointer-events="none">lowest '+fmt(opt.min)+' ft</text>':'')+'<g fill="#8a867c" pointer-events="none"><circle cx="24" cy="'+(py+3)+'" r="3.2"/><rect x="22.6" y="'+(py+6.5)+'" width="2.8" height="'+(RHV.fl-py-7)+'" rx="1.4"/></g><text x="31" y="'+(RHV.fl-3)+'" font-size="9" fill="#a4a097">6 ft</text></svg>'+
   '<label class="rhv" style="top:calc('+(y/RHV.h*100)+'% - 16px)"><select id="rh-in" aria-label="Height in feet">'+hOpts(v,H,opt.min)+'</select><i>ft</i></label></div>'}
 function rhWire(r,setH,opt){opt=opt||{};var sv2=$('#rh-svg'),inp=$('#rh-in');if(!sv2)return;var H=opt.max||P.room.h||10,MN=opt.min||7,dragging=false,cur=r.h||H;
  var show=function(v){var y=rhY(v,H),g=$('#rh-line');g.setAttribute('transform','translate(0,'+(y-rhY(r.h||H,H))+')');var f=$('#rh-fill');f.setAttribute('y',y);f.setAttribute('height',RHV.fl-y);inp.value=String(v);inp.parentNode.style.top='calc('+(y/RHV.h*100)+'% - 16px)'};
@@ -289,17 +289,25 @@ function rhWire(r,setH,opt){opt=opt||{};var sv2=$('#rh-svg'),inp=$('#rh-in');if(
  inp.onchange=function(){var v=parseFloat(inp.value);if(!isNaN(v))setH(v)}}
 /* ---- Building card: size (with a Resize popup like rooms have) and height (side-view gauge) ---- */
 var BMAXH=40;
+function up5(v){return Math.ceil(v*2-1e-6)/2}
+// the lowest the building can go, and why
+function bldMin(){var m={v:8,why:''},t=function(v,why){v=up5(v);if(v>m.v){m.v=v;m.why=why}};
+ RM().forEach(function(r){if(r.h)t(r.h,(r.n||'A room')+' is '+fmt(r.h)+' ft')});
+ ED().forEach(function(d){if(d.k==='roll')t(eH(d)+2,'the '+fmt(d.len)+' × '+fmt(eH(d))+' ft roll-up door needs '+fmt(eH(d)+2)+' ft for its coil')});
+ EW().forEach(function(w){t(wTop(w)+.4,'a window reaches '+fmt(wTop(w))+' ft')});return m}
+// the lowest a room's ceiling can go, and why
+function roomMin(r){var m={v:7,why:''};winsOn(r,'n').concat(winsOn(r,'e'),winsOn(r,'s'),winsOn(r,'w')).forEach(function(g){var v=up5(g[3]+.4);if(v>m.v){m.v=v;m.why='a window reaches '+fmt(g[3])+' ft'}});return m}
 function bldCard(){var W=P.room.w,D=P.room.d,H=P.room.h||10,sc=Math.min(46/W,60/D),
   ic=function(bg,p){return '<span class="rci" style="background:'+bg+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg></span>'},
-  tall=RM().reduce(function(a,r){return Math.max(a,r.h||0)},0);
+  tall=RM().reduce(function(a,r){return Math.max(a,r.h||0)},0),bm=bldMin();
  return '<div class="card rcard2"><div class="rnm"><i style="background:#3a3936"></i><b class="bnm">Building</b></div>'+
   '<section class="rcd"><h4>'+ic('#378ADD','<path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v3M15 7v2"/>')+'Size<span>'+Math.round(W*D).toLocaleString()+' sq ft</span></h4>'+
    '<div class="rsz"><svg width="54" height="66" viewBox="-4 -3 54 66" aria-hidden="true"><rect x="'+(23-W*sc/2)+'" y="'+(30-D*sc/2)+'" width="'+W*sc+'" height="'+D*sc+'" rx="2" fill="#8a8a86" fill-opacity=".18" stroke="#3a3936" stroke-width="2.4"/></svg><div><b>'+fmt(W)+' × '+fmt(D)+' ft</b><button class="sb" id="b-rs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Resize</button></div></div></section>'+
   '<section class="rcd"><h4>'+ic('#1D9E75','<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>')+'Building height</h4>'+
-   rhGauge(H,BMAXH,'#5f6f86',{min:Math.max(8,tall),lab:'up to '+BMAXH+' ft'})+
-   '<p class="muted">Clear height under the roof.'+(tall?' The tallest room is '+fmt(tall)+' ft.':' Rooms can be up to '+fmt(H)+' ft.')+'</p></section></div>'}
-function bldCardWire(){var b=$('#b-rs');if(b)b.onclick=openBResize;var tall=RM().reduce(function(a,r){return Math.max(a,r.h||0)},0);
- rhWire({h:P.room.h||10},function(v){v=Math.max(Math.max(8,tall),Math.min(BMAXH,Math.round(v*2)/2));if(v===(P.room.h||10))return;push();P.room.h=v;RM().forEach(function(r){if(r.h>v)r.h=v});persist();render()},{min:Math.max(8,tall),max:BMAXH})}
+   rhGauge(H,BMAXH,'#5f6f86',{min:bm.v,why:bm.why,lab:'up to '+BMAXH+' ft'})+
+   '<p class="muted">Clear height under the roof.'+(bm.why?' Can\'t go below '+fmt(bm.v)+' ft: '+esc(bm.why)+'.':' Rooms can be up to '+fmt(H)+' ft.')+'</p></section></div>'}
+function bldCardWire(){var b=$('#b-rs');if(b)b.onclick=openBResize;var bm=bldMin();
+ rhWire({h:P.room.h||10},function(v){v=Math.round(v*2)/2;if(v<bm.v){toast('Can\'t go below '+fmt(bm.v)+' ft: '+bm.why);v=bm.v}v=Math.min(BMAXH,v);if(v===(P.room.h||10))return;push();P.room.h=v;RM().forEach(function(r){if(r.h>v)r.h=v});persist();render()},{min:bm.v,max:BMAXH})}
 // everything inside, as one box: the building can't shrink past it
 function contentBox(){var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,add=function(b){x0=Math.min(x0,b.x);y0=Math.min(y0,b.y);x1=Math.max(x1,b.x+b.w);y1=Math.max(y1,b.y+b.d)};
  RM().forEach(add);P.items.forEach(function(it){add(ibox(it))});ZN().forEach(add);FL().forEach(add);return x1<x0?null:{x:x0,y:y0,w:x1-x0,d:y1-y0}}
