@@ -150,11 +150,8 @@ function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].fo
   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d));if(along<-1||along>len+1)return}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w));if(along<-1||along>len+1)return}
   if(dist>2.5||(best&&dist>=best.dist))return;var t=Math.round(Math.max(0,Math.min(len-3,along-1.5))*2)/2;
   if((r.doors||[]).some(function(d){return d.s===sd&&t<d.t+(d.len||3)&&d.t<t+3}))return;best={dist:dist,r:r.id,d:{s:sd,t:t,len:3,sw:1,hg:0}}})});return best}
-function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
-function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
-  '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
-  '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
-  '</div>';
+function hOpts(v,max,min){var o='';for(var x=min||7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
+function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc=bldCard();
  var r=rBy(selR),h=r?'':bc;
  if(r&&selD!=null&&r.doors[selD]){var d=r.doors[selD];h+='<div class="card sel"><span class="lab">Door · '+esc(r.n)+'</span>'+
   '<label class="fl">Width<select id="d-len">'+[2.5,3,3.5,4,5,6,8].map(function(v){return '<option value="'+v+'"'+((d.len||3)===v?' selected':'')+'>'+fmt(v)+' ft'+(v>=5?' (double)':'')+'</option>'}).join('')+'</select></label>'+
@@ -179,7 +176,7 @@ function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null
  else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
  var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
  return h}
-function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(selE!=null&&ED()[selE]){eCardWire();return}['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
+function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(selE!=null&&ED()[selE]){eCardWire();return}if(!selR)bldCardWire();['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');if(hi2)hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;RM().forEach(function(r){if(v&&r.h>v)r.h=v});persist();render()};
  var dy=$('#r-dyn');if(dy)dy.onchange=function(){push();P.dyn=this.checked;persist();render()};
  document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
@@ -273,20 +270,75 @@ function openResize(){var r=rBy(selR);if(!r)return;var dl=$('#d-rs');if(!dl){dl=
 /* ---- ceiling height: a side view you drag, with a box for an exact number ---- */
 var RHV={w:260,h:120,fl:108,top:14};
 function rhY(v,H){return RHV.fl-(v/H)*(RHV.fl-RHV.top)}
-function rhGauge(v,H,col){var y=rhY(v,H),dk=shadeHex(col,-.35),py=rhY(6,H);
- return '<div class="rhg"><svg id="rh-svg" viewBox="0 0 '+RHV.w+' '+RHV.h+'" role="slider" aria-label="Ceiling height" aria-valuemin="7" aria-valuemax="'+H+'" aria-valuenow="'+v+'" tabindex="0">'+
-  '<line x1="6" y1="'+RHV.top+'" x2="'+(RHV.w-6)+'" y2="'+RHV.top+'" stroke="#8a867c" stroke-dasharray="4 3"/><text x="'+(RHV.w-8)+'" y="'+(RHV.top-3)+'" text-anchor="end" font-size="10" fill="#8a867c">building '+fmt(H)+' ft</text>'+
+function rhGauge(v,H,col,opt){opt=opt||{};var y=rhY(v,H),dk=shadeHex(col,-.35),py=rhY(6,H);
+ return '<div class="rhg"><svg id="rh-svg" viewBox="0 0 '+RHV.w+' '+RHV.h+'" role="slider" aria-label="Ceiling height" aria-valuemin="'+(opt.min||7)+'" aria-valuemax="'+H+'" aria-valuenow="'+v+'" tabindex="0">'+
+  '<line x1="6" y1="'+RHV.top+'" x2="'+(RHV.w-6)+'" y2="'+RHV.top+'" stroke="#8a867c" stroke-dasharray="4 3"/><text x="'+(RHV.w-8)+'" y="'+(RHV.top-3)+'" text-anchor="end" font-size="10" fill="#8a867c">'+(opt.lab||'building '+fmt(H)+' ft')+'</text>'+
   '<rect id="rh-fill" x="56" y="'+y+'" width="150" height="'+(RHV.fl-y)+'" fill="'+col+'" fill-opacity=".2"/>'+
   '<line x1="6" y1="'+RHV.fl+'" x2="'+(RHV.w-6)+'" y2="'+RHV.fl+'" stroke="#3a3936" stroke-width="2.5"/>'+
   '<g id="rh-line"><line x1="56" y1="'+y+'" x2="206" y2="'+y+'" stroke="'+dk+'" stroke-width="3.5"/><rect x="40" y="'+(y-16)+'" width="182" height="32" fill="transparent" style="cursor:ns-resize"/>'+
   '<circle cx="131" cy="'+y+'" r="10" fill="#fff" stroke="'+dk+'" stroke-width="2.5" style="cursor:ns-resize"/><path d="M127.5 '+(y-2.5)+'l3.5-3.5 3.5 3.5M127.5 '+(y+2.5)+'l3.5 3.5 3.5-3.5" stroke="'+dk+'" stroke-width="1.7" fill="none" pointer-events="none"/></g>'+
   '<g fill="#8a867c" pointer-events="none"><circle cx="24" cy="'+(py+3)+'" r="3.2"/><rect x="22.6" y="'+(py+6.5)+'" width="2.8" height="'+(RHV.fl-py-7)+'" rx="1.4"/></g><text x="31" y="'+(RHV.fl-3)+'" font-size="9" fill="#a4a097">6 ft</text></svg>'+
-  '<label class="rhv" style="top:calc('+(y/RHV.h*100)+'% - 16px)"><select id="rh-in" aria-label="Ceiling height in feet">'+hOpts(v,H)+'</select><i>ft</i></label></div>'}
-function rhWire(r,setH){var sv2=$('#rh-svg'),inp=$('#rh-in');if(!sv2)return;var H=P.room.h||10,dragging=false,cur=r.h||H;
+  '<label class="rhv" style="top:calc('+(y/RHV.h*100)+'% - 16px)"><select id="rh-in" aria-label="Height in feet">'+hOpts(v,H,opt.min)+'</select><i>ft</i></label></div>'}
+function rhWire(r,setH,opt){opt=opt||{};var sv2=$('#rh-svg'),inp=$('#rh-in');if(!sv2)return;var H=opt.max||P.room.h||10,MN=opt.min||7,dragging=false,cur=r.h||H;
  var show=function(v){var y=rhY(v,H),g=$('#rh-line');g.setAttribute('transform','translate(0,'+(y-rhY(r.h||H,H))+')');var f=$('#rh-fill');f.setAttribute('y',y);f.setAttribute('height',RHV.fl-y);inp.value=String(v);inp.parentNode.style.top='calc('+(y/RHV.h*100)+'% - 16px)'};
- var at=function(e){var b=sv2.getBoundingClientRect(),yy=(e.clientY-b.top)/b.height*RHV.h,v=(RHV.fl-yy)/(RHV.fl-RHV.top)*H;return Math.max(7,Math.min(H,Math.round(v*2)/2))};
+ var at=function(e){var b=sv2.getBoundingClientRect(),yy=(e.clientY-b.top)/b.height*RHV.h,v=(RHV.fl-yy)/(RHV.fl-RHV.top)*H;return Math.max(MN,Math.min(H,Math.round(v*2)/2))};
  sv2.addEventListener('pointerdown',function(e){dragging=true;sv2.setPointerCapture(e.pointerId);cur=at(e);show(cur);e.preventDefault()});
  sv2.addEventListener('pointermove',function(e){if(!dragging)return;cur=at(e);show(cur)});
  sv2.addEventListener('pointerup',function(){if(!dragging)return;dragging=false;setH(cur)});sv2.addEventListener('pointercancel',function(){dragging=false;show(r.h||H)});
  sv2.onkeydown=function(e){if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();setH((r.h||H)+.5)}if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();setH((r.h||H)-.5)}};
  inp.onchange=function(){var v=parseFloat(inp.value);if(!isNaN(v))setH(v)}}
+/* ---- Building card: size (with a Resize popup like rooms have) and height (side-view gauge) ---- */
+var BMAXH=40;
+function bldCard(){var W=P.room.w,D=P.room.d,H=P.room.h||10,sc=Math.min(46/W,60/D),
+  ic=function(bg,p){return '<span class="rci" style="background:'+bg+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg></span>'},
+  tall=RM().reduce(function(a,r){return Math.max(a,r.h||0)},0);
+ return '<div class="card rcard2"><div class="rnm"><i style="background:#3a3936"></i><b class="bnm">Building</b></div>'+
+  '<section class="rcd"><h4>'+ic('#378ADD','<path d="M3 7h18M3 7v4M21 7v4M7 7v2M11 7v3M15 7v2"/>')+'Size<span>'+Math.round(W*D).toLocaleString()+' sq ft</span></h4>'+
+   '<div class="rsz"><svg width="54" height="66" viewBox="-4 -3 54 66" aria-hidden="true"><rect x="'+(23-W*sc/2)+'" y="'+(30-D*sc/2)+'" width="'+W*sc+'" height="'+D*sc+'" rx="2" fill="#8a8a86" fill-opacity=".18" stroke="#3a3936" stroke-width="2.4"/></svg><div><b>'+fmt(W)+' × '+fmt(D)+' ft</b><button class="sb" id="b-rs"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Resize</button></div></div></section>'+
+  '<section class="rcd"><h4>'+ic('#1D9E75','<path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/>')+'Building height</h4>'+
+   rhGauge(H,BMAXH,'#5f6f86',{min:Math.max(8,tall),lab:'up to '+BMAXH+' ft'})+
+   '<p class="muted">Clear height under the roof.'+(tall?' The tallest room is '+fmt(tall)+' ft.':' Rooms can be up to '+fmt(H)+' ft.')+'</p></section></div>'}
+function bldCardWire(){var b=$('#b-rs');if(b)b.onclick=openBResize;var tall=RM().reduce(function(a,r){return Math.max(a,r.h||0)},0);
+ rhWire({h:P.room.h||10},function(v){v=Math.max(Math.max(8,tall),Math.min(BMAXH,Math.round(v*2)/2));if(v===(P.room.h||10))return;push();P.room.h=v;RM().forEach(function(r){if(r.h>v)r.h=v});persist();render()},{min:Math.max(8,tall),max:BMAXH})}
+// everything inside, as one box: the building can't shrink past it
+function contentBox(){var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9,add=function(b){x0=Math.min(x0,b.x);y0=Math.min(y0,b.y);x1=Math.max(x1,b.x+b.w);y1=Math.max(y1,b.y+b.d)};
+ RM().forEach(add);P.items.forEach(function(it){add(ibox(it))});ZN().forEach(add);FL().forEach(add);return x1<x0?null:{x:x0,y:y0,w:x1-x0,d:y1-y0}}
+var BRS=null;
+function brsFree(s){var c=contentBox(),W=BRS.w,D=BRS.d,o=BRS.off,lim,who='nothing inside';if(!c)c={x:W/2,y:D/2,w:0,d:0};var cx=c.x+o.x,cy=c.y+o.y;
+ lim=s==='n'?cy:s==='s'?D-(cy+c.d):s==='w'?cx:W-(cx+c.w);return {n:Math.floor(lim*2)/2,who:'what\'s inside'}}
+function brsStep(s,d){if(d<0&&brsFree(s).n<1){rsNote('<b>Can\'t shrink that side.</b> Rooms or objects are in the way.');return false}var nw=BRS.w+((s==='e'||s==='w')?d:0),nd=BRS.d+((s==='n'||s==='s')?d:0);if(nw>300||nd>300){rsNote('<b>300 ft is the largest size.</b>');return false}
+ rsNote('');if(s==='w'){BRS.w+=d;BRS.off.x+=d}else if(s==='e')BRS.w+=d;else if(s==='n'){BRS.d+=d;BRS.off.y+=d}else BRS.d+=d;brsDraw();return true}
+function brsSize(w,d){var c=contentBox()||{x:0,y:0,w:0,d:0};w=Math.max(10,Math.min(300,Math.round(w)));d=Math.max(10,Math.min(300,Math.round(d)));
+ // keep everything where it is from the top-left; if it no longer fits, slide it in
+ var cx=c.x+BRS.off.x,cy=c.y+BRS.off.y,mw=Math.max(c.w,0),md=Math.max(c.d,0);if(w<mw||d<md){w=Math.max(w,Math.ceil(mw));d=Math.max(d,Math.ceil(md));rsNote('<b>Too small for what\'s inside.</b> Set to '+fmt(w)+' × '+fmt(d)+' ft.')}else rsNote('');
+ if(cx+mw>w)BRS.off.x-=cx+mw-w;if(cy+md>d)BRS.off.y-=cy+md-d;BRS.w=w;BRS.d=d;brsDraw()}
+function brsDraw(){var dl=$('#d-rs');if(!dl)return;$('#rs-w').value=fmt(BRS.w);$('#rs-d').value=fmt(BRS.d);$('#rs-a').value=Math.round(BRS.w*BRS.d);$('#rs-dim').textContent=fmt(BRS.w)+' × '+fmt(BRS.d)+' ft';
+ ['n','e','s','w'].forEach(function(s){var f=brsFree(s);dl.querySelector('.rsf.'+s).textContent=f.n>=1?fmt(f.n)+' ft spare':'in use'});
+ dl.querySelectorAll('.rsa').forEach(function(a){var s=a.dataset.s,o=+a.dataset.d>0;a.classList.toggle('blk',!o&&brsFree(s).n<1)});
+ var W=BRS.w,D=BRS.d,sc=Math.min(260/W,190/D),o=BRS.off,h='<rect x="'+o.x*sc+'" y="'+o.y*sc+'" width="'+P.room.w*sc+'" height="'+P.room.d*sc+'" fill="none" stroke="#8a867c" stroke-width="1.2" stroke-dasharray="4 3"/>';
+ RM().forEach(function(q){h+='<rect x="'+(q.x+o.x)*sc+'" y="'+(q.y+o.y)*sc+'" width="'+q.w*sc+'" height="'+q.d*sc+'" fill="'+rCol(q)+'" fill-opacity=".18" stroke="'+shadeHex(rCol(q),-.3)+'" stroke-width="1.5"/>'});
+ P.items.forEach(function(it){var b=ibox(it);h+='<rect x="'+(b.x+o.x)*sc+'" y="'+(b.y+o.y)*sc+'" width="'+b.w*sc+'" height="'+b.d*sc+'" fill="#c9c5bb"/>'});
+ h+='<rect x="0" y="0" width="'+W*sc+'" height="'+D*sc+'" fill="none" stroke="#2f7de1" stroke-width="3"/>';var pv=$('#rs-plan');pv.setAttribute('viewBox','-4 -4 '+(W*sc+8)+' '+(D*sc+8));pv.innerHTML=h}
+// move everything inside by dx, dy (when the top or left wall moves)
+function shiftAll(dx,dy){if(!dx&&!dy)return;P.items.forEach(function(it){it.x+=dx;it.y+=dy});RM().forEach(function(r){r.x+=dx;r.y+=dy});FL().forEach(function(f){f.x+=dx;f.y+=dy});
+ ZN().forEach(function(z){z.x+=dx;z.y+=dy;var a={};Object.keys(z.adj||{}).forEach(function(k){a[k]=[z.adj[k][0]+dx,z.adj[k][1]+dy]});z.adj=a});
+ ED().concat(EW()).forEach(function(d){if(d.s==='n'||d.s==='s')d.t+=dx;else d.t+=dy});
+ if(P.pw)P.pw=null}
+function openBResize(){var dl=$('#d-rs');if(!dl){dl=document.createElement('dialog');dl.id='d-rs';dl.className='rsd';document.body.appendChild(dl)}
+ BRS={w:P.room.w,d:P.room.d,off:{x:0,y:0}};
+ dl.innerHTML='<div class="rsw"><div class="rsh"><b>Resize the building</b><button class="x" id="rs-x" aria-label="Close">×</button></div>'+
+  '<div class="rsg"><div class="rsp"><div class="rsbox"><b id="rs-dim"></b></div>'+['n','e','s','w'].map(function(s){return rsArrow(s,true)+rsArrow(s,false)+'<span class="rsf '+s+'"></span>'}).join('')+'</div>'+
+  '<svg id="rs-plan" class="rsplan" role="img" aria-label="Plan preview"></svg></div>'+
+  '<div class="rsrow"><label>Width<span class="sdim"><input id="rs-w" type="number" min="10" max="300" step="1" inputmode="numeric"><i>ft</i></span></label><span class="rsx">×</span>'+
+  '<label>Depth<span class="sdim"><input id="rs-d" type="number" min="10" max="300" step="1" inputmode="numeric"><i>ft</i></span></label><span class="rsx">or</span>'+
+  '<label class="rsa2"><span class="lt">Area</span><span class="sdim"><input id="rs-a" type="number" min="100" step="100" inputmode="numeric"><i>sq ft</i></span></label><button class="sb" id="rs-fit">Fit</button></div>'+
+  '<div class="rsnote" id="rs-note" role="status"></div>'+
+  '<div class="rsbtns"><button class="sb" id="rs-cancel">Cancel</button><button class="sb pri" id="rs-ok">Apply</button></div></div>';
+ var t=null,stop=function(){clearInterval(t);t=null};
+ dl.querySelectorAll('.rsa').forEach(function(a){a.addEventListener('pointerdown',function(e){e.preventDefault();var s=a.dataset.s,d=+a.dataset.d;brsStep(s,d);stop();var n=0;t=setInterval(function(){if(++n>3&&!brsStep(s,d))stop()},90)});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(ev){a.addEventListener(ev,stop)});a.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();brsStep(a.dataset.s,+a.dataset.d)}}});
+ var wd=function(){brsSize(parseFloat($('#rs-w').value)||BRS.w,parseFloat($('#rs-d').value)||BRS.d)};$('#rs-w').onchange=wd;$('#rs-d').onchange=wd;
+ var fit=function(){var A=parseFloat($('#rs-a').value);if(!(A>=100))return;var r=BRS.w/BRS.d,w=Math.round(Math.sqrt(A*r)),d=Math.round(A/Math.max(1,w));brsSize(w,d)};$('#rs-fit').onclick=fit;$('#rs-a').onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();fit()}};
+ var close=function(){stop();dl.close();BRS=null};$('#rs-x').onclick=close;$('#rs-cancel').onclick=close;
+ $('#rs-ok').onclick=function(){var b=BRS;if(b.w===P.room.w&&b.d===P.room.d&&!b.off.x&&!b.off.y){close();return}push();shiftAll(b.off.x,b.off.y);P.room.w=b.w;P.room.d=b.d;close();persist();render()};
+ dl.addEventListener('cancel',function(){stop();BRS=null},{once:true});dl.showModal();brsDraw()}
