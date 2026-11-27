@@ -1119,8 +1119,8 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
   if(w.ty==='slider')bx2(cx,y0+gh/2,cz,.1,gh,dep*.6,fm);
   var gp=bx2(cx,y0+gh/2,cz,len-fw*2,gh-fw-.1,.05,gm);gp.castShadow=w.gt==='frost';if(w.gt==='frost')gp.layers.enable(2)};
  ['n','s','w','e'].forEach(function(sd){var hor=sd==='n'||sd==='s';EWN.filter(function(w){return w.s===sd}).forEach(function(w){var c=w.t+w.len/2;winModel(hor?c:(sd==='w'?-.25:W+.25),hor?(sd==='n'?-.25:D+.25):c,hor,w.len,w.sill,Math.min(wTop(w),H),.5,w)})});
- if(OUT){var roof=new T.Mesh(new T.BoxGeometry(W+1.2,.5,D+1.2),[bas(0x8e9296),bas(0x8e9296),bas(0x6f7377),bas(0x6f7377),bas(0x8e9296),bas(0x8e9296)]);roof.position.set(W/2,H+.25,D/2);S.add(roof)}
- var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.material.side=T.DoubleSide;ceil.castShadow=OUT;ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
+ if(OUT){var roof=new T.Mesh(new T.BoxGeometry(W+1.2,.5,D+1.2),[bas(0x8e9296),bas(0x8e9296),bas(0x6f7377),bas(0x6f7377),bas(0x8e9296),bas(0x8e9296)]);roof.position.set(W/2,H+.32,D/2);S.add(roof)}
+ var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
  // exterior doors and roll-up doors
