@@ -375,3 +375,18 @@ function roomTiles(){var W=P.room.w,D=P.room.d,tot=W*D,a=RM(),enc=a.reduce(funct
  var os=roomStat(null);
  h+='<div class="rtile wide"><div><b>Open floor</b><span class="ra">'+Math.round(open).toLocaleString()+' sq ft · '+Math.round(open/tot*100)+'% · '+fmt(P.room.h||10)+' ft</span>'+(os.tags.length?'<span class="rtags">'+tags(os.tags)+'</span>':'')+'</div><span class="rmeta">'+tic('o',os.o)+tic('l',os.fc!=null?os.fc+' fc':os.lit?'lit':'—')+'</span></div></div></div>';
  return h}
+
+/* ---- Design, nothing selected: what's where, as room tiles (tap to zoom to a room) ---- */
+function whereCard(){var a=RM(),n=P.items.length,os=roomStat(null),W=P.room.w,D=P.room.d,open=Math.max(0,W*D-a.reduce(function(s,r){return s+r.w*r.d},0));
+ if(!n&&!a.length)return '<div class="card"><span class="lab">What\'s where</span><p class="muted" style="margin-top:6px">Drag objects from the left onto the plan. Rooms are added in Build.</p></div>';
+ var tags=function(t){return t.length?t.map(function(x){return '<span class="ttag '+x[0]+'">'+esc(x[1])+'</span>'}).join(''):'<span class="ttag ok">All good</span>'},
+  inRooms=n-os.o-P.items.filter(function(it){var c=defOf(it),b=ibox(it);return c&&c.ceiling&&!roomAt(b.x+b.w/2,b.y+b.d/2)}).length,
+  h='<div class="card"><span class="lab">What\'s where</span><div class="rsum"><b>'+n+' object'+(n===1?'':'s')+'</b>'+(a.length?' · '+os.o+' on the open floor · '+Math.max(0,inRooms)+' in '+a.length+' room'+(a.length>1?'s':''):'')+'</div><div class="rtiles">';
+ a.forEach(function(r){var st=roomStat(r),col=rCol(r),sc=Math.min(40/r.w,24/r.d);
+  h+='<button class="rtile wz" data-z="'+r.id+'"><svg width="46" height="28" viewBox="0 0 46 28" aria-hidden="true"><rect x="'+(23-r.w*sc/2)+'" y="'+(14-r.d*sc/2)+'" width="'+r.w*sc+'" height="'+r.d*sc+'" rx="2" fill="'+col+'" fill-opacity=".22" stroke="'+col+'" stroke-width="2"/></svg>'+
+   '<b>'+esc(r.n)+'</b><span class="rmeta">'+tic('o',st.o)+tic('l',st.fc!=null?st.fc+' fc':st.lit?'lit':'—')+'</span><span class="rtags">'+tags(st.tags)+'</span></button>'});
+ h+='<button class="rtile wide wz" data-z="o"><div><b>Open floor</b><span class="ra">'+os.o+' object'+(os.o===1?'':'s')+' · '+Math.round(open).toLocaleString()+' sq ft</span>'+(os.tags.length?'<span class="rtags">'+tags(os.tags)+'</span>':'')+'</div><span class="rmeta">'+tic('o',os.o)+tic('l',os.fc!=null?os.fc+' fc':os.lit?'lit':'—')+'</span></button></div></div>'+
+  '<button class="sumlink" id="go-sum">Power, plumbing &amp; ventilation → Summary</button>';
+ return h}
+function whereWire(){document.querySelectorAll('#side .wz').forEach(function(b){b.onclick=function(){var r=rBy(b.dataset.z);if(!r){fitView(true);render();return}var f=fitVb();V.z=Math.max(1,Math.min(12,Math.min(f.w/(r.w+8),f.h/(r.d+8))));V.cx=r.x+r.w/2;V.cy=r.y+r.d/2;clampView();render()}});
+ var g=$('#go-sum');if(g)g.onclick=function(){setSummary(true)}}
