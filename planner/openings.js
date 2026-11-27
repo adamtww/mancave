@@ -15,12 +15,17 @@ function eBoxes(){var o=[];ED().forEach(function(d){var g=eGeo(d);if(d.k==='roll
 function eHeadroom(d){var H=P.room.h||10;return d.k!=='roll'||eH(d)+2<=H+1e-6}
 function eFits(d,skip){var len=sideLen(BLDG(),d.s);if(d.t<.5-1e-6||d.t+d.len>len-.5+1e-6)return false;
  return !ED().some(function(q,i){return i!==skip&&q.s===d.s&&d.t<q.t+q.len+1-1e-6&&q.t<d.t+d.len+1-1e-6})}
+// on one wall: the free position closest to where it's wanted (searching outward in half-foot steps)
+function nearT(L,len,want,ok){var lo=.5,hi=L-.5-len;if(hi<lo-1e-6)return null;var w=Math.round(Math.max(lo,Math.min(hi,want))*2)/2;
+ for(var k=0;k<=Math.ceil((hi-lo)*2)+1;k++){var c=[w+k/2,w-k/2];for(var j=0;j<(k?2:1);j++){var t=c[j];if(t<lo-1e-6||t>hi+1e-6)continue;if(ok(t))return t}}return null}
+// how far the pointer is from an opening placed at t on a side of rect r
+function spotDist(p,r,sd,t,len){var hor=sd==='n'||sd==='s',cx=hor?r.x+t+len/2:(sd==='w'?r.x:r.x+r.w),cy=hor?(sd==='n'?r.y:r.y+r.d):r.y+t+len/2;return Math.hypot(p.x-cx,p.y-cy)}
 // nearest spot on an outside wall for an opening of this kind
-function eSpot(p,k,len,skip){var B=BLDG(),best=null;['n','e','s','w'].forEach(function(sd){var L=sideLen(B,sd);if(L<len+1)return;var along,dist;
-  if(sd==='n'||sd==='s'){along=p.x;dist=Math.abs(p.y-(sd==='n'?0:B.d))}else{along=p.y;dist=Math.abs(p.x-(sd==='w'?0:B.w))}
-  if(along<-2||along>L+2)return;if(best&&dist>=best.dist)return;var t=Math.round(Math.max(.5,Math.min(L-.5-len,along-len/2))*2)/2,d={k:k,s:sd,t:t,len:len,h:skip!=null?eH(ED()[skip]):EDEF[k].h,sw:-1,hg:0};
-  if(skip!=null){var o=ED()[skip];d.sw=o.sw;d.hg=o.hg;d.gl=o.gl;d.op=o.op}else if(k==='roll')d.op=1;
-  if(!eFits(d,skip))return;best={dist:dist,d:d}});return best&&best.dist<=(skip!=null?1e9:6)?best.d:null}
+function eSpot(p,k,len,skip){var B=BLDG(),best=null;['n','e','s','w'].forEach(function(sd){var L=sideLen(B,sd);if(L<len+1)return;var hor=sd==='n'||sd==='s',along=hor?p.x:p.y,line=hor?Math.abs(p.y-(sd==='n'?0:B.d)):Math.abs(p.x-(sd==='w'?0:B.w));
+  if(skip==null&&(line>6||along<-2||along>L+2))return;
+  var mk=function(t){var d={k:k,s:sd,t:t,len:len,h:skip!=null?eH(ED()[skip]):EDEF[k].h,sw:-1,hg:0};if(skip!=null){var o=ED()[skip];d.sw=o.sw;d.hg=o.hg;d.gl=o.gl;d.op=o.op}else if(k==='roll')d.op=1;return d},
+   t=nearT(L,len,along-len/2,function(t){return eFits(mk(t),skip)&&!EW().some(function(w){return w.s===sd&&t<w.t+w.len+.5&&w.t<t+len+.5})});if(t==null)return;
+  var dist=spotDist(p,B,sd,t,len);if(!best||dist<best.dist)best={dist:dist,d:mk(t)}});return best?best.d:null}
 // openings on one side of a room that sits against the outside wall
 function eGapsOn(r,sd){var B=BLDG(),hor=sd==='n'||sd==='s',out=[];if(!onEdge(r,sd))return out;var o0=hor?r.x:r.y,len=sideLen(r,sd);
  ED().forEach(function(d){if(d.s!==sd)return;var a=d.t-o0,b=a+d.len;if(b<=0||a>=len)return;out.push([Math.max(0,a),Math.min(len,b),d.k==='roll'?eH(d):7])});return out}
@@ -101,14 +106,15 @@ function wFree(host,sd,t,len,skip){var hr=wHost(host),L=sideLen(hr,sd);if(t<.5-1
  return !busy.some(function(g){return t<g[1]+.5-1e-6&&g[0]<t+len+.5-1e-6})}
 function wDefault(host){return host==='B'?{len:3,h:4,sill:3,ty:'slider',gt:'clear'}:{len:6,h:3.5,sill:3.5,ty:'fixed',gt:'clear'}}
 // nearest wall for a window: an outside wall, or a room wall that isn't on the outside
-function wSpot(p,only,size,skip){var best=null,consider=function(host,r,sd){var L=sideLen(r,sd),hor=sd==='n'||sd==='s',along,dist;if(host!=='B'&&onEdge(r,sd))return;
-   if(hor){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d))}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w))}if(along<-1.5||along>L+1.5)return;
-   var sz=size||wDefault(host);if(L<sz.len+1)return;if(best&&dist>=best.dist)return;var t=Math.round(Math.max(.5,Math.min(L-.5-sz.len,along-sz.len/2))*2)/2;
-   var H2=host==='B'?(P.room.h||10):Math.min(r.h||P.room.h||10,P.room.h||10);if(sz.sill+sz.h>H2-.4)return;if(!wFree(host,sd,t,sz.len,skip))return;
+function wSpot(p,only,size,skip){var best=null,consider=function(host,r,sd){var L=sideLen(r,sd),hor=sd==='n'||sd==='s',along,line;if(host!=='B'&&onEdge(r,sd))return;
+   if(hor){along=p.x-r.x;line=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d))}else{along=p.y-r.y;line=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w))}
+   if(!skip&&(line>4||along<-1.5||along>L+1.5))return;
+   var sz=size||wDefault(host);if(L<sz.len+1)return;var H2=host==='B'?(P.room.h||10):Math.min(r.h||P.room.h||10,P.room.h||10);if(sz.sill+sz.h>H2-.4)return;
+   var t=nearT(L,sz.len,along-sz.len/2,function(t){return wFree(host,sd,t,sz.len,skip)});if(t==null)return;var dist=spotDist(p,r,sd,t,sz.len);if(best&&dist>=best.dist)return;
    best={dist:dist,h:host,w:{s:sd,t:t,len:sz.len,h:sz.h,sill:sz.sill,ty:sz.ty,gt:sz.gt}}};
  if(!only||only==='B')['n','e','s','w'].forEach(function(sd){consider('B',BLDG(),sd)});
  RM().forEach(function(r){if(only&&only!==r.id)return;['n','e','s','w'].forEach(function(sd){consider(r.id,r,sd)})});
- return best&&best.dist<=(skip?1e9:4)?best:null}
+ return best}
 function wGeoOf(host,w){return dGeo(wHost(host),w)}
 function drawWins(k){var o='',one=function(host,w,i){var g=wGeoOf(host,w),hor=w.s==='n'||w.s==='s',s=BLD&&selW&&selW.h===host&&selW.i===i,th=(host==='B'?8:6)*k,col=s?'#2f7de1':'#3a3936',
    x0=Math.min(g.a.x,g.b.x),y0=Math.min(g.a.y,g.b.y),gl=w.gt==='frost'?'#e9eef2':w.gt==='tint'?'#7f97a8':'#bfe0f2';

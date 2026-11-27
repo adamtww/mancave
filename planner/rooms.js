@@ -103,9 +103,11 @@ function rDown(e){if(!BLD||e.button>0)return;var t=e.target,hd=t.closest('.rh'),
   doors0:JSON.parse(JSON.stringify(r.doors||[])),wins0:JSON.parse(JSON.stringify(r.wins||[])),its:P.items.filter(function(it){var b=ibox(it);return within(b,r)}).map(function(it){return [it,it.x,it.y]}),zs:ZN().filter(function(z){return within(z,r)}).map(function(z){return [z,z.x,z.y,JSON.parse(JSON.stringify(z.adj||{}))]})};
  window.addEventListener('pointermove',rMove);window.addEventListener('pointerup',rUp);window.addEventListener('pointercancel',rUp)}
 function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clientY-rd.sy)<4)return;rd.moved=true;var r=rBy(rd.id),p=toFt(e),dx=p.x-rd.p0.x,dy=p.y-rd.p0.y,b0=rd.b0,W=P.room.w,D=P.room.d,nb,others=RM().filter(function(q){return q!==r});
- if(rd.mode==='door'){var d=r.doors[rd.di],best=null;['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<(d.len||3))return;var along,dist;
-   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d))}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w))}
-   if(!best||dist<best.dist)best={s:sd,dist:dist,t:Math.round(Math.max(0,Math.min(len-(d.len||3),along-(d.len||3)/2))*2)/2}});
+ if(rd.mode==='door'){var d=r.doors[rd.di],best=null,len=d.len||3;r.doors.splice(rd.di,1);
+  ['n','e','s','w'].forEach(function(sd){var L=sideLen(r,sd),hor=sd==='n'||sd==='s',along=hor?p.x-r.x:p.y-r.y,busy=sideGaps(r,sd).concat(winsOn(r,sd));if(L<len)return;
+   var t=nearT(L+1,len,along-len/2+.5,function(t2){return !busy.some(function(g){return t2-.5<g[1]+.25&&g[0]<t2-.5+len+.25})});if(t==null)return;t-=.5;
+   var dist=spotDist(p,r,sd,t,len);if(!best||dist<best.dist)best={s:sd,dist:dist,t:t}});
+  r.doors.splice(rd.di,0,d);
   if(best){d.s=best.s;d.t=best.t}rRedraw();return}
  if(rd.mode==='move')nb={x:Math.round(Math.max(0,Math.min(W-b0.w,b0.x+dx))),y:Math.round(Math.max(0,Math.min(D-b0.d,b0.y+dy))),w:b0.w,d:b0.d};
  else{var x1=b0.x,y1=b0.y,x2=b0.x+b0.w,y2=b0.y+b0.d,hh=rd.h;
