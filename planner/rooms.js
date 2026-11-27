@@ -173,13 +173,13 @@ function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null
   '<section class="rcd"><h4>'+ic('#888780','<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>')+'Notes</h4><textarea id="rm-no" rows="2" placeholder="Insulate the shop wall" aria-label="Notes">'+esc(r.no||'')+'</textarea></section>'+
   (its?'<p class="muted" style="margin:8px 2px 0">'+its+' object'+(its>1?'s':'')+' inside</p>':'')+
   '<button class="lnk red rdel" id="rm-del">Delete room</button></div>'}
- else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
+ else h+=roomTiles();
  var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
  return h}
 function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(selE!=null&&ED()[selE]){eCardWire();return}if(!selR)bldCardWire();['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');if(hi2)hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;RM().forEach(function(r){if(v&&r.h>v)r.h=v});persist();render()};
  var dy=$('#r-dyn');if(dy)dy.onchange=function(){push();P.dyn=this.checked;persist();render()};
- document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
+ document.querySelectorAll('#side .rli,#side .rtile[data-r]').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
  var r=rBy(selR);if(!r)return;var upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)};
  var n=$('#rm-n');if(n)n.onchange=function(){var v=n.value.trim()||r.n;push();r.n=v;persist();render()};
  var rmn=roomMin(r),setH=function(v){var H=P.room.h||10;v=Math.round(v*2)/2;if(v<rmn.v){toast('Can\'t go below '+fmt(rmn.v)+' ft: '+rmn.why);v=rmn.v}v=Math.min(H,v);if(v===(r.h||H))return;push();r.h=v;persist();render()};
@@ -350,3 +350,28 @@ function openBResize(){var dl=$('#d-rs');if(!dl){dl=document.createElement('dial
  var close=function(){stop();dl.close();BRS=null};$('#rs-x').onclick=close;$('#rs-cancel').onclick=close;
  $('#rs-ok').onclick=function(){var b=BRS;if(b.w===P.room.w&&b.d===P.room.d&&!b.off.x&&!b.off.y){close();return}push();shiftAll(b.off.x,b.off.y);P.room.w=b.w;P.room.d=b.d;close();persist();render()};
  dl.addEventListener('cancel',function(){stop();BRS=null},{once:true});dl.showModal();brsDraw()}
+
+/* ---- Rooms overview (Build, nothing selected): summary, share bar and a tile per room ---- */
+var TI={o:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',d:'<path d="M4 21h16M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/>',w:'<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M12 6v12"/>',l:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>'};
+function tic(k,v){return '<span class="tic" title="'+({o:'Objects',d:'Doors',w:'Windows',l:'Light level'})[k]+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+TI[k]+'</svg>'+v+'</span>'}
+// what's in a room (r) or on the open floor (null), and what's wrong
+function roomStat(r){var H=P.room.h||10,its=P.items.filter(function(it){var b=ibox(it),id=rid({x:b.x+b.w/2-.01,y:b.y+b.d/2-.01,w:.02,d:.02});return r?id===r.id:id==='o'}),
+  ground=its.filter(function(it){var c=defOf(it);return c&&!c.ceiling}),hh=r?Math.min(r.h||H,H):H,
+  tall=ground.filter(function(it){var c=defOf(it);return c.h&&c.h>hh+1e-6}).length,bw=badWall().filter(function(it){return its.indexOf(it)>=0}).length,
+  zs=ZN().filter(function(z){var cx=z.x+z.w/2,cy=z.y+z.d/2,q=roomAt(cx,cy);return r?q===r:!q}),fc=0,A=0;
+ zs.forEach(function(z){var L=zLayout(z),a=z.w*z.d;fc+=L.fc*a;A+=a});var lit=zs.length||its.some(function(it){return isLt(defOf(it))});
+ var wn=r?['n','e','s','w'].reduce(function(a,sd){return a+winsOn(r,sd).length},0):EW().length,dn=r?doorCount(r):ED().length,t=[];
+ if(r&&!dn)t.push(['red','No door']);if(tall)t.push(['red',tall+' too tall']);if(bw)t.push(['red',bw+' crossing a wall']);if(!lit&&(r||ground.length))t.push(['amb','No lights']);
+ return {o:ground.length,d:dn,w:wn,fc:A?Math.round(fc/A):null,lit:lit,tags:t,h:hh}}
+function roomTiles(){var W=P.room.w,D=P.room.d,tot=W*D,a=RM(),enc=a.reduce(function(s,r){return s+r.w*r.d},0),open=Math.max(0,tot-enc);
+ if(!a.length)return '<div class="card"><span class="lab">Rooms</span><p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p></div>';
+ var tags=function(t){return t.length?t.map(function(x){return '<span class="ttag '+x[0]+'">'+esc(x[1])+'</span>'}).join(''):'<span class="ttag ok">All good</span>'},
+  h='<div class="card"><span class="lab">Rooms</span><div class="rsum"><b>'+a.length+' room'+(a.length>1?'s':'')+'</b> · '+Math.round(enc).toLocaleString()+' sq ft enclosed ('+Math.round(enc/tot*100)+'%) · <b>'+Math.round(open).toLocaleString()+'</b> open floor</div>'+
+  '<div class="rbar">'+a.map(function(r){return '<i style="width:'+(r.w*r.d/tot*100)+'%;background:'+rCol(r)+'" title="'+esc(r.n)+'"></i>'}).join('')+'</div><div class="rtiles">';
+ a.forEach(function(r){var st=roomStat(r),col=rCol(r),sc=Math.min(54/r.w,34/r.d);
+  h+='<button class="rtile" data-r="'+r.id+'"><svg width="60" height="38" viewBox="0 0 60 38" aria-hidden="true"><rect x="'+(30-r.w*sc/2)+'" y="'+(19-r.d*sc/2)+'" width="'+r.w*sc+'" height="'+r.d*sc+'" rx="2" fill="'+col+'" fill-opacity=".22" stroke="'+col+'" stroke-width="2"/></svg>'+
+   '<b>'+esc(r.n)+'</b><span class="ra">'+Math.round(r.w*r.d).toLocaleString()+' sq ft · '+fmt(r.w)+' × '+fmt(r.d)+' · '+fmt(st.h)+' ft</span>'+
+   '<span class="rmeta">'+tic('o',st.o)+tic('d',st.d)+tic('w',st.w)+tic('l',st.fc!=null?st.fc+' fc':st.lit?'lit':'—')+'</span><span class="rtags">'+tags(st.tags)+'</span></button>'});
+ var os=roomStat(null);
+ h+='<div class="rtile wide"><div><b>Open floor</b><span class="ra">'+Math.round(open).toLocaleString()+' sq ft · '+Math.round(open/tot*100)+'% · '+fmt(P.room.h||10)+' ft</span>'+(os.tags.length?'<span class="rtags">'+tags(os.tags)+'</span>':'')+'</div><span class="rmeta">'+tic('o',os.o)+tic('l',os.fc!=null?os.fc+' fc':os.lit?'lit':'—')+'</span></div></div></div>';
+ return h}
