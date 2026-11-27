@@ -61,7 +61,7 @@ function eCard(){var d=ED()[selE];if(!d)return '';var H=P.room.h||10,SN={n:'Top'
    (d.len<5?'<button class="sb" id="e-flip" style="width:100%;margin-top:8px">Hinge on the other side</button>':'')+
    '<label class="sw" style="margin-top:10px"><input type="checkbox" id="e-gl"'+(d.gl?' checked':'')+'> Glass panel</label>'+
    '<p class="muted" style="margin-top:8px">Exterior doors usually swing out. Explore starts you at the first one.</p>'}
- return h+'<div class="sbtns"><button class="sb red" id="e-del">Delete</button></div><p class="muted">Drag it along the outside walls to move it.</p></div>'}
+ return h+'<div class="sbtns">'+dupBtn('e-dup')+'<button class="sb red" id="e-del">Delete</button></div><p class="muted">Drag it along the outside walls to move it.</p></div>'}
 function eCardWire(){var d=ED()[selE];if(!d)return;var upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)},L=function(){return sideLen(BLDG(),d.s)};
  $('#e-w').onchange=function(){var v=parseFloat(this.value),o={k:d.k,s:d.s,t:Math.max(.5,Math.min(L()-.5-v,d.t)),len:v};if(!eFits(o,selE)){toast('Not enough wall there for '+fmt(v)+' ft');render();return}upd(function(){d.len=v;d.t=o.t})};
  $('#e-h').onchange=function(){var v=parseFloat(this.value);upd(function(){d.h=v})};
@@ -69,7 +69,7 @@ function eCardWire(){var d=ED()[selE];if(!d)return;var upd=function(fn){var befo
  var gl=$('#e-gl');if(gl)gl.onchange=function(){var v=this.checked;upd(function(){d.gl=v?1:0})};
  document.querySelectorAll('input[name=esw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
  var fl=$('#e-flip');if(fl)fl.onclick=function(){upd(function(){d.hg=d.hg?0:1})};
- $('#e-del').onclick=function(){upd(function(){ED().splice(selE,1);selE=null})}}
+ $('#e-del').onclick=function(){upd(function(){ED().splice(selE,1);selE=null})};$('#e-dup').onclick=dupEdoor}
 // Build menu drag: preview on the nearest outside wall
 function eGhost(d,k){var g=eGeo(d),o='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(8*k)+'" pointer-events="none"/>';
  if(d.k==='roll'){var z=g.zone;o+='<rect x="'+z.x+'" y="'+z.y+'" width="'+z.w+'" height="'+z.d+'" fill="rgba(47,125,225,.08)" stroke="#2f7de1" stroke-width="'+k+'" stroke-dasharray="'+(6*k)+' '+(4*k)+'" pointer-events="none"/>'}
@@ -136,7 +136,7 @@ function wCard(){var w=selW&&wList(selW.h)[selW.i];if(!w)return '';var host=selW
   '<div class="fl">Glass'+seg('wgt',w.gt||'clear',[['clear','Clear'],['tint','Tinted'],['frost','Frosted']])+'</div>'+
   '<p class="muted" style="margin-top:8px">Top of the glass at '+fmt(wTop(w))+' ft; the wall is '+fmt(H2)+' ft.'+(w.gt==='frost'?' Frosted glass glows but you can\'t see through it.':'')+'</p>'+
   (bl.length?'<div class="warn" style="margin-top:9px">Blocked by '+esc(bl.slice(0,3).join(', '))+(bl.length>3?' and more':'')+'. Fine if you don\'t mind losing the view.</div>':'')+
-  '<div class="sbtns"><button class="sb red" id="w-del">Delete</button></div><p class="muted">Drag it along the walls to move it.</p></div>'}
+  '<div class="sbtns">'+dupBtn('w-dup')+'<button class="sb red" id="w-del">Delete</button></div><p class="muted">Drag it along the walls to move it.</p></div>'}
 function wCardWire(){var w=selW&&wList(selW.h)[selW.i];if(!w)return;var host=selW.h,r=host==='B'?null:rBy(host),H2=host==='B'?(P.room.h||10):Math.min(r.h||P.room.h||10,P.room.h||10),
   upd=function(fn){var before=snapP(),mem=memberOf();fn();bCommit(before,mem)},L=sideLen(wHost(host),w.s);
  $('#w-w').onchange=function(){var v=parseFloat(this.value),t=Math.max(.5,Math.min(L-.5-v,w.t));if(!wFree(host,w.s,t,v,{h:host,i:selW.i})){toast('Not enough clear wall there for '+fmt(v)+' ft');render();return}upd(function(){w.len=v;w.t=t})};
@@ -145,5 +145,24 @@ function wCardWire(){var w=selW&&wList(selW.h)[selW.i];if(!w)return;var host=sel
  $('#w-s').onchange=function(){var v=parseFloat(this.value);if(hv(v,w.h))upd(function(){w.sill=v})};
  document.querySelectorAll('input[name=wty]').forEach(function(x){x.onchange=function(){var v=x.value;upd(function(){w.ty=v})}});
  document.querySelectorAll('input[name=wgt]').forEach(function(x){x.onchange=function(){var v=x.value;upd(function(){w.gt=v})}});
- $('#w-del').onclick=function(){upd(function(){wList(host).splice(selW.i,1);selW=null})}}
+ $('#w-del').onclick=function(){upd(function(){wList(host).splice(selW.i,1);selW=null})};$('#w-dup').onclick=dupWin}
 function trimWins(){var B=BLDG();P.ewins=EW().filter(function(w){var L=sideLen(B,w.s);if(w.len>L-1)return false;w.t=Math.max(.5,Math.min(L-.5-w.len,w.t));return true})}
+/* ---------------- duplicate ---------------- */
+var DUPI='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+function dupBtn(id){return '<button class="sb" id="'+id+'" title="Duplicate ('+(/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl+')+'D)">'+DUPI+'Duplicate</button>'}
+// try spots along a wall: first to the right of the original, then from the start, then the other sides
+function slotScan(sides,first,len,t0,ok){for(var si=0;si<sides.length;si++){var sd=sides[si],L=sides.L(sd),start=sd===first?t0:.5,tries=[];
+  for(var t=start;t+len<=L-.5+1e-6;t+=.5)tries.push(t);if(sd===first)for(var t2=.5;t2<t0;t2+=.5)tries.push(t2);
+  for(var i=0;i<tries.length;i++){var tt=Math.round(tries[i]*2)/2;if(ok(sd,tt))return {s:sd,t:tt}}}return null}
+function sideOrder(first,allowed){var o=[first].concat(['s','e','n','w'].filter(function(s){return s!==first})).filter(function(s){return allowed(s)});return o}
+function dupWin(){var w=selW&&wList(selW.h)[selW.i];if(!w)return;var host=selW.h,hr=wHost(host),sides=sideOrder(w.s,function(s){return host==='B'||!onEdge(hr,s)});sides.L=function(s){return sideLen(hr,s)};
+ var spot=slotScan(sides,w.s,w.len,w.t+w.len+1,function(sd,t){return wFree(host,sd,t,w.len,null)});if(!spot){toast('No clear wall left for another '+fmt(w.len)+' ft window');return}
+ var before=snapP(),mem=memberOf(),c=JSON.parse(JSON.stringify(w));c.s=spot.s;c.t=spot.t;wList(host).push(c);selW={h:host,i:wList(host).length-1};bCommit(before,mem)}
+function dupEdoor(){var d=ED()[selE];if(!d)return;var sides=sideOrder(d.s,function(){return true});sides.L=function(s){return sideLen(BLDG(),s)};
+ var spot=slotScan(sides,d.s,d.len,d.t+d.len+1,function(sd,t){var c={k:d.k,s:sd,t:t,len:d.len};return eFits(c,null)&&!EW().some(function(w){return w.s===sd&&t<w.t+w.len+.5&&w.t<t+d.len+.5})});
+ if(!spot){toast('No clear outside wall left for another '+(d.k==='roll'?'roll-up door':'door'));return}
+ var before=snapP(),mem=memberOf(),c=JSON.parse(JSON.stringify(d));c.s=spot.s;c.t=spot.t;ED().push(c);selE=ED().length-1;bCommit(before,mem)}
+function dupRoomDoor(){var r=rBy(selR),d=r&&r.doors[selD];if(!d)return;var len=d.len||3,sides=sideOrder(d.s,function(s){return !onEdge(r,s)});sides.L=function(s){return sideLen(r,s)};
+ var spot=slotScan(sides,d.s,len,d.t+len+1,function(sd,t){if(t+len>sideLen(r,sd)+1e-6)return false;return !sideGaps(r,sd).concat(winsOn(r,sd)).some(function(g){return t<g[1]+.5&&g[0]<t+len+.5})});
+ if(!spot){toast('No clear wall left in '+(r.n||'this room')+' for another door');return}
+ var before=snapP(),mem=memberOf(),c=JSON.parse(JSON.stringify(d));c.s=spot.s;c.t=spot.t;r.doors.push(c);selD=r.doors.length-1;bCommit(before,mem)}

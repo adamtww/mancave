@@ -159,7 +159,7 @@ function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null
   '<label class="fl">Width<select id="d-len">'+[2.5,3,3.5,4,5,6,8].map(function(v){return '<option value="'+v+'"'+((d.len||3)===v?' selected':'')+'>'+fmt(v)+' ft'+(v>=5?' (double)':'')+'</option>'}).join('')+'</select></label>'+
   '<div class="fl">Swings<div class="seg2 dseg"><label><input type="radio" name="dsw" value="1"'+(d.sw!==-1?' checked':'')+'><span>Into the room</span></label><label><input type="radio" name="dsw" value="-1"'+(d.sw===-1?' checked':'')+'><span>Out</span></label></div></div>'+
   '<button class="sb" id="d-flip" style="width:100%;margin-top:8px">Hinge on the other side</button>'+
-  '<div class="sbtns"><button class="sb red" id="d-del">Delete door</button></div><p class="muted">Drag the door along the walls to move it.</p></div>'}
+  '<div class="sbtns">'+dupBtn('d-dup')+'<button class="sb red" id="d-del">Delete door</button></div><p class="muted">Drag the door along the walls to move it.</p></div>'}
  else if(r){var its=P.items.filter(function(it){return within(ibox(it),r)}).length,col=rCol(r),rh=r.h||H,SN={n:'Top',s:'Bottom',w:'Left',e:'Right'},
    sc=Math.min(46/r.w,60/r.d),ic=function(bg,p){return '<span class="rci" style="background:'+bg+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg></span>'},
    drs=[];(r.doors||[]).forEach(function(d,i){drs.push('<button class="rdr" data-i="'+i+'"><b>'+SN[d.s]+' wall</b><span>'+fmt(d.len||3)+' ft · swings '+(d.sw===-1?'out':'in')+'</span></button>')});
@@ -194,7 +194,7 @@ function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(s
   $('#d-len').onchange=function(){var v=parseFloat(this.value);upd(function(){d.len=Math.min(v,sideLen(r,d.s));d.t=Math.max(0,Math.min(sideLen(r,d.s)-d.len,d.t))})};
   document.querySelectorAll('input[name=dsw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
   $('#d-flip').onclick=function(){upd(function(){d.hg=d.hg?0:1})};
-  $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})}}}
+  $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})};$('#d-dup').onclick=dupRoomDoor}}
 function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;selE=null;selW=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
 /* ---- per-room summary ---- */
 var openRm={};
