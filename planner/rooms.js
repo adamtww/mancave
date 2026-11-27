@@ -154,8 +154,7 @@ function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'
 function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
   '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
   '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
-  '<label class="sw" style="margin-top:10px" title="'+(P.dyn?'The building grows to fit new objects. Rooms stay where they are.':'The building stays this size.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Grow to fit what\'s inside</label>'+
-  '<div class="srows" style="margin-top:10px"><div class="srw"><span>Floor area</span><b>'+Math.round(W*D).toLocaleString()+' sq ft</b></div><div class="srw"><span>Rooms</span><b>'+RM().length+'</b></div></div></div>';
+  '</div>';
  var r=rBy(selR),h=r?'':bc;
  if(r&&selD!=null&&r.doors[selD]){var d=r.doors[selD];h+='<div class="card sel"><span class="lab">Door · '+esc(r.n)+'</span>'+
   '<label class="fl">Width<select id="d-len">'+[2.5,3,3.5,4,5,6,8].map(function(v){return '<option value="'+v+'"'+((d.len||3)===v?' selected':'')+'>'+fmt(v)+' ft'+(v>=5?' (double)':'')+'</option>'}).join('')+'</select></label>'+
