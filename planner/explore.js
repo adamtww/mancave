@@ -1100,10 +1100,61 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  floor.rotation.x=-Math.PI/2;floor.position.set(W/2,0,D/2);floor.receiveShadow=true;S.add(floor);
  var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
  var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.layers.enable(2);m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
- wall(W/2,-.25,W+1,.5,W);wall(W/2,D+.25,W+1,.5,W);wall(-.25,D/2,.5,D,D);wall(W+.25,D/2,.5,D,D);
- var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
+ // outside walls, with openings for exterior doors and roll-up doors
+ var EO=(P.edoors||[]).slice(),OUT=EO.length>0,rng=(function(){var x=7;return function(){x=(x*16807)%2147483647;return (x-1)/2147483646}})(),
+  bas=function(hex,map){return new T.MeshBasicMaterial({color:hex,map:map||null})},
+  skinM=OUT?bas(0xb9bec3,exTex(T,function(g,s){g.fillStyle='#c9cdd1';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.10)';g.fillRect(x,0,5,s);g.fillStyle='rgba(255,255,255,.18)';g.fillRect(x+5,0,3,s)}},256,[1,1])):null,
+  skin=function(sd,a,b,y0,y1){if(!OUT||b-a<.01||y1-y0<.01)return;var m=skinM.clone();m.map=skinM.map.clone();m.map.needsUpdate=true;m.map.repeat.set((b-a)/6,(y1-y0)/6);var pl=new T.Mesh(new T.PlaneGeometry(b-a,y1-y0),m),c=(a+b)/2,y=(y0+y1)/2;
+   if(sd==='n'){pl.position.set(c,y,-.505);pl.rotation.y=Math.PI}else if(sd==='s'){pl.position.set(c,y,D+.505)}else if(sd==='w'){pl.position.set(-.505,y,c);pl.rotation.y=-Math.PI/2}else{pl.position.set(W+.505,y,c);pl.rotation.y=Math.PI/2}S.add(pl)},
+  piece=function(sd,a,b,y0,y1){if(b-a<.01||y1-y0<.01)return;var len=b-a,hor=sd==='n'||sd==='s',m=new T.Mesh(new T.BoxGeometry(hor?len:.5,y1-y0,hor?.5:len),wallM.clone());m.layers.enable(2);m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,(y1-y0)/6);
+   var c=(a+b)/2,y=(y0+y1)/2;if(sd==='n')m.position.set(c,y,-.25);else if(sd==='s')m.position.set(c,y,D+.25);else if(sd==='w')m.position.set(-.25,y,c);else m.position.set(W+.25,y,c);m.receiveShadow=true;m.castShadow=OUT;S.add(m);skin(sd,a,b,y0,y1);
+   if(y0<.01)EX.wallSolid.push(hor?{x:a,z:sd==='n'?-.5:D,w:len,d:.5}:{x:sd==='w'?-.5:W,z:a,w:.5,d:len})};
+ EX.wallSolid=[];['n','s','w','e'].forEach(function(sd){var hor=sd==='n'||sd==='s',L=hor?W:D,lo=hor?-.5:0,hi=hor?L+.5:L,cur=lo;
+  EO.filter(function(d){return d.s===sd}).sort(function(a,b){return a.t-b.t}).forEach(function(d){var top=d.k==='roll'?eH(d):(d.h||6.67)+.25;piece(sd,cur,d.t,0,H);piece(sd,d.t,d.t+d.len,Math.min(top,H),H);cur=d.t+d.len});piece(sd,cur,hi,0,H)});
+ if(OUT){var roof=new T.Mesh(new T.BoxGeometry(W+1.2,.5,D+1.2),[bas(0x8e9296),bas(0x8e9296),bas(0x6f7377),bas(0x6f7377),bas(0x8e9296),bas(0x8e9296)]);roof.position.set(W/2,H+.25,D/2);S.add(roof)}
+ var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.material.side=T.DoubleSide;ceil.castShadow=OUT;ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
  // objects
  EX.solid=[];EX.spin=[];var lights=[];
+ // exterior doors and roll-up doors
+ EO.forEach(function(d){var g=eGeo(d),hor=d.s==='n'||d.s==='s',n=g.n,L=d.len,mid={x:(g.a.x+g.b.x)/2,y:(g.a.y+g.b.y)/2},wc=function(off){return {x:mid.x-n.x*off,y:mid.y-n.y*off}},
+   bx=function(cx,cy,cz,along,h,thick,mat){var m=new T.Mesh(new T.BoxGeometry(hor?along:thick,h,hor?thick:along),mat);m.position.set(cx,cy,cz);m.castShadow=true;m.receiveShadow=true;S.add(m);return m};
+  if(d.k==='roll'){var hh=Math.min(eH(d),H),c=wc(.25),outIdx={n:5,s:4,w:1,e:0}[d.s],
+    slat=exTex(T,function(gg,sz){gg.fillStyle='#b7bcc1';gg.fillRect(0,0,sz,sz);for(var y=0;y<sz;y+=16){gg.fillStyle='rgba(0,0,0,.16)';gg.fillRect(0,y,sz,3);gg.fillStyle='rgba(255,255,255,.22)';gg.fillRect(0,y+3,sz,2)}},128,[1,1]);slat.repeat.set(L/4,hh/4);
+    var inM=exMat(T,0xc3c8cd,{m:.35,r:.45,map:slat}),outM=new T.MeshBasicMaterial({color:0xc9cdd2,map:slat}),mats=[inM,inM,inM,inM,inM,inM];mats[outIdx]=outM;
+   var cur=bx(c.x,hh/2,c.y,L,hh,.12,mats);cur.layers.enable(2);EX.solid.push({x:Math.min(g.a.x,g.b.x)-(hor?0:.3),z:Math.min(g.a.y,g.b.y)-(hor?.3:0),w:hor?L:.6,d:hor?.6:L});
+   var ci=wc(-.15);bx(ci.x,.1,ci.y,L,.2,.2,M.dark);var hd2=wc(-.12);bx(hd2.x,1.2,hd2.y,.6,.1,.12,M.steel);
+   [g.a,g.b].forEach(function(p,i){var sgn=i?-1:1,tx=p.x+(hor?sgn*.15:0)+n.x*.25,tz=p.y+(hor?0:sgn*.15)+n.y*.25;var m=new T.Mesh(new T.BoxGeometry(hor?.25:.3,Math.min(hh+.6,H),hor?.3:.25),M.steel);m.position.set(tx,Math.min(hh+.6,H)/2,tz);m.castShadow=true;S.add(m)});
+   var cy=Math.min(hh+.95,H-.9),coil=new T.Mesh(new T.CylinderGeometry(.85,.85,L+.6,20),exMat(T,0x9aa0a6,{m:.5,r:.4}));coil.rotation[hor?'z':'x']=Math.PI/2;coil.position.set(mid.x+n.x*.95,cy,mid.y+n.y*.95);coil.castShadow=true;S.add(coil);
+   if(d.op){var mo=new T.Mesh(new T.BoxGeometry(1.1,1,1.1),exMat(T,0x3d4148,{r:.4}));var e2=hor?{x:Math.max(g.a.x,g.b.x)+.9,y:mid.y}:{x:mid.x,y:Math.max(g.a.y,g.b.y)+.9};mo.position.set(e2.x+n.x*.9,cy,e2.y+n.y*.9);mo.castShadow=true;S.add(mo);
+    var bt=new T.Mesh(new T.BoxGeometry(.25,.4,.1),exMat(T,0xeeece6,{r:.5}));var b2=hor?{x:Math.max(g.a.x,g.b.x)+.7,y:mid.y}:{x:mid.x,y:Math.max(g.a.y,g.b.y)+.7};bt.position.set(b2.x+n.x*.06,4.5,b2.y+n.y*.06);if(!hor)bt.rotation.y=Math.PI/2;S.add(bt)}
+   return}
+  // walk-in door: steel frame and leaf (shown open), lever handle, optional glass panel
+  var fh=(d.h||6.67),frM=exMat(T,0x4a4f55,{m:.4,r:.45}),lfM=exMat(T,0x6d7378,{m:.35,r:.45}),f0=wc(.25);
+  [g.a,g.b].forEach(function(p,i){var sgn=i?-1:1;var m=new T.Mesh(new T.BoxGeometry(hor?.18:.6,fh+.2,hor?.6:.18),frM);m.position.set(p.x+(hor?sgn*.09:0)-n.x*.25,(fh+.2)/2,p.y+(hor?0:sgn*.09)-n.y*.25);S.add(m)});
+  bx(f0.x,fh+.1,f0.y,L+.36,.2,.6,frM);
+  var leaf=function(h0,len,dir){var sn=g.sn,lm=new T.Mesh(new T.BoxGeometry(sn.x!==0?len-.05:.16,fh,sn.x!==0?.16:len-.05),lfM);lm.position.set(h0.x+sn.x*len/2,fh/2,h0.y+sn.y*len/2);lm.castShadow=true;S.add(lm);
+    var tip={x:h0.x+sn.x*len,y:h0.y+sn.y*len},lv=new T.Mesh(new T.BoxGeometry(sn.x!==0?.08:.5,.08,sn.x!==0?.5:.08),M.steel);lv.position.set(tip.x-sn.x*.3+dir.x*.18,3.4,tip.y-sn.y*.3+dir.y*.18);S.add(lv);
+    if(d.gl){var gp=new T.Mesh(new T.BoxGeometry(sn.x!==0?len*.45:.18,fh*.32,sn.x!==0?.18:len*.45),exMat(T,0xbfd6e4,{op:.45,r:.05,m:.2}));gp.position.set(h0.x+sn.x*len*.55,fh*.66,h0.y+sn.y*len*.55);gp.castShadow=false;S.add(gp)}
+    EX.solid.push({x:Math.min(h0.x,tip.x)-.1,z:Math.min(h0.y,tip.y)-.1,w:Math.abs(tip.x-h0.x)+.2,d:Math.abs(tip.y-h0.y)+.2})};
+  var side=hor?{x:1,y:0}:{x:0,y:1};if(L>=5){leaf(g.a,L/2,side);leaf(g.b,L/2,side)}else leaf(g.h,L,side)});
+ // the outdoors, drawn unlit (it's daytime out there): ground, aprons and walks, a few neighbours, trees and sky
+ if(OUT){S.background=new T.Color(0xdfe8ef);S.fog=new T.Fog(0xdfe8ef,Math.max(W,D)*1.6,520);
+  var sky=new T.Mesh(new T.SphereGeometry(540,24,12),new T.ShaderMaterial({side:T.BackSide,depthWrite:false,fog:false,uniforms:{},vertexShader:'varying float vy;void main(){vy=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:'varying float vy;void main(){vec3 hz=vec3(.875,.91,.937),zn=vec3(.47,.64,.84);gl_FragColor=vec4(mix(hz,zn,clamp(vy*1.6,0.,1.)),1.);}'}));sky.position.set(W/2,0,D/2);S.add(sky);
+  var tx=function(base,dots,sz,rep){var t=exTex(T,function(gg,s2){gg.fillStyle=base;gg.fillRect(0,0,s2,s2);for(var i=0;i<s2*s2/14;i++){gg.fillStyle=dots[i%dots.length];gg.fillRect(Math.random()*s2,Math.random()*s2,sz,sz)}},256,[1,1]);t.repeat.set(rep[0],rep[1]);return t},
+   flat=function(x,z,w,d,y,mat){var m=new T.Mesh(new T.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(x,y,z);S.add(m)};
+  flat(W/2,D/2,1100,1100,-.5,bas(0xffffff,tx('#8b9a6c',['#7f8e60','#96a578','#86955f'],2,[140,140])));
+  flat(W/2,D/2,W+8,D+8,-.25,bas(0xffffff,tx('#c2bfb7',['#b3b0a8','#cdcac2'],2,[(W+8)/8,(D+8)/8])));
+  EO.forEach(function(d){var g=eGeo(d),n=g.n,mid={x:(g.a.x+g.b.x)/2,y:(g.a.y+g.b.y)/2},hor=d.s==='n'||d.s==='s',len=d.k==='roll'?40:12,wid=d.k==='roll'?d.len+10:d.len+3,c={x:mid.x-n.x*(len/2+.5),y:mid.y-n.y*(len/2+.5)};
+   if(d.k==='roll'){flat(c.x,c.y,hor?wid:len,hor?len:wid,-.12,bas(0xffffff,tx('#56595d',['#4b4e52','#616468','#5a5d61'],2,[wid/6,len/6])));
+    [-1,1].forEach(function(q){var lx=c.x+(hor?q*(wid/2-.3):0),lz=c.y+(hor?0:q*(wid/2-.3));flat(lx,lz,hor?.3:len,hor?len:.3,-.08,bas(0xe8e2c9))})}
+   else flat(c.x,c.y,hor?wid:len,hor?len:wid,-.12,bas(0xffffff,tx('#cbc8c0',['#bdbab2','#d6d3cb'],2,[wid/4,len/4])))});
+  var R0=Math.max(W,D)/2,cx0=W/2,cz0=D/2;
+  for(var bi=0;bi<12;bi++){var ang=bi/12*Math.PI*2+rng()*.3,dist=R0+140+rng()*160,bw2=30+rng()*60,bd2=30+rng()*50,bh=12+rng()*22,sh=[0xa9adb2,0xbfc3c7,0x9ea2a7,0x9ea2a7,0xb4b8bd,0xa4a8ad].map(function(v){return bas(v)}),
+    bm=new T.Mesh(new T.BoxGeometry(bw2,bh,bd2),sh);bm.position.set(cx0+Math.cos(ang)*dist,bh/2,cz0+Math.sin(ang)*dist);bm.rotation.y=ang;S.add(bm)}
+  var leafA=bas(0x5d7f45),leafB=bas(0x6f9452),trunk=bas(0x6b5440);
+  for(var ti=0;ti<26;ti++){var a2=rng()*Math.PI*2,d2=R0+45+rng()*110,tx2=cx0+Math.cos(a2)*d2,tz2=cz0+Math.sin(a2)*d2,th=12+rng()*14;
+   var tr=new T.Mesh(new T.CylinderGeometry(.5,.7,th*.35,8),trunk);tr.position.set(tx2,th*.175,tz2);S.add(tr);
+   var f1=new T.Mesh(new T.ConeGeometry(th*.28,th*.55,10),leafA);f1.position.set(tx2,th*.55,tz2);S.add(f1);var f2=new T.Mesh(new T.ConeGeometry(th*.2,th*.4,10),leafB);f2.position.set(tx2,th*.82,tz2);S.add(f2)}}
  // floor surfaces: textured slabs a hair above the concrete, with painted lines for bays and rinks
  if(P.floors&&P.floors.length){var rnd=function(a){a=a||1;return Math.random()*a},speck=function(g,s,n,cols,sz){for(var i=0;i<n;i++){g.fillStyle=cols[i%cols.length];g.fillRect(rnd(s),rnd(s),sz,sz)}},
    FT={wood:[4,.6,function(g,s){var h=s/8;for(var r=0;r<8;r++){g.fillStyle=r%2?'#c4935c':'#cf9f68';g.fillRect(0,r*h,s,h);g.fillStyle='rgba(90,55,20,.08)';for(var q=0;q<30;q++)g.fillRect(rnd(s),r*h+rnd(h),rnd(s/3),1);g.fillStyle='#8e6232';g.fillRect(0,r*h,s,1.5);var j=(r*0.37%1)*s;g.fillRect(j,r*h,2,h);g.fillRect((j+s*.55)%s,r*h,2,h)}}],
@@ -1128,7 +1179,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
    seg=function(x,z,w,d,y0,y1,len){if(w<=.01||d<=.01||y1-y0<=.01)return;var m=new T.Mesh(new T.BoxGeometry(w,y1-y0,d),dw.clone());m.layers.enable(2);m.material.map=dw.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(Math.max(.3,len/8),Math.max(.3,(y1-y0)/8));m.position.set(x,(y0+y1)/2,z);m.castShadow=true;m.receiveShadow=true;S.add(m)};
   P.rooms.forEach(function(r){var wh=Math.min(r.h||H,H);
    ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=sideGaps(r,sd),cur=0,parts=[];
-    gaps.forEach(function(g){if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>7.05)parts.push([g[0],g[1],7,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
+    gaps.forEach(function(g){var tp=g[2]||7;if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>tp+.05)parts.push([g[0],g[1],tp,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
     var sh=sideShared(r,sd);if(sh.length){var cut=[];parts.forEach(function(q){var segs=[[q[0],q[1]]];sh.forEach(function(x){var nx=[];segs.forEach(function(g){if(x[1]<=g[0]||x[0]>=g[1]){nx.push(g);return}if(x[0]>g[0])nx.push([g[0],x[0]]);if(x[1]<g[1])nx.push([x[1],g[1]])});segs=nx});segs.forEach(function(g){if(g[1]-g[0]>1e-3)cut.push([g[0],g[1],q[2],q[3]])})});parts=cut}
     parts.forEach(function(q){var a=q[0],b=q[1],hor=sd==='n'||sd==='s',fx=hor?r.x+(a+b)/2:(sd==='w'?r.x:r.x+r.w),fz=hor?(sd==='n'?r.y:r.y+r.d):r.y+(a+b)/2,w=hor?b-a:TH,d=hor?TH:b-a;
      seg(fx,fz,w,d,q[2],q[3],b-a);if(q[2]===0)EX.solid.push({x:fx-w/2,z:fz-d/2,w:w,d:d})})});
@@ -1189,12 +1240,12 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
 function exSpawn(){var W=P.room.w,D=P.room.d,best=null,bs=-1;for(var y=1.5;y<D-1;y+=1)for(var x=1.5;x<W-1;x+=1){if(exHit(x,y))continue;var sc=-Math.hypot(x-W/2,y-(D-2))+(exClear(x,y)*2);if(sc>bs){bs=sc;best={x:x,y:y}}}
  return best||{x:W/2,y:D/2}}
 function exClear(x,z){var m=4;EX.solid.forEach(function(s){var dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));m=Math.min(m,Math.hypot(dx,dz))});return m}
-function exHit(x,z){var W=P.room.w,D=P.room.d;if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
+function exHit(x,z){var W=P.room.w,D=P.room.d,out=(P.edoors||[]).some(function(d){return d.k==='door'});if(out){if(x<-120||z<-120||x>W+120||z>D+120)return true;var ws=EX.wallSolid||[];for(var j=0;j<ws.length;j++){var q=ws[j],ex=Math.max(q.x-x,0,x-(q.x+q.w)),ez=Math.max(q.z-z,0,z-(q.z+q.d));if(ex*ex+ez*ez<RAD*RAD)return true}}else if(x<RAD||z<RAD||x>W-RAD||z>D-RAD)return true;for(var i=0;i<EX.solid.length;i++){var s=EX.solid[i],dx=Math.max(s.x-x,0,x-(s.x+s.w)),dz=Math.max(s.z-z,0,z-(s.z+s.d));if(dx*dx+dz*dz<RAD*RAD)return true}return false}
 function exStart(){var T=EX.T,host=$('#explore');host.innerHTML='<canvas id="excv"></canvas><div class="exhud">'+(TOUCH?'Left thumb: walk · drag anywhere else: look':'Move the mouse to look · WASD / arrows to walk · Shift to run · Esc to leave')+'</div><div class="exjoy" id="exjoy"><i></i></div>'+(P.items.some(function(i){var c=defOf(i);return c&&c.ceiling&&/^cl-/.test(c.r)})||(P.zones&&P.zones.length)?'':'<div class="exnote">No ceiling lights yet, so the room has soft work light. Add a light zone in Lights view to see them here.</div>');
  var cv=$('#excv'),r=EX.r=new T.WebGLRenderer({canvas:cv,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio||1,TOUCH?1.5:2));r.shadowMap.enabled=true;r.shadowMap.type=T.PCFSoftShadowMap;r.toneMapping=T.ACESFilmicToneMapping;r.outputColorSpace=T.SRGBColorSpace;
  EX.S=exBuild();
  // nothing in the scene moves while you walk around, so work the shadows out once on entry and reuse them every frame
- r.shadowMap.autoUpdate=false;r.shadowMap.needsUpdate=true;EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn();EX.pos={x:sp.x,z:sp.y};EX.yaw=0;EX.pitch=-.05;
+ r.shadowMap.autoUpdate=false;r.shadowMap.needsUpdate=true;EX.cam=new T.PerspectiveCamera(70,1,.1,600);var sp=exSpawn(),es=eSpawn();if(es&&!exHit(es.x,es.y))sp=es;EX.pos={x:sp.x,z:sp.y};EX.yaw=sp.yaw||0;EX.pitch=-.05;
  var size=function(){var b=host.getBoundingClientRect();r.setSize(b.width,b.height,false);EX.cam.aspect=b.width/Math.max(1,b.height);EX.cam.updateProjectionMatrix()};size();EX.size=size;
  // desktop: pointer lock look; touch: joystick + drag look
  cv.onclick=function(){if(!TOUCH&&host.requestPointerLock&&document.pointerLockElement!==host){try{var pr=host.requestPointerLock();if(pr&&pr.catch)pr.catch(function(){})}catch(_){}}};

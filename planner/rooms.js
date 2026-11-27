@@ -23,7 +23,7 @@ function dGeo(r,d){var L=d.len||3,t=d.t,s=d.s,a,b,n,hz;
 // door openings on one side of a room, its own and any a neighbour has in the shared wall
 function sideGaps(r,sd){var len=sideLen(r,sd),hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w,o0=hor?r.x:r.y,out=[];
  RM().forEach(function(q){(q.doors||[]).forEach(function(d){var g=dGeo(q,d),dh=d.s==='n'||d.s==='s';if(dh!==hor)return;var dl=hor?g.a.y:g.a.x;if(Math.abs(dl-line)>1e-6)return;var a=(hor?Math.min(g.a.x,g.b.x):Math.min(g.a.y,g.b.y))-o0,b=a+g.L;if(b<=0||a>=len)return;out.push([Math.max(0,a),Math.min(len,b)])})});
- return out.sort(function(p,q){return p[0]-q[0]})}
+ eGapsOn(r,sd).forEach(function(g){out.push(g)});return out.sort(function(p,q){return p[0]-q[0]})}
 // parts of a side another room draws instead (shared wall): the taller room draws it, or the earlier one when level
 function sideShared(r,sd){var hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?r.y+r.d:sd==='w'?r.x:r.x+r.w,o0=hor?r.x:r.y,len=sideLen(r,sd),H=P.room.h||10,hr=Math.min(r.h||H,H),ir=RM().indexOf(r),out=[];
  RM().forEach(function(q,iq){if(q===r)return;var hq=Math.min(q.h||H,H);if(!(hq>hr+1e-6||(Math.abs(hq-hr)<1e-6&&iq<ir)))return;
@@ -32,12 +32,12 @@ function sideShared(r,sd){var hor=sd==='n'||sd==='s',line=sd==='n'?r.y:sd==='s'?
 function doorCount(r){return ['n','e','s','w'].reduce(function(a,sd){return a+sideGaps(r,sd).length},0)}
 function sideLen(r,s){return s==='n'||s==='s'?r.w:r.d}
 function onEdge(r,s){var W=P.room.w,D=P.room.d;return (s==='n'&&r.y<=1e-6)||(s==='s'&&r.y+r.d>=D-1e-6)||(s==='w'&&r.x<=1e-6)||(s==='e'&&r.x+r.w>=W-1e-6)}
-function doorBoxes(){var o=[];RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
+function doorBoxes(){var o=eBoxes();RM().forEach(function(r){(r.doors||[]).forEach(function(d){var g=dGeo(r,d);o.push(g.swing);if(inside(g.land,P.room.w,P.room.d))o.push(g.land)})});return o}
 var PREF=null;
 // walls: the footprint sits wholly in one room or wholly in the open floor; clearance stays on the same side; doors stay clear
 // walls have thickness: 3D walls are WT thick, centred on the room's edge line, so floor objects keep WH clear of both faces
 var WT=.4,WH=WT/2;
-function wallOK(b,c,ceil){var a=RM();if(!a.length)return PREF?PREF.indexOf('o')>=0:true;var r=roomOfBox(ceil?b:{x:b.x-WH,y:b.y-WH,w:b.w+2*WH,d:b.d+2*WH});if(r===null)return false;var id=r==='o'?'o':r.id;if(PREF&&PREF.indexOf(id)<0)return false;
+function wallOK(b,c,ceil){var a=RM();if(!a.length){if(PREF&&PREF.indexOf('o')<0)return false;if(!ceil){var eb=eBoxes();for(var q=0;q<eb.length;q++)if(hit(b,eb[q]))return false}return true}var r=roomOfBox(ceil?b:{x:b.x-WH,y:b.y-WH,w:b.w+2*WH,d:b.d+2*WH});if(r===null)return false;var id=r==='o'?'o':r.id;if(PREF&&PREF.indexOf(id)<0)return false;
  if(c){if(r==='o'){for(var i=0;i<a.length;i++)if(hit(c,a[i]))return false}else if(!within(c,r))return false}
  if(!ceil){var db=doorBoxes();for(var j=0;j<db.length;j++)if(hit(b,db[j]))return false}return true}
 // x (or y) positions that put an object of size m flush against a wall face
@@ -99,7 +99,7 @@ function shadeHex(hex,f){var c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&
 function rRedraw(){if(G.rooms)G.rooms.innerHTML=drawRooms(1/scale())}
 /* ---- pointer: move, resize, drag a door along its walls ---- */
 function rDown(e){if(!BLD||e.button>0)return;var t=e.target,hd=t.closest('.rh'),dr=t.closest('.rdoor'),g=hd||dr||t.closest('.room');if(!g)return;var r=rBy(g.dataset.r);if(!r)return;
- e.stopPropagation();e.preventDefault();rd={id:r.id,mode:hd?'size':dr?'door':'move',h:hd&&hd.dataset.h,di:dr?+dr.dataset.d:null,p0:toFt(e),b0:{x:r.x,y:r.y,w:r.w,d:r.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP(),mem:memberOf(),
+ e.stopPropagation();e.preventDefault();selE=null;rd={id:r.id,mode:hd?'size':dr?'door':'move',h:hd&&hd.dataset.h,di:dr?+dr.dataset.d:null,p0:toFt(e),b0:{x:r.x,y:r.y,w:r.w,d:r.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP(),mem:memberOf(),
   doors0:JSON.parse(JSON.stringify(r.doors||[])),its:P.items.filter(function(it){var b=ibox(it);return within(b,r)}).map(function(it){return [it,it.x,it.y]}),zs:ZN().filter(function(z){return within(z,r)}).map(function(z){return [z,z.x,z.y,JSON.parse(JSON.stringify(z.adj||{}))]})};
  window.addEventListener('pointermove',rMove);window.addEventListener('pointerup',rUp);window.addEventListener('pointercancel',rUp)}
 function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clientY-rd.sy)<4)return;rd.moved=true;var r=rBy(rd.id),p=toFt(e),dx=p.x-rd.p0.x,dy=p.y-rd.p0.y,b0=rd.b0,W=P.room.w,D=P.room.d,nb,others=RM().filter(function(q){return q!==r});
@@ -129,6 +129,8 @@ function rUp(){window.removeEventListener('pointermove',rMove);window.removeEven
 function buildLib(){var t=function(id,ic,n,sub){return '<div class="btool" data-t="'+id+'" role="button" tabindex="0"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ic+'</svg><div><b>'+n+'</b><span>'+sub+'</span></div></div>'};
  return '<p class="lab" style="margin:2px 0 8px">Add</p>'+t('room','<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M12 8v8M8 12h8"/>','Room',(TOUCH?'Hold and drag':'Drag')+' it onto the plan, then size it. It comes with a door.')+
   t('door','<path d="M4 21h16M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/>','Door','Drop it on a room\'s wall. Drag it along the wall to move it.')+
+  t('edoor','<path d="M2 21h20M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/><path d="M19 8v8M17 10l2-2 2 2"/>','Exterior door','Drop it on an outside wall of the building.')+
+  t('roll','<path d="M3 21V5h18v16"/><path d="M3 5h18M5 9h14M5 12h14M5 15h14M5 18h14"/>','Roll-up door','Drop it on an outside wall. Keeps a clear driveway inside.')+
   '<p class="muted" style="margin-top:14px">Objects are locked while you build. Switch to Design to move them.</p>'}
 function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(function(c){var st=null;
  c.onpointerdown=function(e){if(e.button>0)return;st={sx:e.clientX,sy:e.clientY,on:false};c.setPointerCapture&&c.setPointerCapture(e.pointerId)};
@@ -136,15 +138,16 @@ function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(functio
   st.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';var R=sv.getBoundingClientRect(),over=e.clientX>R.left&&e.clientX<R.right&&e.clientY>R.top&&e.clientY<R.bottom,k=1/scale();st.chip.classList.toggle('over',over);
   if(!over){G.ghost.innerHTML='';st.b=null;return}var p=toFt(e);
   if(c.dataset.t==='room'){var b=rFit(p.x,p.y);st.b=b;G.ghost.innerHTML=b?'<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(4*k)+'" stroke-dasharray="'+(8*k)+' '+(5*k)+'" pointer-events="none"/>':''}
+  else if(c.dataset.t==='edoor'||c.dataset.t==='roll'){var k2=c.dataset.t==='roll'?'roll':'door',es=eSpot(p,k2,EDEF[k2].len);st.b=es;G.ghost.innerHTML=es?eGhost(es,k):''}
   else{var dd=doorSpot(p);st.b=dd;if(dd){var g=dGeo(rBy(dd.r),dd.d);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(8*k)+'" pointer-events="none"/><line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="#2f7de1" stroke-width="'+(2.4*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}};
  c.onpointerup=c.onpointercancel=function(e){var s=st;st=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();if(!s.on||e.type!=='pointerup'||!s.b)return;
-  if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
+  if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else if(c.dataset.t==='edoor'||c.dataset.t==='roll')eAdd(s.b);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
 function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<3)return;var along,dist;
   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d));if(along<-1||along>len+1)return}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w));if(along<-1||along>len+1)return}
   if(dist>2.5||(best&&dist>=best.dist))return;var t=Math.round(Math.max(0,Math.min(len-3,along-1.5))*2)/2;
   if((r.doors||[]).some(function(d){return d.s===sd&&t<d.t+(d.len||3)&&d.t<t+3}))return;best={dist:dist,r:r.id,d:{s:sd,t:t,len:3,sw:1,hg:0}}})});return best}
 function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
-function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
+function buildSide(){if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
   '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
   '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
   '<label class="sw" style="margin-top:10px" title="'+(P.dyn?'The building grows to fit new objects. Rooms stay where they are.':'The building stays this size.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Grow to fit what\'s inside</label>'+
@@ -173,7 +176,7 @@ function buildSide(){var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="ca
  else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
  var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
  return h}
-function buildSideWire(){['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
+function buildSideWire(){if(selE!=null&&ED()[selE]){eCardWire();return}['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');if(hi2)hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;RM().forEach(function(r){if(v&&r.h>v)r.h=v});persist();render()};
  var dy=$('#r-dyn');if(dy)dy.onchange=function(){push();P.dyn=this.checked;persist();render()};
  document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
@@ -190,7 +193,7 @@ function buildSideWire(){['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.o
   document.querySelectorAll('input[name=dsw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
   $('#d-flip').onclick=function(){upd(function(){d.hg=d.hg?0:1})};
   $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})}}}
-function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
+function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;selE=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
 /* ---- per-room summary ---- */
 var openRm={};
 function roomItems(r){return P.items.filter(function(it){var b=ibox(it),id=rid(b);return r?id===r.id:id==='o'||id===null})}
