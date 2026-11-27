@@ -18,6 +18,10 @@ var SAFE={
  cook:{k:'clear',n:3,t:'Cooking line aisle',why:'Room to work hot pots, fryers and oven doors safely.',src:'Commercial kitchen layout practice'},
  flam:{k:'clear',n:3,t:'Flammable storage access',why:'Keep 3 ft clear in front of flammable storage so the doors open fully and nothing piles up against it.',src:'OSHA 1910.106(d)(5)'},
  lift:{k:'clear',n:2,t:'Lift walk-around',why:'Room to walk all the way around a raised vehicle and reach the lift controls and arms.',src:'Lift manufacturer installation guides'},
+ duct:{k:'place',t:'Outside wall',why:'Its exhaust has to be ducted outside, so it goes on an outside wall to keep the duct run short.',src:'NFPA 33 (spray) · maker install guides (lasers, kilns, plasma)'},
+ dustc:{k:'place',t:'Outside wall',why:'A dust collector this size (over 500 CFM) belongs outdoors, or right at an outside wall with the indoor exceptions met.',src:'Cal/OSHA 8 CCR 4324(c) · NFPA 660 (was 664)'},
+ hotfloor:{k:'place',t:'Non-combustible floor',why:'Sparks, spatter or heat land on the floor here, so it needs bare or sealed concrete, epoxy or tile, not wood, carpet, rubber, sport tile, turf or rink flooring.',src:'OSHA 1910.252(a)(2)(ii) · 1910.107(b)(3)'},
+ door:{k:'place',t:'Doorway',why:'Nothing may stand in front of a door or in its swing.',src:'OSHA 1910.37 · CFC egress'},
  hotwork:{k:'apart',n:35,t:'Hot-work separation',why:'Welding and cutting sparks travel up to 35 ft. Keep anything combustible that far away, or put fire curtains or a wall between.',src:'OSHA 1910.252(a) · NFPA 51B'}
 };
 /* fixed minimum clearance for an item: [front, back, left, right] in ft, and the rule behind each side */
@@ -64,9 +68,25 @@ function belowMin(it){var c=defOf0(it),m=kMinOf(c);if(!m)return false;var k=it.k
 // bring an opened layout up to the safety minimums: write the raised values and re-fit anything that now clashes
 function safetyLift(say){if(!P||!P.items)return 0;var n=0;P.items.forEach(function(it){if(!belowMin(it))return;n++;var c=defOf0(it),m=kMinOf(c);if(it.k)it.k=it.k.map(function(v,i){return Math.max(v,m[i])});
   if(P.defs&&P.defs[it.r]&&Array.isArray(P.defs[it.r].k))P.defs[it.r].k=P.defs[it.r].k.map(function(v,i){return Math.max(v,m[i])})});
- if(!n)return 0;relayout({nogrow:true});persist();if(say)toast(n+' object'+(n>1?'s were':' was')+' given more clearance to meet safety minimums');return n}
+ var pv=P.items.filter(function(it){return !!itPlaceRule(it)}).length;n+=pv;if(!n)return 0;relayout({nogrow:true});persist();if(say)toast(n+' object'+(n>1?'s were':' was')+' moved or given more clearance to meet safety rules');return n}
 var SHIELD='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.2 8 9 4.6-.8 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>';
 // the "why" under a clearance editor: which sides are locked and the rule behind them
 function kMinNote(c){var R=kMinRules(c);if(!R.length)return '';return '<div class="kmnote">'+SHIELD+'<div><b>Safety minimum: '+esc(kMinTxt(c))+'</b>'+R.map(function(r){return '<small>'+esc(r.why)+(r.note?' '+esc(r.note):'')+' <i>'+esc(r.src)+'</i></small>'}).join('')+'</div></div>'}
 // typing a value under the minimum snaps it back up and points at the reason
 function kMinWire(d){d.querySelectorAll('input[data-min]').forEach(function(x){x.addEventListener('change',function(){var v=parseFloat(x.value),m=+x.dataset.min;if(!(v>=m-1e-9)){x.value=fmt(m);x.classList.add('kbump');var n=d.querySelector('.kmnote');if(n){n.classList.remove('kflash');void n.offsetWidth;n.classList.add('kflash')}setTimeout(function(){x.classList.remove('kbump')},900)}})})}
+
+/* ---------- placement rules (phase 2): hard blocks, checked wherever an object is placed ---------- */
+var PLACE={},PL=function(ids,r){ids.split(' ').forEach(function(id){(PLACE[id]=PLACE[id]||[]).push(r)})};
+PL('m-laser1 m-laser2 m-laser3 mf-fiber mf-plasma1 mf-plasma2 mf-spray mf-pcbooth mf-pcoven cr-kiln1 cr-kiln2','duct');
+PL('w-dust w-cyclone','dustc');
+PL('a-mig1 a-mig2 m-weld1 m-weld2 m-weld3 mf-plasma1 mf-plasma2 mf-grind mf-table cr-kiln1 cr-kiln2 mf-pcoven m-tunnel mf-spray mf-pcbooth','hotfloor');
+var BADFLOOR={wood:1,carpet:1,rubber:1,sport:1,turf:1,rink:1};
+// near an outside wall: the object's clear zone (or body) reaches the building's edge
+function onExt(b,cc){var z=cc||b,W=P.room.w,D=P.room.d,T=.75;return z.x<=T||z.y<=T||z.x+z.w>=W-T||z.y+z.d>=D-T}
+function onBadFloor(b){var a=P.floors||[];for(var i=0;i<a.length;i++)if(BADFLOOR[a[i].m]&&hit(b,a[i]))return a[i];return null}
+// the first placement rule this spot breaks, or null
+function placeRule(c,b,cc){var R=c&&!c.ceiling&&PLACE[c.r];if(!R)return null;for(var i=0;i<R.length;i++){var r=R[i];
+  if((r==='duct'||r==='dustc')&&!onExt(b,cc))return SAFE[r];if(r==='hotfloor'&&onBadFloor(b))return SAFE[r]}return null}
+function itPlaceRule(it){var c=defOf(it);if(!c||c.ceiling)return null;var b=ibox(it);return placeRule(c,b,clr(c,b,it.rot))}
+function placeMsg(c,r){return c.n+': '+(r===SAFE.duct||r===SAFE.dustc?'needs an outside wall':r===SAFE.hotfloor?'can\'t sit on that flooring':'not allowed there')+'. '+r.why}
+function placeRules(c){return (c&&PLACE[c.r]||[]).map(function(r){return SAFE[r]})}

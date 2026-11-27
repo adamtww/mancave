@@ -44,7 +44,7 @@ function wallOK(b,c,ceil){var a=RM();if(!a.length){if(PREF&&PREF.indexOf('o')<0)
 function faceStops(m,ax){var o=[];RM().forEach(function(r){var a=ax?r.y:r.x,L=ax?r.d:r.w;o.push(a+WH,a+L-WH-m,a-WH-m,a+L+WH)});return o}
 // older layouts placed objects right on the wall line: slide them out of the wall (at most WH each way)
 function wallNudge(){if(!RM().length)return 0;var n=0;P.items.forEach(function(it){var c=defOf(it);if(!c||c.ceiling)return;var b=ibox(it);if(wallOK(b,clr(c,b,it.rot),false))return;
-  var obs=others(it),W=P.room.w,D=P.room.d,best=null;[0,-WH,WH].forEach(function(dx){[0,-WH,WH].forEach(function(dy){if(best)return;var nb={x:b.x+dx,y:b.y+dy,w:b.w,d:b.d};if(ok(nb,clr(c,nb,it.rot),obs,W,D))best=[dx,dy]})});
+  var obs=others(it),W=P.room.w,D=P.room.d,best=null;[0,-WH,WH].forEach(function(dx){[0,-WH,WH].forEach(function(dy){if(best)return;var nb={x:b.x+dx,y:b.y+dy,w:b.w,d:b.d};if(ok(nb,clr(c,nb,it.rot),obs,W,D,c))best=[dx,dy]})});
   if(best){it.x+=best[0];it.y+=best[1];n++}});return n}
 function crossesWall(b){return RM().length&&roomOfBox(b)===null}
 // rooms next to each other (sharing part of a wall); the open floor neighbours every room
@@ -361,7 +361,7 @@ function roomStat(r){var H=P.room.h||10,its=P.items.filter(function(it){var b=ib
   zs=ZN().filter(function(z){var cx=z.x+z.w/2,cy=z.y+z.d/2,q=roomAt(cx,cy);return r?q===r:!q}),fc=0,A=0;
  zs.forEach(function(z){var L=zLayout(z),a=z.w*z.d;fc+=L.fc*a;A+=a});var lit=zs.length||its.some(function(it){return isLt(defOf(it))});
  var wn=r?['n','e','s','w'].reduce(function(a,sd){return a+winsOn(r,sd).length},0):EW().length,dn=r?doorCount(r):ED().length,t=[];
- if(r&&!dn)t.push(['red','No door']);if(tall)t.push(['red',tall+' too tall']);if(bw)t.push(['red',bw+' crossing a wall']);if(!lit&&(r||ground.length))t.push(['amb','No lights']);
+ if(r&&!dn)t.push(['red','No door']);if(tall)t.push(['red',tall+' too tall']);if(bw)t.push(['red',bw+' crossing a wall']);var pv=ground.filter(function(it){return !!itPlaceRule(it)}).length;if(pv)t.push(['red',pv+' in a no-go spot']);if(!lit&&(r||ground.length))t.push(['amb','No lights']);
  return {o:ground.length,d:dn,w:wn,fc:A?Math.round(fc/A):null,lit:lit,tags:t,h:hh}}
 function roomTiles(){var W=P.room.w,D=P.room.d,tot=W*D,a=RM(),enc=a.reduce(function(s,r){return s+r.w*r.d},0),open=Math.max(0,tot-enc);
  if(!a.length)return '<div class="card"><span class="lab">Rooms</span><p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p></div>';

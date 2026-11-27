@@ -81,7 +81,7 @@ function kOf(c){return kSafe(c,(c&&Array.isArray(c.k))?c.k:kFrom(c||{}))}
 function clr(c,b,rot){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return null;return clrBox(b.x,b.y,b.w,b.d,k,rot%4)}
 function hit(a,b){return a.x<b.x+b.w-1e-6&&b.x<a.x+a.w-1e-6&&a.y<b.y+b.d-1e-6&&b.y<a.y+a.d-1e-6}
 function inside(r,W,D){return r.x>=-1e-6&&r.y>=-1e-6&&r.x+r.w<=W+1e-6&&r.y+r.d<=D+1e-6}
-function ok(b,c,placed,W,D){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;if((P.rooms&&P.rooms.length||PREF)&&!wallOK(b,c,false))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
+function ok(b,c,placed,W,D,def){if(!inside(b,W,D)||(c&&!inside(c,W,D)))return false;if(!wallOK(b,c,false))return false;if(def&&placeRule(def,b,c))return false;for(var i=0;i<placed.length;i++){var p=placed[i];if(hit(b,p.b)||(p.c&&hit(b,p.c))||(c&&hit(c,p.b)))return false}return true}
 // back 0: it can stand against a wall; no clearance at all: it goes anywhere
 function kind(c){var k=kOf(c);if(!(k[0]||k[1]||k[2]||k[3]))return 'flex';return (k[1]<=1&&k[0]>=k[1])?'wall':'center'}
 var WALLROT=[0,1,2,3]; // top wall faces down (0), right faces left (1), bottom faces up (2), left faces right (3)
@@ -95,7 +95,7 @@ function center(b){return {x:b.x+b.w/2,y:b.y+b.d/2}}
 // Lay the room out. stable: objects already in the room stay put unless they now clash; only those move, to the nearest free spot.
 function spotFor(it,c,placed,W,D,near){var k=kind(c),same=placed.filter(function(p){return p.cat===c.c}),best=null,
   cands=k==='center'?gridSpots(it,W,D):wallSpots(it,W,D);if(k==='flex'||(near&&k==='wall'))cands=cands.concat(gridSpots(it,W,D).map(function(s){s.t=1e4;return s}));
- for(var j=0;j<cands.length;j++){var s=cands[j],mm=dims(it,s.rot),bb={x:s.x,y:s.y,w:mm.w,d:mm.d},c2=clr(c,bb,s.rot);if(!ok(bb,c2,placed,W,D))continue;
+ for(var j=0;j<cands.length;j++){var s=cands[j],mm=dims(it,s.rot),bb={x:s.x,y:s.y,w:mm.w,d:mm.d},c2=clr(c,bb,s.rot);if(!ok(bb,c2,placed,W,D,c))continue;
   var ce=center(bb),sc;
   if(near){sc=Math.hypot(ce.x-near.x,ce.y-near.y)+(s.rot===near.rot?0:1.5)+(k==='wall'&&s.t>=1e4?12:0)}
   else{var cl=0;if(same.length){cl=1e9;same.forEach(function(p){var q=center(p.b);cl=Math.min(cl,Math.hypot(q.x-ce.x,q.y-ce.y))})}
@@ -133,7 +133,7 @@ function layout1(items,W,D,stable){var placed=[],out={},order=items.slice(),move
  var pr=function(it){var c=defOf(it),m=dims(it,0),k=kOf(c);return (it.pin?1e9:0)+(stable&&it.placed?5e8:0)+({center:3e6,wall:2e6,flex:1e6})[kind(c)]+(m.w+k[2]+k[3])*(m.d+k[0]+k[1])};
  order.sort(function(a,b){return pr(b)-pr(a)||a.n-b.n});
  var put=function(it,c,best){placed.push({u:it.u,b:best.b,c:best.c,cat:c.c});out[it.u]={x:best.x,y:best.y,rot:best.rot}};
- var at=function(it,c){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);return ok(b,cc,placed,W,D)?{x:it.x,y:it.y,rot:it.rot,b:b,c:cc}:null};
+ var at=function(it,c){var m=dims(it,it.rot),b={x:it.x,y:it.y,w:m.w,d:m.d},cc=clr(c,b,it.rot);return ok(b,cc,placed,W,D,c)?{x:it.x,y:it.y,rot:it.rot,b:b,c:cc}:null};
  for(var i=0;i<order.length;i++){var it=order[i],c=defOf(it),best;
   if(it.pin){best=at(it,c);if(!best)return {fail:it,pinned:true};put(it,c,best)}
   else if(stable&&it.placed){best=stable===2?null:at(it,c);if(best)put(it,c,best);else moved.push(it)}
@@ -602,7 +602,7 @@ function others(it){var lv=isC(it);return P.items.filter(function(o){return o!==
 function nearestFree(it,x,y,obs,rot){var c=defOf(it),m=dims(it,rot),W=P.room.w,D=P.room.d,best=null,bd=1e9;
  var gx=[],gy=[];for(var g0=0;g0+m.w<=W+1e-6;g0+=.5)gx.push(g0);for(var g1=0;g1+m.d<=D+1e-6;g1+=.5)gy.push(g1);
  if(!c.ceiling&&RM().length){gx=gx.concat(faceStops(m.w,0).filter(function(v){return v>=-1e-6&&v+m.w<=W+1e-6}));gy=gy.concat(faceStops(m.d,1).filter(function(v){return v>=-1e-6&&v+m.d<=D+1e-6}))}
- for(var iy=0;iy<gy.length;iy++)for(var ix=0;ix<gx.length;ix++){var xx=gx[ix],yy=gy[iy],dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(c.ceiling?okC(c,b,obs,W,D):ok(b,clr(c,b,rot),obs,W,D)){bd=dd;best={x:xx,y:yy}}}
+ for(var iy=0;iy<gy.length;iy++)for(var ix=0;ix<gx.length;ix++){var xx=gx[ix],yy=gy[iy],dd=Math.hypot(xx-x,yy-y);if(dd>=bd)continue;var b={x:xx,y:yy,w:m.w,d:m.d};if(c.ceiling?okC(c,b,obs,W,D):ok(b,clr(c,b,rot),obs,W,D,c)){bd=dd;best={x:xx,y:yy}}}
  return best}
 function ghost(sp,it,rot){var g=G.ghost;if(!sp){g.innerHTML='';return}var m=dims(it,rot),k=1/scale();g.innerHTML='<rect x="'+sp.x+'" y="'+sp.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>'}
 // pushing past a wall turns the object to sit against that wall: front-facing pieces face into the room, others run their long side along it
@@ -631,7 +631,8 @@ sv.addEventListener('pointerup',function(e){var wasPinch=!!pinch||(e.pointerType
  if(!d.moved){sel=it.u;selO=null;render();return}
  var before=snapP();it.rot=d.rot;d.el.dataset.rot=it.rot;
  if(d.spot){it.x=d.spot.x;it.y=d.spot.y}else{it.x=d.x;it.y=d.y}
- if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast('No free spot for it, so it went back');d.el.dataset.k='';render();return}var po=autoPlug(it.u);hist.push(before);fut=[];persist();render();plugToast(po)});
+ var dc=defOf(it),dm=dims(it,d.rot),db={x:d.x,y:d.y,w:dm.w,d:dm.d},drl=placeRule(dc,db,clr(dc,db,d.rot));
+ if(!relayout({nogrow:true})){P=JSON.parse(before);lastFail=null;toast(drl?placeMsg(dc,drl):'No free spot for it, so it went back');d.el.dataset.k='';render();return}var po=autoPlug(it.u);hist.push(before);fut=[];persist();render();if(drl)toast(placeMsg(dc,drl));else plugToast(po)});
 
 /* ---------------- left: library ---------------- */
 var openCats={},q='';if(VW.lv==='l'){openCats['Lighting – General']=true}
@@ -675,13 +676,14 @@ function ldMove(e){var d=ldrag;if(d.pk)return pkMove(e);d.chip.style.transform='
  else{m=dims(it,0);x=Math.round((p.x-m.w/2)*2)/2;y=Math.round((p.y-m.d/2)*2)/2}
  x=Math.max(0,Math.min(W-m.w,x));y=Math.max(0,Math.min(D-m.d,y));
  if(m.w>W+1e-6||m.d>D+1e-6){d.spot=null;ghost(null);return}
- d.rot=rot;d.spot=nearestFree(it,x,y,d.obs,rot);var k=1/scale(),t=Object.assign({},it,{rot:rot}),exact=d.spot&&d.spot.x===x&&d.spot.y===y;
+ d.rot=rot;d.raw={x:x,y:y};d.spot=nearestFree(it,x,y,d.obs,rot);var k=1/scale(),t=Object.assign({},it,{rot:rot}),exact=d.spot&&d.spot.x===x&&d.spot.y===y;
  G.ghost.innerHTML='<g transform="translate('+x+' '+y+')" opacity="'+(exact?.92:.45)+'" pointer-events="none">'+objInner(t,k)+'</g>'+(d.spot&&!exact?'<rect x="'+d.spot.x+'" y="'+d.spot.y+'" width="'+m.w+'" height="'+m.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(1.6*k)+'" stroke-dasharray="'+(5*k)+' '+(3*k)+'" pointer-events="none"/>':'')}
 function ldDrop(e){var d=ldrag;if(d.pk)return pkDrop(e);ldCancel();ldClick=Date.now();ldCard=d.card;if(!ldOver(e))return;
- if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':'No free spot for it there');return}
+ var lc=LIB[d.r],lrl=null;if(lc&&d.raw){var lm=dims(d.it,d.rot),lb={x:d.raw.x,y:d.raw.y,w:lm.w,d:lm.d};lrl=placeRule(lc,lb,clr(lc,lb,d.rot))}
+ if(!d.spot){toast(dims(d.it,0).w>P.room.w||dims(d.it,0).d>P.room.d?'It\'s bigger than the room. Make the room bigger first.':lrl?placeMsg(lc,lrl):'No free spot for it there');return}
  var before=snapP(),it={u:'o'+(P.uid++),r:d.r,x:d.spot.x,y:d.spot.y,rot:d.rot,n:P.uid,placed:1};P.defs[d.r]=JSON.parse(JSON.stringify(LIB[d.r]));P.items.push(it);
  if(!relayout({nogrow:true})){P=JSON.parse(before);toast('No free spot for it there');render();return}
- var po=autoPlug(it.u);hist.push(before);fut=[];lastFail=null;persist();render();pop(it.u);plugToast(po)}
+ var po=autoPlug(it.u);hist.push(before);fut=[];lastFail=null;persist();render();pop(it.u);if(lrl)toast(placeMsg(lc,lrl));else plugToast(po)}
 $('#lib').addEventListener('pointerdown',function(e){var b=e.target.closest('.lcard');if(!b||e.button>0)return;if(ldrag)ldCancel();
  ldrag={r:b.dataset.r,pk:b.dataset.pk,card:b,sx:e.clientX,sy:e.clientY,touch:e.pointerType!=='mouse',started:false};
  if(ldrag.touch)ldrag.timer=setTimeout(function(){if(ldrag&&!ldrag.started){ldStart();ldMove({clientX:ldrag.sx,clientY:ldrag.sy})}},150)});
@@ -746,7 +748,7 @@ function side(){if(SUM){var S1=$('#side');S1.innerHTML=sumSide();strip();sumWire
   (isFan(c)&&fanDrop(it)>(c.drop||0)+.01?'<div class="fnote"><b>Hangs '+fmt(fanDrop(it)+(c.th||1))+' ft down</b>, below the light it overlaps. Blades '+fmt(hOfIt(it)-fanDrop(it)-(c.th||1))+' ft above the floor.<span class="amb">Fan blades turning under a light cause flicker, which can be risky around saws and lathes.</span></div>':'')+
   (it.pin?'<div class="spin">Pinned here · <button class="lnk" id="o-pin">Unpin</button></div>':'')+
   '<button class="fbox" id="o-space" title="Change the size and '+(c.ceiling?'reach':'clearance')+' of this one"><span class="ln"><span class="rw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h4M3 15h4M9 3v4M15 3v4"/></svg>Size'+(itEdited(it,'size')?'<em class="etag">Edited</em>':'')+'</span><b>'+fmt(m.w)+' × '+fmt(m.d)+' ft</b></span><span class="rw"><span>'+(c.ceiling?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="2.5"/></svg>Reach'+(itEdited(it,'reach')?'<em class="etag">Edited</em>':'')+'</span><b>about '+fmt(c.reach||0)+' ft around</b>':'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v16H4z" stroke-dasharray="3 3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>Clearance'+(itEdited(it,'k')?'<em class="etag">Edited</em>':'')+(kMinOf(c)?'<em class="stag" title="'+esc('Can\'t go below '+kMinTxt(c))+'">Safety min</em>':'')+'</span><b>'+clrShort(c)+'</b>')+'</span></span><span class="pe"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m14 6 4 4"/></svg></span></button>'+'<div class="srows">'+(c.ceiling?'<div class="srw"><span>Hangs down</span><b>'+(fanDrop(it)?fmt(fanDrop(it))+' ft':'flush')+'</b></div>':'')+(c.p?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Power</span><b>'+pvTxt(c)+' · '+fmtW(c.p[1])+(c.p[3]?' · own circuit':'')+'</b></div>':'')+(ps&&ps.o?'<div class="srw"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0zM12 18v4"/></svg>Plugged into</span><b>'+esc(tName(ps.o.ty,ps.o))+' · C'+ps.o.c+'</b></div>':'')+'</div>'+
-  (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. '+(roomAt(ibox(it).x+ibox(it).w/2,ibox(it).y+ibox(it).d/2)?'This room':'The building')+' is '+fmt(hOfIt(it))+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
+  (ps&&ps.lv!=='ok'?'<div class="'+(ps.lv==='red'?'err':'warn')+'">'+esc(ps.why)+'</div>':'')+((function(){var pr=itPlaceRule(it);return pr?'<div class="err">'+esc(placeMsg(c,pr))+'</div>':''})())+(ceilOf(it)?'<div class="err">Needs about '+fmt(ceilOf(it))+' ft of clear height. '+(roomAt(ibox(it).x+ibox(it).w/2,ibox(it).y+ibox(it).d/2)?'This room':'The building')+' is '+fmt(hOfIt(it))+' ft.</div>':'')+(c.no?'<p class="muted">'+esc(c.no)+'</p>':'')+'</div>'}
  if(VW.md==='p')h+=powerCard();if(VW.md!=='p'&&!byU(sel)&&!libV&&!selZ&&!(selF&&fOnLv()))h+=whereCard();
 
  var S=$('#side');S.innerHTML=h;strip();pwHead();
