@@ -99,8 +99,8 @@ function shadeHex(hex,f){var c=parseInt(hex.slice(1),16),r=c>>16,g=c>>8&255,b=c&
 function rRedraw(){if(G.rooms)G.rooms.innerHTML=drawRooms(1/scale())}
 /* ---- pointer: move, resize, drag a door along its walls ---- */
 function rDown(e){if(!BLD||e.button>0)return;var t=e.target,hd=t.closest('.rh'),dr=t.closest('.rdoor'),g=hd||dr||t.closest('.room');if(!g)return;var r=rBy(g.dataset.r);if(!r)return;
- e.stopPropagation();e.preventDefault();selE=null;rd={id:r.id,mode:hd?'size':dr?'door':'move',h:hd&&hd.dataset.h,di:dr?+dr.dataset.d:null,p0:toFt(e),b0:{x:r.x,y:r.y,w:r.w,d:r.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP(),mem:memberOf(),
-  doors0:JSON.parse(JSON.stringify(r.doors||[])),its:P.items.filter(function(it){var b=ibox(it);return within(b,r)}).map(function(it){return [it,it.x,it.y]}),zs:ZN().filter(function(z){return within(z,r)}).map(function(z){return [z,z.x,z.y,JSON.parse(JSON.stringify(z.adj||{}))]})};
+ e.stopPropagation();e.preventDefault();selE=null;selW=null;rd={id:r.id,mode:hd?'size':dr?'door':'move',h:hd&&hd.dataset.h,di:dr?+dr.dataset.d:null,p0:toFt(e),b0:{x:r.x,y:r.y,w:r.w,d:r.d},sx:e.clientX,sy:e.clientY,moved:false,before:snapP(),mem:memberOf(),
+  doors0:JSON.parse(JSON.stringify(r.doors||[])),wins0:JSON.parse(JSON.stringify(r.wins||[])),its:P.items.filter(function(it){var b=ibox(it);return within(b,r)}).map(function(it){return [it,it.x,it.y]}),zs:ZN().filter(function(z){return within(z,r)}).map(function(z){return [z,z.x,z.y,JSON.parse(JSON.stringify(z.adj||{}))]})};
  window.addEventListener('pointermove',rMove);window.addEventListener('pointerup',rUp);window.addEventListener('pointercancel',rUp)}
 function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clientY-rd.sy)<4)return;rd.moved=true;var r=rBy(rd.id),p=toFt(e),dx=p.x-rd.p0.x,dy=p.y-rd.p0.y,b0=rd.b0,W=P.room.w,D=P.room.d,nb,others=RM().filter(function(q){return q!==r});
  if(rd.mode==='door'){var d=r.doors[rd.di],best=null;['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<(d.len||3))return;var along,dist;
@@ -121,7 +121,7 @@ function rMove(e){if(!rd)return;if(!rd.moved&&Math.hypot(e.clientX-rd.sx,e.clien
   if(nb.x===r.x&&nb.y===r.y&&nb.w===r.w&&nb.d===r.d)return}
  var mx=nb.x-b0.x,my=nb.y-b0.y;r.x=nb.x;r.y=nb.y;r.w=nb.w;r.d=nb.d;
  if(rd.mode==='move'){rd.its.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my});rd.zs.forEach(function(q){q[0].x=q[1]+mx;q[0].y=q[2]+my;var a={};Object.keys(q[3]).forEach(function(k2){a[k2]=[q[3][k2][0]+mx,q[3][k2][1]+my]});q[0].adj=a})}
- else(r.doors||[]).forEach(function(d,i){var d0=rd.doors0[i],len=sideLen(r,d.s);d.t=Math.max(0,Math.min(len-(d.len||3),d0.t+((d.s==='n'||d.s==='s')?(b0.x-r.x):(b0.y-r.y))))});
+ else{(r.wins||[]).forEach(function(w,i){var w0=rd.wins0[i],len=sideLen(r,w.s);w.t=Math.max(.5,Math.min(len-.5-w.len,w0.t+((w.s==='n'||w.s==='s')?(b0.x-r.x):(b0.y-r.y))))});(r.doors||[]).forEach(function(d,i){var d0=rd.doors0[i],len=sideLen(r,d.s);d.t=Math.max(0,Math.min(len-(d.len||3),d0.t+((d.s==='n'||d.s==='s')?(b0.x-r.x):(b0.y-r.y))))});}
  render()}
 function rUp(){window.removeEventListener('pointermove',rMove);window.removeEventListener('pointerup',rUp);window.removeEventListener('pointercancel',rUp);var d=rd;rd=null;if(!d)return;
  selR=d.id;selD=d.mode==='door'?d.di:null;if(d.moved)bCommit(d.before,d.mem);else render()}
@@ -130,6 +130,7 @@ function buildLib(){var t=function(id,ic,n,sub){return '<div class="btool" data-
  return '<p class="lab" style="margin:2px 0 8px">Add</p>'+t('room','<rect x="3" y="3" width="18" height="18" rx="1"/><path d="M12 8v8M8 12h8"/>','Room',(TOUCH?'Hold and drag':'Drag')+' it onto the plan, then size it. It comes with a door.')+
   t('door','<path d="M4 21h16M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/>','Door','Drop it on a room\'s wall. Drag it along the wall to move it.')+
   t('edoor','<path d="M2 21h20M6 21V3h10v18"/><circle cx="13" cy="12" r="1"/><path d="M19 8v8M17 10l2-2 2 2"/>','Exterior door','Drop it on an outside wall of the building.')+
+  t('win','<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M12 6v12M3 12h18"/>','Window','Drop it on an outside wall or a room wall. Set the sill and glass after.')+
   t('roll','<path d="M3 21V5h18v16"/><path d="M3 5h18M5 9h14M5 12h14M5 15h14M5 18h14"/>','Roll-up door','Drop it on an outside wall. Keeps a clear driveway inside.')+
   '<p class="muted" style="margin-top:14px">Objects are locked while you build. Switch to Design to move them.</p>'}
 function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(function(c){var st=null;
@@ -138,16 +139,17 @@ function buildLibWire(){document.querySelectorAll('#lib .btool').forEach(functio
   st.chip.style.transform='translate('+(e.clientX+14)+'px,'+(e.clientY+14)+'px)';var R=sv.getBoundingClientRect(),over=e.clientX>R.left&&e.clientX<R.right&&e.clientY>R.top&&e.clientY<R.bottom,k=1/scale();st.chip.classList.toggle('over',over);
   if(!over){G.ghost.innerHTML='';st.b=null;return}var p=toFt(e);
   if(c.dataset.t==='room'){var b=rFit(p.x,p.y);st.b=b;G.ghost.innerHTML=b?'<rect x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.d+'" fill="rgba(47,125,225,.10)" stroke="#2f7de1" stroke-width="'+(4*k)+'" stroke-dasharray="'+(8*k)+' '+(5*k)+'" pointer-events="none"/>':''}
+  else if(c.dataset.t==='win'){var ws=wSpot(p);st.b=ws;if(ws){var g=wGeoOf(ws.h,ws.w);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(9*k)+'" pointer-events="none"/><line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#bfe0f2" stroke-width="'+(3*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}
   else if(c.dataset.t==='edoor'||c.dataset.t==='roll'){var k2=c.dataset.t==='roll'?'roll':'door',es=eSpot(p,k2,EDEF[k2].len);st.b=es;G.ghost.innerHTML=es?eGhost(es,k):''}
   else{var dd=doorSpot(p);st.b=dd;if(dd){var g=dGeo(rBy(dd.r),dd.d);G.ghost.innerHTML='<line x1="'+g.a.x+'" y1="'+g.a.y+'" x2="'+g.b.x+'" y2="'+g.b.y+'" stroke="#2f7de1" stroke-width="'+(8*k)+'" pointer-events="none"/><line x1="'+g.h.x+'" y1="'+g.h.y+'" x2="'+g.tip.x+'" y2="'+g.tip.y+'" stroke="#2f7de1" stroke-width="'+(2.4*k)+'" pointer-events="none"/>'}else G.ghost.innerHTML=''}};
  c.onpointerup=c.onpointercancel=function(e){var s=st;st=null;if(!s)return;G.ghost.innerHTML='';document.body.classList.remove('ldragging');if(s.chip)s.chip.remove();if(!s.on||e.type!=='pointerup'||!s.b)return;
-  if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else if(c.dataset.t==='edoor'||c.dataset.t==='roll')eAdd(s.b);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
+  if(c.dataset.t==='room')rAdd(s.b.x+s.b.w/2,s.b.y+s.b.d/2);else if(c.dataset.t==='win')wAdd(s.b);else if(c.dataset.t==='edoor'||c.dataset.t==='roll')eAdd(s.b);else{var before=snapP(),mem=memberOf(),r=rBy(s.b.r);r.doors.push(s.b.d);selR=r.id;selD=r.doors.length-1;bCommit(before,mem)}}})}
 function doorSpot(p){var best=null;RM().forEach(function(r){['n','e','s','w'].forEach(function(sd){var len=sideLen(r,sd);if(len<3)return;var along,dist;
   if(sd==='n'||sd==='s'){along=p.x-r.x;dist=Math.abs(p.y-(sd==='n'?r.y:r.y+r.d));if(along<-1||along>len+1)return}else{along=p.y-r.y;dist=Math.abs(p.x-(sd==='w'?r.x:r.x+r.w));if(along<-1||along>len+1)return}
   if(dist>2.5||(best&&dist>=best.dist))return;var t=Math.round(Math.max(0,Math.min(len-3,along-1.5))*2)/2;
   if((r.doors||[]).some(function(d){return d.s===sd&&t<d.t+(d.len||3)&&d.t<t+3}))return;best={dist:dist,r:r.id,d:{s:sd,t:t,len:3,sw:1,hg:0}}})});return best}
 function hOpts(v,max){var o='';for(var x=7;x<=max;x+=.5)o+='<option value="'+x+'"'+(Math.abs(x-v)<1e-6?' selected':'')+'>'+fmt(x)+'</option>';return o}
-function buildSide(){if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
+function buildSide(){if(selW&&wList(selW.h)[selW.i])return wCard();if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P.room.d,H=P.room.h||10,bc='<div class="card"><span class="lab">Building</span>'+
   '<div class="bgrid"><label class="fl">Width<span class="sdim"><select id="r-w" aria-label="Width in feet">'+dimOpts(W)+'</select><span class="mu">ft</span></span></label><label class="fl">Depth<span class="sdim"><select id="r-d" aria-label="Depth in feet">'+dimOpts(D)+'</select><span class="mu">ft</span></span></label></div>'+
   '<label class="fl">Building height<span class="sdim"><select id="r-h" aria-label="Clear building height in feet">'+ceilOpts()+'</select><span class="mu">ft</span></span></label>'+
   '<label class="sw" style="margin-top:10px" title="'+(P.dyn?'The building grows to fit new objects. Rooms stay where they are.':'The building stays this size.')+'"><input type="checkbox" id="r-dyn"'+(P.dyn?' checked':'')+'> Grow to fit what\'s inside</label>'+
@@ -176,7 +178,7 @@ function buildSide(){if(selE!=null&&ED()[selE])return eCard();var W=P.room.w,D=P
  else h+='<div class="card"><span class="lab">Rooms</span>'+(RM().length?RM().map(function(q){return '<button class="rli" data-r="'+q.id+'"><i style="background:'+rCol(q)+'"></i><span>'+esc(q.n)+'</span><small>'+fmt(q.w)+' × '+fmt(q.d)+' · '+fmt(q.h||H)+' ft</small></button>'}).join(''):'<p class="muted">Drag a Room onto the plan to wall off an office, bathroom or storage room. Everything else stays open floor.</p>')+'</div>';
  var bw=badWall();if(bw.length)h+='<div class="card"><div class="warn">'+bw.length+' object'+(bw.length>1?'s cross':' crosses')+' a wall and couldn\'t be moved clear. They\'re marked red. Move them in Design.</div></div>';
  return h}
-function buildSideWire(){if(selE!=null&&ED()[selE]){eCardWire();return}['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
+function buildSideWire(){if(selW&&wList(selW.h)[selW.i]){wCardWire();return}if(selE!=null&&ED()[selE]){eCardWire();return}['#r-w','#r-d'].forEach(function(q){var e=$(q);if(e)e.onchange=function(){this.blur();var w=parseFloat($('#r-w').value),d=parseFloat($('#r-d').value);if(w===P.room.w&&d===P.room.d)return;setSize(w,d)}});
  var hi2=$('#r-h');if(hi2)hi2.onchange=function(){var v=parseFloat(hi2.value)||null;if(v===(P.room.h||null))return;push();P.room.h=v;RM().forEach(function(r){if(v&&r.h>v)r.h=v});persist();render()};
  var dy=$('#r-dyn');if(dy)dy.onchange=function(){push();P.dyn=this.checked;persist();render()};
  document.querySelectorAll('#side .rli').forEach(function(b){b.onclick=function(){selR=b.dataset.r;selD=null;render()}});
@@ -193,7 +195,7 @@ function buildSideWire(){if(selE!=null&&ED()[selE]){eCardWire();return}['#r-w','
   document.querySelectorAll('input[name=dsw]').forEach(function(x){x.onchange=function(){var v=+x.value;upd(function(){d.sw=v})}});
   $('#d-flip').onclick=function(){upd(function(){d.hg=d.hg?0:1})};
   $('#d-del').onclick=function(){upd(function(){r.doors.splice(selD,1);selD=null})}}}
-function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;selE=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
+function setBuild(on){if(on&&EX.on)setExplore(false);if(!on&&EX.on)return;BLD=on;document.body.classList.toggle('building',on);selR=null;selD=null;selE=null;selW=null;if(on){sel=null;selO=null;selZ=null;selF=null;libV=null}renderLib();render()}
 /* ---- per-room summary ---- */
 var openRm={};
 function roomItems(r){return P.items.filter(function(it){var b=ibox(it),id=rid(b);return r?id===r.id:id==='o'||id===null})}

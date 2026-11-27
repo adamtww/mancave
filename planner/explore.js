@@ -1101,7 +1101,7 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
  var wallM=exMat(T,0xc4c8cc,{m:.25,r:.55,map:exTex(T,function(g,s){g.fillStyle='#c4c8cc';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.08)';g.fillRect(x,0,6,s);g.fillStyle='rgba(255,255,255,.1)';g.fillRect(x+6,0,3,s)}},256,[1,1])});
  var wall=function(x,z,w,d,len){var m=new T.Mesh(new T.BoxGeometry(w,H,d),wallM.clone());m.layers.enable(2);m.material.map=wallM.map.clone();m.material.map.needsUpdate=true;m.material.map.repeat.set(len/6,H/6);m.position.set(x,H/2,z);m.receiveShadow=true;S.add(m)};
  // outside walls, with openings for exterior doors and roll-up doors
- var EO=(P.edoors||[]).slice(),OUT=EO.length>0,rng=(function(){var x=7;return function(){x=(x*16807)%2147483647;return (x-1)/2147483646}})(),
+ var EO=(P.edoors||[]).slice(),EWN=(P.ewins||[]).slice(),OUT=EO.length>0||EWN.length>0,rng=(function(){var x=7;return function(){x=(x*16807)%2147483647;return (x-1)/2147483646}})(),
   bas=function(hex,map){return new T.MeshBasicMaterial({color:hex,map:map||null})},
   skinM=OUT?bas(0xb9bec3,exTex(T,function(g,s){g.fillStyle='#c9cdd1';g.fillRect(0,0,s,s);for(var x=0;x<s;x+=16){g.fillStyle='rgba(0,0,0,.10)';g.fillRect(x,0,5,s);g.fillStyle='rgba(255,255,255,.18)';g.fillRect(x+5,0,3,s)}},256,[1,1])):null,
   skin=function(sd,a,b,y0,y1){if(!OUT||b-a<.01||y1-y0<.01)return;var m=skinM.clone();m.map=skinM.map.clone();m.map.needsUpdate=true;m.map.repeat.set((b-a)/6,(y1-y0)/6);var pl=new T.Mesh(new T.PlaneGeometry(b-a,y1-y0),m),c=(a+b)/2,y=(y0+y1)/2;
@@ -1110,7 +1110,15 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
    var c=(a+b)/2,y=(y0+y1)/2;if(sd==='n')m.position.set(c,y,-.25);else if(sd==='s')m.position.set(c,y,D+.25);else if(sd==='w')m.position.set(-.25,y,c);else m.position.set(W+.25,y,c);m.receiveShadow=true;m.castShadow=OUT;S.add(m);skin(sd,a,b,y0,y1);
    if(y0<.01)EX.wallSolid.push(hor?{x:a,z:sd==='n'?-.5:D,w:len,d:.5}:{x:sd==='w'?-.5:W,z:a,w:.5,d:len})};
  EX.wallSolid=[];['n','s','w','e'].forEach(function(sd){var hor=sd==='n'||sd==='s',L=hor?W:D,lo=hor?-.5:0,hi=hor?L+.5:L,cur=lo;
-  EO.filter(function(d){return d.s===sd}).sort(function(a,b){return a.t-b.t}).forEach(function(d){var top=d.k==='roll'?eH(d):(d.h||6.67)+.25;piece(sd,cur,d.t,0,H);piece(sd,d.t,d.t+d.len,Math.min(top,H),H);cur=d.t+d.len});piece(sd,cur,hi,0,H)});
+  EO.filter(function(d){return d.s===sd}).map(function(d){return [d.t,d.t+d.len,0,d.k==='roll'?eH(d):(d.h||6.67)+.25]}).concat(ewinsOn(sd)).sort(function(a,b){return a[0]-b[0]}).forEach(function(o){piece(sd,cur,o[0],0,H);if(o[2]>0)piece(sd,o[0],o[1],0,o[2]);piece(sd,o[0],o[1],Math.min(o[3],H),H);cur=o[1]});piece(sd,cur,hi,0,H)});
+ // a window in a wall: frame, sill and glass (clear and tinted glass let light through; frosted glows and holds it back)
+ var winModel=function(cx,cz,hor,len,y0,y1,dep,w){var fm=exMat(T,0xf2f1ec,{r:.5}),fw=.16,gh=y1-y0,
+   gm=w.gt==='frost'?exMat(T,0xf3f6f8,{op:.88,r:.6,e:0xfff6e6,ei:.18}):w.gt==='tint'?exMat(T,0x5f7686,{op:.5,r:.05,m:.3}):exMat(T,0xcfe6f2,{op:.22,r:.03,m:.2}),
+   bx2=function(x,y,z,a,h,d2,m){var me=new T.Mesh(new T.BoxGeometry(hor?a:d2,h,hor?d2:a),m);me.position.set(x,y,z);S.add(me);return me};
+  [-1,1].forEach(function(q){var o=q*(len/2-fw/2);bx2(cx+(hor?o:0),y0+gh/2,cz+(hor?0:o),fw,gh,dep+.04,fm)});bx2(cx,y1-fw/2,cz,len,fw,dep+.04,fm);bx2(cx,y0+.05,cz,len+.3,.1,dep+.3,fm);
+  if(w.ty==='slider')bx2(cx,y0+gh/2,cz,.1,gh,dep*.6,fm);
+  var gp=bx2(cx,y0+gh/2,cz,len-fw*2,gh-fw-.1,.05,gm);gp.castShadow=w.gt==='frost';if(w.gt==='frost')gp.layers.enable(2)};
+ ['n','s','w','e'].forEach(function(sd){var hor=sd==='n'||sd==='s';EWN.filter(function(w){return w.s===sd}).forEach(function(w){var c=w.t+w.len/2;winModel(hor?c:(sd==='w'?-.25:W+.25),hor?(sd==='n'?-.25:D+.25):c,hor,w.len,w.sill,Math.min(wTop(w),H),.5,w)})});
  if(OUT){var roof=new T.Mesh(new T.BoxGeometry(W+1.2,.5,D+1.2),[bas(0x8e9296),bas(0x8e9296),bas(0x6f7377),bas(0x6f7377),bas(0x8e9296),bas(0x8e9296)]);roof.position.set(W/2,H+.25,D/2);S.add(roof)}
  var ceil=new T.Mesh(new T.PlaneGeometry(W,D),exMat(T,0xd9dbde,{r:.95}));ceil.material.side=T.DoubleSide;ceil.castShadow=OUT;ceil.rotation.x=Math.PI/2;ceil.position.set(W/2,H,D/2);ceil.receiveShadow=true;S.add(ceil);
  // objects
@@ -1181,8 +1189,12 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
    ['n','e','s','w'].forEach(function(sd){var len=sd==='n'||sd==='s'?r.w:r.d,gaps=sideGaps(r,sd),cur=0,parts=[];
     gaps.forEach(function(g){var tp=g[2]||7;if(g[0]>cur)parts.push([cur,g[0],0,wh]);if(wh>tp+.05)parts.push([g[0],g[1],tp,wh]);cur=Math.max(cur,g[1])});if(cur<len)parts.push([cur,len,0,wh]);
     var sh=sideShared(r,sd);if(sh.length){var cut=[];parts.forEach(function(q){var segs=[[q[0],q[1]]];sh.forEach(function(x){var nx=[];segs.forEach(function(g){if(x[1]<=g[0]||x[0]>=g[1]){nx.push(g);return}if(x[0]>g[0])nx.push([g[0],x[0]]);if(x[1]<g[1])nx.push([x[1],g[1]])});segs=nx});segs.forEach(function(g){if(g[1]-g[0]>1e-3)cut.push([g[0],g[1],q[2],q[3]])})});parts=cut}
+    // cut window holes in the parts of this wall the room builds
+    winsOn(r,sd).forEach(function(wn){var nx=[];parts.forEach(function(q){if(wn[1]<=q[0]+1e-6||wn[0]>=q[1]-1e-6||wn[3]<=q[2]+1e-6||wn[2]>=q[3]-1e-6){nx.push(q);return}
+      var xa=Math.max(q[0],wn[0]),xb=Math.min(q[1],wn[1]);if(wn[0]>q[0])nx.push([q[0],wn[0],q[2],q[3]]);if(wn[1]<q[1])nx.push([wn[1],q[1],q[2],q[3]]);if(wn[2]>q[2])nx.push([xa,xb,q[2],wn[2]]);if(wn[3]<q[3])nx.push([xa,xb,wn[3],q[3]])});parts=nx});
     parts.forEach(function(q){var a=q[0],b=q[1],hor=sd==='n'||sd==='s',fx=hor?r.x+(a+b)/2:(sd==='w'?r.x:r.x+r.w),fz=hor?(sd==='n'?r.y:r.y+r.d):r.y+(a+b)/2,w=hor?b-a:TH,d=hor?TH:b-a;
      seg(fx,fz,w,d,q[2],q[3],b-a);if(q[2]===0)EX.solid.push({x:fx-w/2,z:fz-d/2,w:w,d:d})})});
+   (r.wins||[]).forEach(function(w){var g=dGeo(r,w),hor=w.s==='n'||w.s==='s';winModel((g.a.x+g.b.x)/2,(g.a.y+g.b.y)/2,hor,w.len,w.sill,Math.min(wTop(w),wh),TH,w)});
    (r.doors||[]).forEach(function(d){var g=dGeo(r,d),L=g.L,hx=g.h.x,hz=g.h.y,leaf=new T.Mesh(new T.BoxGeometry(.13,6.9,L-.1),leafM);
     leaf.position.set(hx+g.sn.x*(L/2),3.45,hz+g.sn.y*(L/2));
     if(g.sn.x!==0){leaf.geometry=new T.BoxGeometry(L-.1,6.9,.13)}leaf.castShadow=true;S.add(leaf);
