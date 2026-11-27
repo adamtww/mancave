@@ -1281,5 +1281,7 @@ window.addEventListener('resize',function(){if(EX.on&&EX.size)EX.size()});
 
 // Esc leaves Explore: the browser frees the mouse on Esc, so leaving the lock (while this window still has focus) means leave
 document.addEventListener('pointerlockchange',function(){var h=$('#explore');if(document.pointerLockElement===h){EX.locked=true;return}
- if(EX.on&&EX.locked&&document.hasFocus()){EX.locked=false;setExplore(false)}else EX.locked=false});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EX.on&&!document.pointerLockElement){e.preventDefault();setExplore(false)}});
+ if(EX.on&&EX.locked&&document.hasFocus()){EX.locked=false;exLeave()}else EX.locked=false});
+// leaving Explore with Esc goes back to the tab it was opened from (Build or Design)
+function exLeave(){var back=EX.back;setExplore(false);if(back==='b')setBuild(true)}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EX.on&&!document.pointerLockElement){e.preventDefault();exLeave()}});
