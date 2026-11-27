@@ -191,6 +191,18 @@ dialog.wide{max-width:min(880px,96vw)}
 .oed .cf{grid-column:2;grid-row:3}.oed .cl{grid-column:1;grid-row:2}.oed .cobj{grid-column:2;grid-row:2}.oed .cr{grid-column:3;grid-row:2}.oed .cb{grid-column:2;grid-row:1}
 .oed .cbox input{width:56px;box-sizing:border-box;text-align:center;font:inherit;font-size:14px;font-weight:600;padding:6px;border:1px solid #d9d6ce;border-radius:8px;background:#fff;color:var(--ink)}
 .oed .cbox em{display:block;font-style:normal;font-size:11px;color:#8a867c;text-align:center;margin-top:2px}
+.oed .cbox em .kmn{display:block;font-size:10.5px;font-weight:700;color:#a8590d;white-space:nowrap}
+.oed .cbox input[data-min]{border-color:#e9b97a}
+.oed .cbox input.kbump{animation:kbump .9s}
+@keyframes kbump{0%,40%{background:#fde7c7;border-color:#d97706}100%{background:#fff}}
+.kmnote{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:8px 10px;border-radius:9px;background:#fdf4e7;border:1px solid #f1d6ad;color:#7a4a10}
+.kmnote svg{flex:none;margin-top:1px;color:#b45309}
+.kmnote b{display:block;font-size:12.5px}
+.kmnote small{display:block;font-size:11.5px;line-height:1.35;margin-top:3px;color:#7a5a30}
+.kmnote small i{font-style:normal;color:#a08664}
+.kmnote.kflash{animation:kflash .9s}
+@keyframes kflash{0%,40%{background:#fbd9a5}100%{background:#fdf4e7}}
+.stag{font-style:normal;font-size:10.5px;font-weight:700;color:#a8590d;background:#fdf0dc;border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:1px}
 .oed .cobj{width:100%;min-height:60px;box-sizing:border-box;border:2px solid #3a3936;border-radius:6px;background:#f5f4f0;outline:2px dashed #9cc0f3;outline-offset:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;font-size:12px;font-weight:600;color:#3a3936;text-align:center;overflow:hidden}
 .oed .cobj i{font-style:normal;font-size:10px;color:#2f7de1;font-weight:700;margin-top:2px}
 .oed .cobj span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}

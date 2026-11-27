@@ -2,6 +2,6 @@
 import os
 here=os.path.dirname(os.path.abspath(__file__));root=os.path.dirname(here)
 r=lambda *f:open(os.path.join(*f),encoding='utf-8').read()
-out=r(here,'template.html').replace('/*LIBCSS*/',r(here,'lib.css')).replace('/*CATALOG*/',r(root,'src','catalog.js')).replace('/*ICONS*/',r(root,'src','icons.js')).replace('/*PLANNER*/',r(here,'planner.js').replace('/*EXPLORE*/',r(here,'explore.js')).replace('/*ZONES*/',r(here,'zones.js')).replace('/*ROOMS*/',r(here,'rooms.js')).replace('/*FLOORS*/',r(here,'floors.js')).replace('/*OPENINGS*/',r(here,'openings.js')).replace('/*SUMMARY*/',r(here,'summary.js')))
+out=r(here,'template.html').replace('/*LIBCSS*/',r(here,'lib.css')).replace('/*CATALOG*/',r(root,'src','catalog.js')).replace('/*ICONS*/',r(root,'src','icons.js')).replace('/*PLANNER*/',r(here,'planner.js').replace('/*EXPLORE*/',r(here,'explore.js')).replace('/*ZONES*/',r(here,'zones.js')).replace('/*ROOMS*/',r(here,'rooms.js')).replace('/*FLOORS*/',r(here,'floors.js')).replace('/*OPENINGS*/',r(here,'openings.js')).replace('/*SUMMARY*/',r(here,'summary.js')).replace('/*SAFETY*/',r(here,'safety.js')))
 open(os.path.join(root,'space-planner.html'),'w',encoding='utf-8').write(out)
 print('built space-planner.html')

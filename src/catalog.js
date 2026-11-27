@@ -22,6 +22,8 @@ var ALERTS={
  ev:["EV charging","A Level 2 charger needs a 240V circuit (often 50–60 A). Check the panel has room before planning one."],
  threephase:["3-phase power","This machine usually needs 3-phase power (208V or 480V). Many small industrial units only have single-phase; ask on every tour. A phase converter is the fallback."],
  spray:["Spray finishing","Paint and powder spraying needs a proper booth with exhaust, and the fire marshal will want to see it. Keep it away from welding, grinding and lasers."],
+ hotwork:["Sparks and spatter","Welding, plasma and grinding sparks travel up to 35 ft. Keep wood, lumber, dust collectors, spray booths and flammables that far away, or put fire curtains or a wall between. Work on bare concrete, not wood, carpet or rink flooring."],
+ heatclr:["Heat below the heater","Hanging heaters need a clear space below and around them to anything combustible (often several feet for tube heaters; check the maker's label). Don't hang one over lumber, a car lift or a spray booth."],
  notyet:["Not released yet","Not available yet — dimensions and power are placeholders."]
 };
 /* Library rules:
@@ -161,7 +163,7 @@ var CATALOG=[
  {r:"m-resin",h:4.5,c:"Creator / Maker",n:"Resin printing bench (printer + wash/cure)",w:3,d:2,cl:2,cf:1,p:[120,300,20,0],est:1,a:["fumes"],cost:[400,3000],no:"Resin smells and is a skin irritant: ventilate, and keep it off the food side."},
  {r:"m-vinyl",h:4,c:"Creator / Maker",n:"Vinyl cutter / plotter on a stand",w:3.5,d:1.5,cl:2,cf:1,p:[120,100,20,0],est:1,cost:[300,2500]},
  {r:"m-mill",h:5,c:"Creator / Maker",n:"Desktop CNC router / mill, on a stand",w:3,d:3,cl:2,p:[120,800,20,0],est:1,a:["dust"],cost:[1500,6000],no:"Small CNC for wood, plastics and soft metals. Add an enclosure to keep the noise and chips down."},
- {r:"m-bench",h:5,c:"Creator / Maker",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000]},
+ {r:"m-bench",h:5,c:"Creator / Maker",n:"Electronics / soldering bench",bi:1,bmin:2,bmax:4,bl:1,w:6,d:3,cl:3,cf:1,p:[120,600,20,0],cost:[800,3000],a:["fumes"]},
  {r:"m-filament",h:6,c:"Creator / Maker",n:"Filament & material storage",bi:1,bmin:1,bmax:2.5,bl:1,w:6,d:2,cl:3,cf:1,cost:[200,1500]},
  // Woodworking
  {r:"w-tsaw",h:3.3,c:"Woodworking",n:"Cabinet table saw 3 HP (w/ outfeed)",w:6,d:10,cl:4,p:[240,3100,20,1],est:1,a:["dust"],cost:[3000,6000]},
@@ -259,8 +261,8 @@ var CATALOG=[
  {r:"a-tire",h:4,c:"Auto & Garage",n:"Tire changer",w:3.5,d:3.5,cl:3,p:[120,1100,20,0],est:1,cost:[1500,6000],no:"Also needs shop air."},
  {r:"a-balance",h:4.5,c:"Auto & Garage",n:"Wheel balancer",w:3,d:3,cl:3,cf:1,p:[120,500,20,0],est:1,cost:[1500,6000]},
  {r:"a-press",h:6,c:"Auto & Garage",n:"Shop press (20-ton)",w:2.5,d:2,cl:3,cf:1,cost:[300,1500]},
- {r:"a-mig1",h:2.5,c:"Auto & Garage",n:"MIG welder — hobby (120V)",w:1.5,d:2.5,cl:4,p:[120,2400,20,1],est:1,a:["gas"],cost:[400,1200],no:"Flux-core or MIG with a small gas bottle on a cart."},
- {r:"a-mig2",h:3.5,c:"Auto & Garage",n:"MIG / TIG welder — shop (240V)",w:2,d:3,cl:4,p:[240,7000,50,1],est:1,a:["gas"],cost:[1500,6000],no:"Needs a 240V welder outlet (often 50 A) and gas bottles chained to the cart or wall."},
+ {r:"a-mig1",h:2.5,c:"Auto & Garage",n:"MIG welder — hobby (120V)",w:1.5,d:2.5,cl:4,p:[120,2400,20,1],est:1,a:["hotwork","gas"],cost:[400,1200],no:"Flux-core or MIG with a small gas bottle on a cart."},
+ {r:"a-mig2",h:3.5,c:"Auto & Garage",n:"MIG / TIG welder — shop (240V)",w:2,d:3,cl:4,p:[240,7000,50,1],est:1,a:["hotwork","gas"],cost:[1500,6000],no:"Needs a 240V welder outlet (often 50 A) and gas bottles chained to the cart or wall."},
  {r:"a-blast",h:5.5,c:"Auto & Garage",n:"Sandblast cabinet",w:4,d:3,cl:3,cf:1,p:[120,300,20,0],est:1,a:["dust"],cost:[500,3000],no:"Needs plenty of shop air and a dust collector."},
  {r:"a-parts",h:3.5,c:"Auto & Garage",n:"Parts washer",w:3,d:2,cl:3,cf:1,p:[120,200,20,0],a:["fumes"],cost:[200,1500]},
  {r:"a-hoist",h:6.5,c:"Auto & Garage",n:"Engine hoist + engine stand",w:4,d:7,cl:2,ov:1,cost:[300,1200],no:"Folds up when not in use."},
@@ -298,8 +300,8 @@ var CATALOG=[
  {r:"mf-water1",h:3.5,c:"Metal & Fabrication",n:"Waterjet cutter — desktop",w:5,d:3,cl:3,cf:1,p:[120,1800,20,1],est:1,a:["plumbing"],cost:[8000,15000],no:"Benchtop waterjet with its own stand and pump. Needs a water supply and a place to settle and empty the spent garnet."},
  {r:"mf-water2",h:5,c:"Metal & Fabrication",n:"Waterjet cutter — industrial",w:9,d:15,cl:3,p:[240,500,20,1],est:1,a:["plumbing","threephase"],cost:[80000,250000],no:"The tank holds tons of water: check the slab can take it. Add the high-pressure pump as its own object; it sits nearby."},
  {r:"mf-wpump",h:5,c:"Metal & Fabrication",n:"Waterjet high-pressure pump",w:5,d:3,cl:3,p:[240,37000,150,1],est:1,a:["threephase"],cost:[0,0],no:"Comes with the industrial waterjet. A 50 HP pump usually wants 3-phase 480V. Loud; also needs cooling water."},
- {r:"mf-plasma1",h:5,c:"Metal & Fabrication",n:"CNC plasma table — shop",w:7,d:7,cl:3,p:[240,9600,50,1],est:1,a:["fumes"],cost:[5000,15000],no:"Water table or down-draft with fume extraction. Plus a compressor for the torch."},
- {r:"mf-plasma2",h:5.5,c:"Metal & Fabrication",n:"CNC plasma table — production",w:8,d:14,cl:3,p:[240,14400,70,1],est:1,a:["fumes","threephase"],cost:[25000,80000],no:"Production plasma; the bigger cutters often run on 3-phase."},
+ {r:"mf-plasma1",h:5,c:"Metal & Fabrication",n:"CNC plasma table — shop",w:7,d:7,cl:3,p:[240,9600,50,1],est:1,a:["hotwork","fumes"],cost:[5000,15000],no:"Water table or down-draft with fume extraction. Plus a compressor for the torch."},
+ {r:"mf-plasma2",h:5.5,c:"Metal & Fabrication",n:"CNC plasma table — production",w:8,d:14,cl:3,p:[240,14400,70,1],est:1,a:["hotwork","fumes","threephase"],cost:[25000,80000],no:"Production plasma; the bigger cutters often run on 3-phase."},
  {r:"mf-fiber",h:6,c:"Metal & Fabrication",n:"Fiber laser sheet-metal cutter (enclosed)",w:12,d:20,cl:4,p:[240,30000,100,1],est:1,a:["co2","threephase"],cost:[80000,300000],no:"Enclosed fiber laser with an exchange table, chiller and dust/fume collector. Needs 3-phase power."},
  {r:"mf-brake",h:8,c:"Metal & Fabrication",n:"Press brake",w:9,d:6,cl:4,cf:1,p:[240,11000,50,1],est:1,a:["threephase"],cost:[15000,60000],no:"Front clearance is for handling long parts. Hydraulic and CNC brakes are usually 3-phase."},
  {r:"mf-shear",h:4,c:"Metal & Fabrication",n:"Sheet-metal shear",w:8,d:5,cl:4,cf:1,p:[240,5600,30,1],est:1,cost:[3000,25000]},
@@ -308,18 +310,18 @@ var CATALOG=[
  {r:"mf-lathe",h:4.5,c:"Metal & Fabrication",n:"Metal lathe",w:7,d:3,cl:3,cf:1,p:[240,2200,20,1],est:1,cost:[3000,15000],no:"Heavy: put it on the slab, not a raised floor."},
  {r:"mf-mill",h:7.5,c:"Metal & Fabrication",n:"Knee mill",w:6,d:6,cl:3,p:[240,2200,20,1],est:1,cost:[4000,20000],no:"Older mills are often 3-phase; a phase converter runs them on 240V single-phase."},
  {r:"mf-hband",h:3.5,c:"Metal & Fabrication",n:"Horizontal metal bandsaw",w:5,d:2,cl:3,p:[120,1100,20,0],est:1,cost:[700,4000],no:"Leave room at both ends for long stock."},
- {r:"mf-grind",h:4,c:"Metal & Fabrication",n:"Pedestal grinder / belt grinder",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,0],est:1,cost:[300,2500],no:"Sparks: keep it away from sawdust and flammables."},
- {r:"mf-table",h:3,c:"Metal & Fabrication",n:"Welding / fixture table",w:8,d:4,cl:3,cost:[1500,8000],no:"Steel table with fixture holes; doubles as a layout bench."},
+ {r:"mf-grind",h:4,c:"Metal & Fabrication",n:"Pedestal grinder / belt grinder",w:2,d:2,cl:2.5,cf:1,p:[120,1500,20,0],est:1,cost:[300,2500],a:["hotwork"],no:"Sparks: keep it away from sawdust and flammables."},
+ {r:"mf-table",h:3,c:"Metal & Fabrication",n:"Welding / fixture table",w:8,d:4,cl:3,cost:[1500,8000],a:["hotwork"],no:"Steel table with fixture holes; doubles as a layout bench."},
  {r:"mf-spray",h:8,c:"Metal & Fabrication",n:"Paint spray booth (walk-in)",w:10,d:14,cl:3,cf:1,p:[240,3000,30,1],est:1,a:["fumes","spray"],cost:[8000,40000],no:"Ducted exhaust, explosion-proof lights and fire protection. Inspected by the fire marshal."},
  {r:"mf-pcbooth",h:8,c:"Metal & Fabrication",n:"Powder-coat booth + gun",w:5,d:5,cl:3,cf:1,p:[120,1500,20,1],est:1,a:["spray"],cost:[1500,8000],no:"Filtered booth to catch overspray."},
- {r:"mf-pcoven",h:8,c:"Metal & Fabrication",n:"Powder-coat curing oven (walk-in)",w:6,d:5,cl:3,cf:1,p:[240,12000,60,1],est:1,cost:[3000,15000],no:"Electric batch oven; plan a 60 A 240V circuit."},
+ {r:"mf-pcoven",h:8,c:"Metal & Fabrication",n:"Powder-coat curing oven (walk-in)",w:6,d:5,cl:3,cf:1,p:[240,12000,60,1],est:1,cost:[3000,15000],a:["fumes"],no:"Electric batch oven; plan a 60 A 240V circuit."},
  {r:"mf-chiller",h:4,c:"Metal & Fabrication",n:"Water chiller",w:2,d:3,cl:2,p:[240,3000,20,1],est:1,cost:[1500,8000],no:"For lasers, welders and spindles. Gives off heat: don't box it in."},
  // Print & finishing (Creator / Maker)
  {r:"m-uvflat",h:4.5,c:"Creator / Maker",n:"Flatbed UV printer",w:6,d:4,cl:3,p:[120,1500,20,1],est:1,a:["fumes"],cost:[15000,60000],no:"Prints directly on panels, blanks and signs."},
  {r:"m-large",h:4.2,c:"Creator / Maker",n:"Large-format printer",w:9,d:3,cl:3,cf:1,p:[120,1200,20,1],est:1,cost:[8000,25000],no:"Banners, vinyl wraps and posters. Pair it with a laminator or a cutter."},
  {r:"m-screen",h:4.5,c:"Creator / Maker",n:"Screen-printing press (4-colour)",w:6,d:6,cl:3,cost:[500,4000]},
  {r:"m-expose",h:3.5,c:"Creator / Maker",n:"Screen exposure unit",w:3,d:3,cl:2,cf:1,p:[120,400,20,0],cost:[500,3000],no:"Wants a darkroom corner and a washout sink nearby."},
- {r:"m-tunnel",h:4,c:"Creator / Maker",n:"Conveyor dryer (screen printing)",w:3,d:8,cl:2,p:[240,6000,30,1],est:1,cost:[3000,10000]},
+ {r:"m-tunnel",h:4,c:"Creator / Maker",n:"Conveyor dryer (screen printing)",w:3,d:8,cl:2,p:[240,6000,30,1],est:1,cost:[3000,10000],a:["fumes"]},
  // Woodworking (more)
  {r:"w-cyclone",h:10,c:"Woodworking",n:"Cyclone dust collector (central)",w:4,d:4,cl:2,p:[240,3700,30,1],est:1,a:["dust"],cost:[2500,6000],no:"Ducted to all the big machines. Quieter in a closet."},
  // Storage & Utility (more)
@@ -408,8 +410,8 @@ var CATALOG=[
  {r:"cs-impact",c:"Sound",n:"Impact-resistant speaker",ceiling:true,w:1,d:1,k:[0,0,0,0],reach:12,drop:1,p:null,cost:[200,700],no:"Tough, guarded speaker for the court or gym where balls fly."},
  {r:"cc-hvls",c:"Comfort",n:"Big warehouse fan (HVLS)",ceiling:true,w:16,d:16,k:[0,0,0,0],reach:30,drop:3,p:[240,1500,20,1],cost:[5000,15000],no:"High-volume, low-speed fan, 8–24 ft across. Moves air through a whole warehouse; blades need about 10 ft above the floor."},
  {r:"cc-fan",c:"Comfort",n:"Ceiling fan",ceiling:true,w:5,d:5,k:[0,0,0,0],reach:8,drop:1.5,p:[120,75,20,0],cost:[100,500],no:"Standard fan for a lounge, office or garage."},
- {r:"cc-unith",c:"Comfort",n:"Hanging unit heater",ceiling:true,w:3,d:2,k:[0,0,0,0],reach:20,drop:2,p:[120,250,20,0],cost:[800,2500],no:"Gas or electric box heater hung near the ceiling, aimed down at the work area."},
- {r:"cc-irtube",c:"Comfort",n:"Infrared tube heater",ceiling:true,w:20,d:1,k:[0,0,0,0],reach:12,drop:1,p:[120,200,20,0],cost:[1500,4000],no:"Long radiant tube that warms people and floors directly; good for drafty shops."},
+ {r:"cc-unith",c:"Comfort",n:"Hanging unit heater",ceiling:true,w:3,d:2,k:[0,0,0,0],reach:20,drop:2,p:[120,250,20,0],cost:[800,2500],a:["heatclr"],no:"Gas or electric box heater hung near the ceiling, aimed down at the work area."},
+ {r:"cc-irtube",c:"Comfort",n:"Infrared tube heater",ceiling:true,w:20,d:1,k:[0,0,0,0],reach:12,drop:1,p:[120,200,20,0],cost:[1500,4000],a:["heatclr"],no:"Long radiant tube that warms people and floors directly; good for drafty shops."},
  {r:"cc-cassette",c:"Comfort",n:"Mini-split cassette",ceiling:true,w:2,d:2,k:[0,0,0,0],reach:12,drop:1,p:[240,1500,20,1],cost:[2000,5000],no:"Ceiling cassette for a ductless heat pump: heating and cooling for a lounge, office or grow room."}
 ];
 /* Clearance ("keep this empty to use it") per side, relative to the object's front: k = [front, back, left, right],
