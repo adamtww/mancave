@@ -1283,5 +1283,5 @@ window.addEventListener('resize',function(){if(EX.on&&EX.size)EX.size()});
 document.addEventListener('pointerlockchange',function(){var h=$('#explore');if(document.pointerLockElement===h){EX.locked=true;return}
  if(EX.on&&EX.locked&&document.hasFocus()){EX.locked=false;exLeave()}else EX.locked=false});
 // leaving Explore with Esc goes back to the tab it was opened from (Build or Design)
-function exLeave(){var back=EX.back;setExplore(false);if(back==='b')setBuild(true)}
+function exLeave(){var back=EX.back;setExplore(false);if(back==='b')setBuild(true);else if(back==='s')setSummary(true)}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&EX.on&&!document.pointerLockElement){e.preventDefault();exLeave()}});
