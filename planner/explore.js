@@ -1031,6 +1031,8 @@ function exShape(T,c,w,d,h,M){var g=new T.Group(),k=Kit(T,g),col=CATCOLOR[c.c]||
  // fallback: a tidy block with a plinth and a lighter top
  k.box(0,0,0,w,.25,d,dark);k.box(0,.25,0,w-.06,h-.35,d-.06,body);k.box(0,h-.1,0,w,.1,d,bodyL);return g}
 
+// light fixtures are the light source: the room light sits right above them, so a lamp casting a shadow throws a huge silhouette on the floor
+function noLampShadow(c,g){if(c&&/^cl-/.test(c.r))g.traverse(function(o){o.castShadow=false})}
 function exCeilShape(T,c,w,d,M){var g=new T.Group(),k=Kit(T,g),r=c.r,lamp=/^cl-/.test(r),drop=c.drop||0,
   blk=mc(T,0x1c1c1f,{r:.5}),dk=mc(T,0x2d3036,{m:.4,r:.45}),wht=mc(T,0xeeece6,{r:.5}),chr=mc(T,0xcfd3d6,{m:.85,r:.25}),alu=mc(T,0xb8bcc0,{m:.6,r:.35}),
   lc=r==='cl-growb'||r==='cl-growp'?0xd28cff:r==='cl-black'?0x9a5cff:r==='cl-stage'?0x8fe0ff:0xfff1cf,glow=mc(T,0xffffff,{e:lc,ei:2.2,r:.3}),
@@ -1202,13 +1204,13 @@ function exBuild(){var T=EX.T,W=P.room.w,D=P.room.d,H=P.room.h||10,S=new T.Scene
     EX.solid.push({x:Math.min(hx,g.tip.x)-.08,z:Math.min(hz,g.tip.y)-.08,w:Math.abs(g.tip.x-hx)+.16,d:Math.abs(g.tip.y-hz)+.16})});
    if(wh<H-.05){var lt=Math.min(.35,H-wh),lid=new T.Mesh(new T.BoxGeometry(r.w,lt,r.d),[lidTop,lidTop,lidTop,lidM,lidTop,lidTop]);lid.position.set(r.x+r.w/2,wh+lt/2,r.y+r.d/2);lid.castShadow=true;lid.receiveShadow=true;lid.layers.enable(2);S.add(lid)}})}
  P.items.forEach(function(it){var c=defOf(it);if(!c)return;var m=dims(it,it.rot),w0=it.w||c.w,d0=it.d||c.d,cx=it.x+m.w/2,cz=it.y+m.d/2;
-  if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M),drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
+  if(c.ceiling){var cs=exCeilShape(T,c,w0,d0,M);noLampShadow(c,cs.g);var drop=fanDrop(it),H=hAt(cx,cz);cs.g.position.set(cx,H-drop,cz);cs.g.rotation.y=-(it.rot||0)*Math.PI/2;
    if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(cx,H-drop/2,cz);S.add(rod)}S.add(cs.g);if(cs.spin)EX.spin.push(cs.spin);if(cs.light){var ps=P.pw&&pstat(it),off=!!(ps&&ps.lv==='red');if(off)cs.g.traverse(function(o){if(o.material&&o.material.emissive&&o.material.emissiveIntensity>0&&o.material.emissive.getHex()){o.material=o.material.clone();o.material.emissive.setHex(0);o.material.emissiveIntensity=0}});lights.push({x:cx,z:cz,y:H-drop-.8,col:cs.light,c:c,off:off})}return}
   var h=c.h||Math.max(2,Math.min(6,Math.min(w0,d0)));var g=exShape(T,c,w0,d0,h,M);g.position.set(cx,0,cz);g.rotation.y=-(it.rot||0)*Math.PI/2;S.add(g);
   if(/^a-(car|pickup|evbay)$/.test(c.r)||NOWALK.test(c.r)){var ln=new T.Mesh(new T.PlaneGeometry(m.w,m.d),exMat(T,/^c-/.test(c.r)?0x3c6e9e:0xffffff,{op:/^c-/.test(c.r)?.55:.12,r:.8}));ln.rotation.x=-Math.PI/2;ln.position.set(cx,.02,cz);S.add(ln)}
   if(!NOWALK.test(c.r)&&h>.6)EX.solid.push({x:it.x,z:it.y,w:m.w,d:m.d})});
  // light-zone fixtures
- if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M),drop=f.c.drop||0,H=hAt(f.x,f.y);cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
+ if(P.zones&&P.zones.length)zFixAll().forEach(function(f){var cs=exCeilShape(T,f.c,f.rot?f.d:f.w,f.rot?f.w:f.d,M);noLampShadow(f.c,cs.g);var drop=f.c.drop||0,H=hAt(f.x,f.y);cs.g.position.set(f.x,H-drop,f.y);cs.g.rotation.y=-(f.rot||0)*Math.PI/2;
   if(drop>.4&&!cs.cords){var rod=new T.Mesh(new T.CylinderGeometry(.03,.03,drop),M.dark);rod.position.set(f.x,H-drop/2,f.y);S.add(rod)}S.add(cs.g);if(cs.light)lights.push({x:f.x,z:f.y,y:H-drop-.8,col:f.col||cs.light,c:f.c,off:false,zone:f.z})});
  // light: real fixtures. Brightness from lumens (LED ~130 lm/W) spread over each fixture's beam, in feet,
  // plus a fill light for what bounces off the floor and walls. Fixtures that aren't powered stay off.
